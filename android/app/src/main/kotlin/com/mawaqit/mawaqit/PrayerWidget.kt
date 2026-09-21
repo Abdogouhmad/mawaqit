@@ -8,14 +8,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.LocalSize
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
@@ -34,6 +32,15 @@ import androidx.glance.unit.ColorProvider
  * Reads the snapshot that [WidgetService] (Flutter) pushed through home_widget's
  * `HomeWidgetPreferences` bridge on every re-render. Decoupled from the
  * plugin's own Glance helper classes so it only depends on androidx.glance.
+ *
+ * Responsive: [sizeMode] registers distinct sizes (110dp / 180dp / 260dp wide)
+ * so the launcher has valid resize steps for 3x1 and 4x1. Content avoids
+ * `LocalSize.current` — reading a `CompositionLocal<DpSize>` (inline class)
+ * trips a known Kotlin backend bug (`Couldn't inline method call`) — so the
+ * single layout below is sized and `maxLines = 1`-clipped to fit every
+ * registered width instead. Every Text is `maxLines = 1`: glance text that
+ * overflows its bounds can render fully clipped/invisible rather than
+ * truncated depending on host.
  *
  * NOTE: changing [sizeMode] (or the provider XML) changes the widget's size
  * metadata, which some launchers only re-read when the widget is removed and
@@ -67,13 +74,11 @@ class PrayerWidget : GlanceAppWidget() {
         val white = ColorProvider(Color.White)
 
         provideContent {
-            val size = LocalSize.current
             PrayerWidgetContent(
                 prayerName = name,
                 prayerTime = time,
                 minutesLeft = minutesLeft,
                 progress = progress,
-                compact = size.width < 150.dp, // hide subtitle at narrow widths
                 sage = sage,
                 white = white,
             )
@@ -87,7 +92,6 @@ fun PrayerWidgetContent(
     prayerTime: String,
     minutesLeft: Int,
     progress: Float,
-    compact: Boolean,
     sage: ColorProvider,
     white: ColorProvider,
 ) {
@@ -104,24 +108,22 @@ fun PrayerWidgetContent(
                 maxLines = 1,
                 style = TextStyle(
                     color = white,
-                    fontSize = if (compact) 16.sp else 20.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 ),
             )
-            if (!compact) {
-                Spacer(GlanceModifier.height(4.dp))
-                Text(
-                    text = if (minutesLeft >= 0)
-                        "in $minutesLeft min • $prayerTime"
-                    else
-                        prayerTime,
-                    maxLines = 1,
-                    style = TextStyle(
-                        color = ColorProvider(Color.White.copy(alpha = 0.8f)),
-                        fontSize = 13.sp,
-                    ),
-                )
-            }
+            Spacer(GlanceModifier.height(4.dp))
+            Text(
+                text = if (minutesLeft >= 0)
+                    "in $minutesLeft min • $prayerTime"
+                else
+                    prayerTime,
+                maxLines = 1,
+                style = TextStyle(
+                    color = ColorProvider(Color.White.copy(alpha = 0.8f)),
+                    fontSize = 13.sp,
+                ),
+            )
             Spacer(GlanceModifier.defaultWeight())
             LinearProgressIndicator(
                 progress = progress,
