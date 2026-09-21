@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Waqt - Settings</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Manrope Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS with configuration -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-bright": "#f9f9f6",
+            "inverse-primary": "#88d6af",
+            "secondary-fixed": "#b9efd0",
+            "tertiary-fixed": "#cee9d6",
+            "on-error": "#ffffff",
+            "outline": "#6f7a72",
+            "tertiary-container": "#5c7566",
+            "inverse-on-surface": "#f1f1ee",
+            "error": "#ba1a1a",
+            "surface-container-high": "#e8e8e5",
+            "tertiary": "#445c4e",
+            "surface-dim": "#dadad7",
+            "surface-container": "#eeeeeb",
+            "secondary": "#366850",
+            "surface-container-highest": "#e2e3e0",
+            "on-secondary-fixed-variant": "#1d5039",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#f4f4f1",
+            "on-tertiary-fixed": "#082014",
+            "on-surface": "#1a1c1b",
+            "surface-tint": "#176b4b",
+            "on-secondary-container": "#3c6e56",
+            "on-background": "#1a1c1b",
+            "on-primary": "#ffffff",
+            "primary-fixed-dim": "#88d6af",
+            "on-tertiary": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-primary-fixed": "#002113",
+            "primary-fixed": "#a4f3ca",
+            "primary-container": "#2e7d5b",
+            "secondary-container": "#b9efd0",
+            "surface": "#f9f9f6",
+            "on-surface-variant": "#3f4943",
+            "on-secondary": "#ffffff",
+            "secondary-fixed-dim": "#9dd2b5",
+            "on-error-container": "#93000a",
+            "background": "#f9f9f6",
+            "on-secondary-fixed": "#002113",
+            "on-primary-container": "#d0ffe3",
+            "inverse-surface": "#2f312f",
+            "primary": "#2e7d5b",
+            "on-tertiary-fixed-variant": "#344c3e",
+            "tertiary-fixed-dim": "#b2cdbb",
+            "outline-variant": "#bec9c1",
+            "on-tertiary-container": "#dffbe7",
+            "on-primary-fixed-variant": "#005236",
+            "surface-variant": "#e2e3e0"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "margin": "1.25rem",
+            "space-xl": "2.5rem",
+            "gutter-tablet": "1.5rem",
+            "margin-tablet": "2.5rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "margin-desktop": "3rem",
+            "gutter-desktop": "1.5rem",
+            "gutter": "1rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Manrope"],
+            "display-lg": ["Manrope"],
+            "label-lg": ["Manrope"],
+            "title-lg": ["Manrope"],
+            "title-md": ["Manrope"],
+            "display-lg-mobile": ["Manrope"],
+            "headline-md": ["Manrope"],
+            "label-md": ["Manrope"],
+            "headline-sm": ["Manrope"],
+            "headline-lg": ["Manrope"],
+            "label-sm": ["Manrope"],
+            "body-md": ["Manrope"]
+          },
+          "fontSize": {
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "display-lg": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "title-lg": ["18px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "display-lg-mobile": ["44px", { "lineHeight": "52px", "letterSpacing": "-0.025em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+    /* Discrete minimal active switch effect */
+    .toggle-active {
+      transform: translateX(1.25rem);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen selection:bg-primary-fixed selection:text-on-primary-fixed pb-16">
+<!-- Top App Bar Navigation Header (Clean, unbordered per design rules) -->
+<header class="sticky top-0 z-40 bg-surface/90 backdrop-blur-md transition-colors">
+<div class="flex justify-between items-center w-full px-5 py-3.5 max-w-[720px] mx-auto">
+<div class="flex items-center space-x-3">
+<button aria-label="Go back" class="p-1 -ml-1 text-on-surface-variant hover:text-on-surface hover:opacity-80 active:opacity-60 transition-opacity rounded-full focus:outline-none">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight font-bold">Settings</h1>
+</div>
+<div class="flex items-center">
+<button aria-label="Done" class="font-label-lg text-label-lg text-primary hover:opacity-80 active:opacity-60 transition-opacity font-semibold px-2 py-1">
+          Done
+        </button>
+</div>
+</div>
+</header>
+<!-- Main Settings Container (Centered single-scroll flow) -->
+<main class="max-w-[720px] mx-auto px-5 pt-3 pb-8 space-y-7">
+<!-- Section 1: Location -->
+<section class="space-y-2">
+<div class="px-1.5 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider font-semibold">LOCATION &amp; TIMING</span>
+</div>
+<div class="bg-surface-container-low rounded-xl p-space-md border border-outline-variant/20 shadow-none space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[18px]">near_me</span>
+</div>
+<div>
+<div class="font-label-md text-label-md text-on-surface-variant">Current Location</div>
+<div class="font-title-md text-title-md text-on-surface font-medium">San Francisco, CA</div>
+</div>
+</div>
+<!-- Auto GPS Status Badge Pill -->
+<div class="flex items-center space-x-1.5 bg-secondary-fixed text-on-secondary-fixed px-2.5 py-1 rounded-full text-label-sm font-label-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span>Auto (GPS)</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Calculation Method -->
+<section class="space-y-2">
+<div class="px-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider font-semibold">CALCULATION CONVENTIONS</span>
+</div>
+<div class="bg-surface-container-low rounded-xl border border-outline-variant/20 overflow-hidden divide-y divide-outline-variant/15">
+<!-- Calculation Method Row -->
+<button class="w-full p-space-md flex items-center justify-between text-left hover:bg-surface-container/60 active:bg-surface-container transition-colors focus:outline-none">
+<div class="space-y-0.5 pr-3">
+<div class="font-body-md text-body-md text-on-surface font-medium">Calculation Method</div>
+<div class="font-label-md text-label-md text-primary font-medium">Islamic Society of North America (ISNA)</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px] shrink-0">chevron_right</span>
+</button>
+<!-- Asr Method Row -->
+<button class="w-full p-space-md flex items-center justify-between text-left hover:bg-surface-container/60 active:bg-surface-container transition-colors focus:outline-none">
+<div class="space-y-0.5 pr-3">
+<div class="font-body-md text-body-md text-on-surface font-medium">Juridical Method (Asr)</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Standard (Shafi'i, Maliki, Hanbali)</div>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px] shrink-0">chevron_right</span>
+</button>
+</div>
+</section>
+<!-- Section 3: Reminders & Adhan -->
+<section class="space-y-2">
+<div class="px-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider font-semibold">NOTIFICATIONS &amp; AUDIO</span>
+</div>
+<div class="bg-surface-container-low rounded-xl border border-outline-variant/20 p-space-md space-y-5">
+<!-- Notification Lead Time Segmented Control -->
+<div class="space-y-2.5">
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface font-medium">Pre-Prayer Alert</span>
+<span class="font-label-md text-label-md text-on-surface-variant">10 min before</span>
+</div>
+<div class="grid grid-cols-4 p-1 bg-surface-container rounded-lg gap-1 border border-outline-variant/10">
+<button class="py-1.5 rounded text-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all focus:outline-none">
+              None
+            </button>
+<button class="py-1.5 rounded text-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all focus:outline-none">
+              5 min
+            </button>
+<button class="py-1.5 rounded-md text-center font-label-md text-label-md bg-surface-container-lowest text-primary font-semibold shadow-sm transition-all focus:outline-none">
+              10 min
+            </button>
+<button class="py-1.5 rounded text-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all focus:outline-none">
+              15 min
+            </button>
+</div>
+</div>
+<div class="h-px w-full bg-outline-variant/15"></div>
+<!-- Adhan Sound Switch Row -->
+<div class="flex items-center justify-between">
+<div class="space-y-0.5">
+<div class="font-body-md text-body-md text-on-surface font-medium">Adhan Audio</div>
+<div class="font-label-md text-label-md text-on-surface-variant">Play audio at exact prayer entry</div>
+</div>
+<!-- Clean Material 3 / iOS Inspired Switch (Active/ON) -->
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:bg-primary transition-colors after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-sm peer-checked:after:translate-x-5"></div>
+</label>
+</div>
+<div class="h-px w-full bg-outline-variant/15"></div>
+<!-- Sound Picker Selection Row -->
+<button class="w-full flex items-center justify-between text-left pt-0.5 hover:opacity-80 transition-opacity focus:outline-none">
+<div class="space-y-0.5">
+<div class="font-body-md text-body-md text-on-surface font-medium">Adhan Tone</div>
+<div class="font-label-md text-label-md text-primary font-medium">Mellow Bell</div>
+</div>
+<div class="flex items-center space-x-1.5 text-on-surface-variant">
+<span class="font-label-md text-label-md">Traditional Adhan</span>
+<span class="material-symbols-outlined text-outline text-[20px]">chevron_right</span>
+</div>
+</button>
+</div>
+</section>
+<!-- Section 4: Appearance -->
+<section class="space-y-2">
+<div class="px-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider font-semibold">APPEARANCE</span>
+</div>
+<div class="bg-surface-container-low rounded-xl border border-outline-variant/20 p-space-md space-y-3">
+<div class="flex items-center justify-between mb-1">
+<span class="font-body-md text-body-md text-on-surface font-medium">Theme</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Automatic match</span>
+</div>
+<!-- Segmented Pill Controls: [System, Light, Dark] with System active -->
+<div class="grid grid-cols-3 p-1 bg-surface-container rounded-lg gap-1 border border-outline-variant/10">
+<button class="flex items-center justify-center space-x-1.5 py-2 rounded-md bg-surface-container-lowest text-primary font-semibold shadow-sm transition-all focus:outline-none">
+<span class="material-symbols-outlined text-[18px]">settings_brightness</span>
+<span class="font-label-md text-label-md">System</span>
+</button>
+<button class="flex items-center justify-center space-x-1.5 py-2 rounded text-on-surface-variant hover:text-on-surface transition-all focus:outline-none">
+<span class="material-symbols-outlined text-[18px]">light_mode</span>
+<span class="font-label-md text-label-md">Light</span>
+</button>
+<button class="flex items-center justify-center space-x-1.5 py-2 rounded text-on-surface-variant hover:text-on-surface transition-all focus:outline-none">
+<span class="material-symbols-outlined text-[18px]">dark_mode</span>
+<span class="font-label-md text-label-md">Dark</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Footer Note -->
+<footer class="pt-6 pb-2 text-center space-y-1">
+<div class="flex items-center justify-center space-x-1 text-on-surface-variant/70">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+<p class="font-label-sm text-label-sm tracking-normal">
+          Waqt • Private &amp; offline. No data leaves your device.
+        </p>
+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant/50">
+        Version 2.4.0 (Build 412)
+      </div>
+</footer>
+</main>
+</body></html>

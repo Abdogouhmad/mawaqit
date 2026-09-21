@@ -1,0 +1,139 @@
+name: release
+
+# Builds and publishes the Android release on every push/merge to `main`
+# (plus manual runs via workflow_dispatch). The git tag `v<version>` is created
+# automatically from `version:` in pubspec.yaml — there is no tag-trigger to
+# maintain; CHANGELOG.md stays the single source of truth for release notes.
+#
+#   Signs-policy: Android refuses to install an UNSIGNED release APK
+#   (`INSTALL_FAILED_INVALID_APK`). Every APK here is signed with the SAME
+#   stable keystore provisioned from the WAQT_* secrets, the build FAILS when
+#   the secrets are missing (never ship unsigned/debug again), and build.sh
+#   verifies every APK's signature with apksigner before publish.
+#
+#   Builds 3 APKs from a single trigger:
+#     - split-per-abi arm64-v8a + armeabi-v7a
+#     - a universal fat APK (the primary sideload artifact)
+#   Computes SHA-256 checksums for every APK (`checksums.txt`).
+#   Extracts the matching `## [<version>]` section from CHANGELOG.md and uses
+#   it verbatim as the GitHub release notes.
+#
+#   Release type: a published release (NOT a pre-release). The app is still in
+#   active testing under 0.x versions, but the release is a stable channel
+#   release so the "latest" tag always points at an installable build.
+#
+# The heavy lifting — keystore provisioning, APK builds, staging, checksums,
+# signature verification, release-notes extraction — lives in ./build.sh, so
+# this file stays a thin declarative wrapper.
+#
+# To release a new version:
+#   1. Bump `version:` in pubspec.yaml.
+#   2. Add a `## [<version>]` section to CHANGELOG.md.
+#   3. Merge onto main — the tag + GitHub release follow.
+#
+# Secrets to configure in the repo:
+#   WAQT_KEYSTORE_BASE64        = base64 of the waqt-release.jks keystore
+#   WAQT_KEYSTORE_PASSWORD      = keystore password
+#   WAQT_KEY_ALIAS              = signing key alias
+#   WAQT_KEY_PASSWORD           = signing key password
+#
+# (Generate a keystore + base64 locally with: ./build.sh --keygen)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            .dart_tool
+            .flutter-plugins-dependencies
+          key: pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ${{ github.workspace }}/.gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties', 'android/**/*.gradle*') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      # Provisions the stable keystore from secrets (fails the build if the
+      # secrets are missing), builds the split-per-abi + universal APKs, stages
+      # versioned copies under dist/, writes checksums.txt and verifies every
+      # APK's signature with apksigner.
+      - name: Build, sign and stage APKs
+        env:
+          CI: "true"
+          WAQT_KEYSTORE_BASE64: ${{ secrets.WAQT_KEYSTORE_BASE64 }}
+          WAQT_KEYSTORE_PASSWORD: ${{ secrets.WAQT_KEYSTORE_PASSWORD }}
+          WAQT_KEY_ALIAS: ${{ secrets.WAQT_KEY_ALIAS }}
+          WAQT_KEY_PASSWORD: ${{ secrets.WAQT_KEY_PASSWORD }}
+        run: |
+          chmod +x ./build.sh
+          ./build.sh
+
+      - name: Determine version
+        id: version
+        run: ./build.sh --detect-version >> "$GITHUB_OUTPUT"
+
+      # Extract ONLY this release's `## [<version>]` section from CHANGELOG.md
+      # (fails when it's missing so an unreleased change never ships silently).
+      - name: Extract release notes from CHANGELOG
+        run: ./build.sh --release-notes
+
+      # Collision-safe: a re-merge into main of the SAME version re-releases
+      # it at the new commit (delete the old release + tag, then recreate).
+      # Published as a full release (not a pre-release/draft).
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release delete "$TAG" --yes --cleanup-tag
+            git tag -d "$TAG" >/dev/null 2>&1 || true
+          fi
+
+          shopt -s nullglob
+          artifacts=(dist/*.apk dist/checksums.txt)
+          if (( ${#artifacts[@]} == 0 )); then
+            echo "::error::No APK artifacts found under dist/"; exit 1
+          fi
+
+          git tag "$TAG"
+          git push origin "$TAG"
+          gh release create "$TAG" \
+            --title "Waqt ${{ steps.version.outputs.version }}" \
+            --notes-file dist/notes.md \
+            "${artifacts[@]}"

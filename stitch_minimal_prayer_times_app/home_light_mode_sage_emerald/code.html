@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Waqt — Tranquil Timekeeping</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Manrope Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-container": "#b9efd0",
+            "surface-bright": "#f9f9f6",
+            "on-surface-variant": "#3f4943",
+            "on-secondary-container": "#3c6e56",
+            "secondary-fixed": "#b9efd0",
+            "secondary-fixed-dim": "#9dd2b5",
+            "on-background": "#1a1c1b",
+            "tertiary-fixed": "#cee9d6",
+            "surface-container-highest": "#e2e3e0",
+            "primary-container": "#2e7d5b",
+            "on-error-container": "#93000a",
+            "surface-container": "#eeeeeb",
+            "error": "#ba1a1a",
+            "on-error": "#ffffff",
+            "inverse-surface": "#2f312f",
+            "on-surface": "#1a1c1b",
+            "inverse-primary": "#88d6af",
+            "tertiary-container": "#5c7566",
+            "inverse-on-surface": "#f1f1ee",
+            "background": "#f9f9f6",
+            "surface-container-low": "#f4f4f1",
+            "secondary": "#366850",
+            "on-primary-fixed-variant": "#005236",
+            "primary-fixed-dim": "#88d6af",
+            "surface-container-lowest": "#ffffff",
+            "tertiary": "#445c4e",
+            "surface-tint": "#176b4b",
+            "on-secondary": "#ffffff",
+            "outline": "#6f7a72",
+            "on-primary-container": "#d0ffe3",
+            "on-primary": "#ffffff",
+            "on-tertiary-fixed": "#082014",
+            "on-primary-fixed": "#002113",
+            "on-secondary-fixed": "#002113",
+            "on-tertiary-fixed-variant": "#344c3e",
+            "on-tertiary-container": "#dffbe7",
+            "surface-variant": "#e2e3e0",
+            "error-container": "#ffdad6",
+            "on-secondary-fixed-variant": "#1d5039",
+            "tertiary-fixed-dim": "#b2cdbb",
+            "primary": "#2e7d5b",
+            "primary-fixed": "#d3f2e1",
+            "outline-variant": "#bec9c1",
+            "on-tertiary": "#ffffff",
+            "surface-dim": "#dadad7",
+            "surface-container-high": "#e8e8e5",
+            "surface": "#f9f9f6"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "margin": "1.25rem",
+            "space-xl": "2.5rem",
+            "gutter-tablet": "1.5rem",
+            "margin-tablet": "2.5rem",
+            "space-lg": "1.5rem",
+            "space-sm": "0.5rem",
+            "margin-desktop": "4rem",
+            "gutter-desktop": "2rem",
+            "gutter": "1rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "body-lg": ["Manrope"],
+            "display-lg": ["Manrope"],
+            "label-lg": ["Manrope"],
+            "title-lg": ["Manrope"],
+            "title-md": ["Manrope"],
+            "display-lg-mobile": ["Manrope"],
+            "headline-md": ["Manrope"],
+            "label-md": ["Manrope"],
+            "headline-sm": ["Manrope"],
+            "headline-lg": ["Manrope"],
+            "label-sm": ["Manrope"],
+            "body-md": ["Manrope"]
+          },
+          "fontSize": {
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "display-lg": ["56px", { "lineHeight": "64px", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "title-lg": ["18px", { "lineHeight": "26px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "display-lg-mobile": ["44px", { "lineHeight": "52px", "letterSpacing": "-0.025em", "fontWeight": "600" }],
+            "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "500" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "500" }],
+            "headline-sm": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "500" }],
+            "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "label-sm": ["11px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      font-family: 'Manrope', sans-serif;
+      font-feature-settings: 'tnum' on, 'lnum' on;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 350, 'GRAD' 0, 'opsz' 24;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    @keyframes gentlePulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.28); opacity: 0.6; }
+    }
+    .live-dot-pulse {
+      animation: gentlePulse 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col justify-between selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top App Bar (Shared Components JSON Anchor) -->
+<header class="w-full bg-surface">
+<div class="flex justify-between items-center w-full px-5 py-3 max-w-[720px] mx-auto">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]" data-icon="calendar_today">calendar_today</span>
+<span class="text-title-lg font-title-lg text-on-surface tracking-tight font-bold">Waqt</span>
+</div>
+<div class="text-center hidden sm:block">
+<p class="text-label-md font-label-md text-on-surface">Thursday, October 24</p>
+<p class="text-label-sm font-label-sm text-outline">21 Rabiʻ al-Thani 1446</p>
+</div>
+<button aria-label="Settings" class="text-on-surface-variant hover:opacity-80 active:opacity-60 transition-opacity p-2 rounded-full focus:outline-none" type="button">
+<span class="material-symbols-outlined text-[22px]" data-icon="settings">settings</span>
+</button>
+</div>
+</header>
+<!-- Mobile Sub-Header Date Stack (Subtle & Quiet) -->
+<div class="sm:hidden text-center pt-2 pb-1 px-5">
+<p class="text-label-md font-label-md text-on-surface">Thursday, October 24</p>
+<p class="text-label-sm font-label-sm text-outline">21 Rabiʻ al-Thani 1446</p>
+</div>
+<!-- Primary Canvas Content Container -->
+<main class="w-full max-w-[720px] mx-auto px-5 pt-3 pb-28 flex-1 flex flex-col justify-start">
+<!-- Hero Section: Google Clock & Things 3 Minimal Focus -->
+<section class="text-center pt-4 pb-8 space-y-4">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container text-on-surface-variant">
+<span class="w-2 h-2 rounded-full bg-primary live-dot-pulse"></span>
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-on-surface">Next Interval</span>
+</div>
+<!-- Large Countdown Typography -->
+<div>
+<h1 class="font-display-lg-mobile text-display-lg-mobile sm:font-display-lg sm:text-display-lg text-on-surface tracking-tight">
+          Asr in 1h 24m
+        </h1>
+<p class="text-body-md font-body-md text-outline mt-1">
+          Dhuhr ended 12:45 PM
+        </p>
+</div>
+<!-- Linear Subtle Temporal Progress Bar -->
+<div class="max-w-[320px] mx-auto pt-2">
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-700" style="width: 68%;"></div>
+</div>
+<div class="flex justify-between items-center text-label-sm font-label-sm text-outline pt-2">
+<span>12:45 PM</span>
+<span class="font-medium text-primary">3:48 PM</span>
+</div>
+</div>
+</section>
+<!-- Prayer Times Timeline List -->
+<section class="space-y-2.5">
+<div class="flex justify-between items-center px-1 pb-1">
+<span class="text-label-sm font-label-sm uppercase tracking-wider text-outline">Daily Schedule</span>
+<span class="text-label-sm font-label-sm text-outline">Makkah Calculation (18.5°)</span>
+</div>
+<!-- 1. Fajr (Passed / Muted) -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low transition-colors duration-150">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-transparent"></span>
+<span class="text-title-md font-title-md text-outline line-through decoration-outline/40">Fajr</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-label-sm font-label-sm text-outline px-2 py-0.5 rounded-full bg-surface-container-highest/60">Passed</span>
+<span class="text-title-md font-title-md text-outline">05:32 AM</span>
+</div>
+</div>
+<!-- 2. Dhuhr (Passed / Muted) -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-low transition-colors duration-150">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-transparent"></span>
+<span class="text-title-md font-title-md text-outline line-through decoration-outline/40">Dhuhr</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-label-sm font-label-sm text-outline px-2 py-0.5 rounded-full bg-surface-container-highest/60">Passed</span>
+<span class="text-title-md font-title-md text-outline">12:45 PM</span>
+</div>
+</div>
+<!-- 3. Asr (CURRENT / NEXT ACTIVE - Highlighted) -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-primary-fixed border border-primary/25 transition-transform duration-150 scale-[1.01]">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-primary live-dot-pulse"></span>
+<span class="text-title-lg font-title-lg text-on-primary-fixed">Asr</span>
+</div>
+<div class="flex items-center gap-3.5">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="notifications_active">notifications_active</span>
+<span class="text-label-sm font-label-sm font-semibold uppercase tracking-wider bg-surface-container-lowest text-primary px-2.5 py-0.5 rounded-full shadow-sm">
+              In 1h 24m
+            </span>
+</div>
+<span class="text-title-lg font-title-lg text-on-primary-fixed">03:48 PM</span>
+</div>
+</div>
+<!-- 4. Maghrib (Upcoming / Clean Readable) -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-lowest transition-colors duration-150">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-outline-variant/40"></span>
+<span class="text-title-md font-title-md text-on-surface">Maghrib</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="notifications_none">notifications_none</span>
+<span class="text-title-md font-title-md text-on-surface">06:15 PM</span>
+</div>
+</div>
+<!-- 5. Isha (Upcoming / Clean Readable) -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container-lowest transition-colors duration-150">
+<div class="flex items-center gap-3">
+<span class="w-2 h-2 rounded-full bg-outline-variant/40"></span>
+<span class="text-title-md font-title-md text-on-surface">Isha</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="notifications_none">notifications_none</span>
+<span class="text-title-md font-title-md text-on-surface">07:35 PM</span>
+</div>
+</div>
+</section>
+<!-- Solar Meridian Arc: Quiet atmospheric utility like Apple Weather -->
+<section class="mt-6 p-4 rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="wb_sunny">wb_sunny</span>
+<div>
+<p class="text-label-md font-label-md text-on-surface">Solar Noon</p>
+<p class="text-label-sm font-label-sm text-outline">12:15 PM • Day length 11h 14m</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-label-md font-label-md text-on-surface">Sunset</p>
+<p class="text-label-sm font-label-sm text-outline">06:15 PM</p>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Shared Components JSON Anchor) -->
+<!-- "Prayer" tab is active match for Home screen -->
+<nav aria-label="Bottom Navigation" class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-surface-container-low/90 dark:bg-inverse-surface/90 backdrop-blur-md">
+<div class="w-full max-w-[720px] mx-auto flex justify-around items-center">
+<!-- 1. Prayer (ACTIVE) -->
+<a class="flex flex-col items-center justify-center text-primary dark:text-inverse-primary font-medium py-1 px-3 rounded-full bg-primary-fixed dark:bg-primary-container active:scale-95 transition-transform duration-150" href="#prayer">
+<span class="material-symbols-outlined text-[22px]" data-icon="schedule">schedule</span>
+<span class="text-label-sm font-label-sm">Prayer</span>
+</a>
+<!-- 2. Qibla (INACTIVE) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant py-1 px-3 hover:opacity-80 active:scale-95 transition-transform duration-150" href="#qibla">
+<span class="material-symbols-outlined text-[22px]" data-icon="explore">explore</span>
+<span class="text-label-sm font-label-sm">Qibla</span>
+</a>
+<!-- 3. Settings (INACTIVE) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant py-1 px-3 hover:opacity-80 active:scale-95 transition-transform duration-150" href="#settings">
+<span class="material-symbols-outlined text-[22px]" data-icon="tune">tune</span>
+<span class="text-label-sm font-label-sm">Settings</span>
+</a>
+</div>
+</nav>
+</body></html>

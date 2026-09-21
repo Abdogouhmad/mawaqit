@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ambient stacked surface for the sunrise / fajr footer row. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#142E7D5B" />
+    <corners android:radius="14dp" />
+</shape>

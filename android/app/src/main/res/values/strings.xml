@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Waqt</string>
+    <string name="notif_app_name">WAQT</string>
+    <string name="notif_label_now">now</string>
+    <string name="notif_mute">Mute this adhan</string>
+    <string name="notif_dismiss">Dismiss</string>
+    <string name="notif_min_short">m</string>
+    <string name="notif_now">%1$s now</string>
+    <string name="notif_subtitle">Prayer time is at %1$s</string>
+    <string name="notif_sunrise">Sunrise %1$s</string>
+    <string name="notif_fajr">Fajr %1$s</string>
+    <string name="notif_prayer_time">%1$s — prayer time</string>
+    <string name="notif_prayer_time_body">It is now time for the prayer at %1$s</string>
+</resources>

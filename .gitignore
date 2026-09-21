@@ -55,7 +55,21 @@ unlinked_spec.ds
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
+**/android/app/keystores/
 *.jks
+
+# Release staging
+/dist/
+
+# IDE / editor
+.idea/
+*.iml
+
+# Local scratch notes
+/nxt.md
+
+# Lockfiles: commit the app's for reproducible builds
+!pubspec.lock
 
 # iOS/XCode related
 **/ios/**/*.mode1v3

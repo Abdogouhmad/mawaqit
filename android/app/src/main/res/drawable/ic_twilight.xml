@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Horizon / twilight glyph: a sun dome above a horizon line. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#2E7D5B"
+        android:pathData="M4,13A8,8 0 0,1 20,13Z" />
+    <path
+        android:fillColor="#2E7D5B"
+        android:pathData="M2,15h20v2H2z" />
+</vector>
