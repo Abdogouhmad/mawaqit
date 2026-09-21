@@ -8,6 +8,7 @@ import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
+import 'package:mawaqit/data/services/widget_service.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 
@@ -84,6 +85,10 @@ class HomeController extends AsyncNotifier<HomeState> {
       await notificationService.init();
       unawaited(BackgroundScheduler.registerDailyReschedule());
     } catch (_) {}
+
+    // Seed the home-screen widget the moment the engine is up so a freshly
+    // added card is never blank, even before the first real snapshot lands.
+    unawaited(WidgetService.pushPlaceholder());
 
     final settings = await ref.watch(settingsProvider.future);
 

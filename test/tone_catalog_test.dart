@@ -3,7 +3,8 @@ import 'package:mawaqit/core/audio/tone_catalog.dart';
 
 void main() {
   test('byName resolves bundled tones and falls back safely', () {
-    expect(ToneCatalog.byName('Mellow Bell').androidRawResource, 'tone_mellow_bell');
+    expect(ToneCatalog.byName('Adham Al Sharqawe').androidRawResource,
+        'adhan_adham_al_sharqawe');
     expect(ToneCatalog.byName('Silent').silent, isTrue);
     expect(
       ToneCatalog.byName('does-not-exist').name,

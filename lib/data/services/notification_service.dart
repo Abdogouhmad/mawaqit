@@ -176,55 +176,28 @@ class NotificationService {
     );
   }
 
-  /// Debug trigger (settings): fires the pre-prayer alert card immediately
-  /// on Android (with live countdown, synchronized progress bar, quick actions,
-  /// and ambient footer matching Stitch) or schedules a 10s alert on desktop.
+  /// Debug trigger (settings): fires a real **adhan alarm** 3 seconds out —
+  /// exactly the same path as a scheduled prayer entry, so the whole alert
+  /// chain is verifiable: selected adhan tone on its own channel, alarm audio
+  /// usage, vibration, priority max and the full-screen intent over the
+  /// lockscreen. Works on Android and Linux desktop.
   Future<bool> scheduleTestNotification({
     AppSettings? settings,
     PrayerDay? day,
   }) async {
-    if (_isAndroid && hasNotificationPermission) {
-      try {
-        final currentSettings = settings ?? const AppSettings();
-        final leadMin = currentSettings.leadMinutes > 0 ? currentSettings.leadMinutes : 10;
-        final now = DateTime.now();
-        final nextPrayer = day?.currentOrNextPrayer(now);
-        final prayerName = nextPrayer?.kind.displayName ?? 'Maghrib';
-
-        final prayerMs = now.add(Duration(minutes: leadMin)).millisecondsSinceEpoch;
-        final sunriseMs = day != null ? _nextSunrise(day).millisecondsSinceEpoch : 0;
-        final fajrMs = day != null ? _nextFajr(day).millisecondsSinceEpoch : 0;
-        final sunsetMs = day?.sunset.millisecondsSinceEpoch ?? 0;
-
-        await _channel.invokeMethod('showTestReminder', {
-          'id': _testNotificationId,
-          'name': prayerName,
-          'prayerId': day != null
-              ? prayerIdFor(day.date, nextPrayer?.kind ?? PrayerKind.maghrib)
-              : 'test_maghrib',
-          'leadMinutes': leadMin,
-          'prayerTimestampMs': prayerMs,
-          'sunriseMs': sunriseMs,
-          'fajrMs': fajrMs,
-          'sunsetMs': sunsetMs,
-          'channelSound': _preAlertRawResource(currentSettings),
-        });
-        return true;
-      } catch (e, st) {
-        debugPrint('Native test notification failed: $e\n$st');
-        // Fall through to plain Flutter notification if method channel fails
-      }
-    }
-
+    final currentSettings = settings ?? const AppSettings();
+    // A disabled adhan sound still tests the full-screen alarm silently.
+    final muted = !currentSettings.adhanSoundEnabled;
     try {
       await _postAt(
         id: _testNotificationId,
-        title: 'Test pre-prayer alert',
-        body: 'This is a test. The adhan would follow shortly.',
+        title: 'Test — Adhan',
+        body: 'This is how the prayer alarm rings. The adhan follows.',
         at: DateTime.now().add(const Duration(seconds: 3)),
-        type: NotificationType.preAlert,
-        muted: false,
-        payload: 'test_pre_alert',
+        type: NotificationType.adhan,
+        settings: currentSettings,
+        muted: muted,
+        payload: 'test_adhan',
       );
     } catch (e, st) {
       debugPrint('Test notification failed: $e\n$st');
@@ -428,6 +401,10 @@ class NotificationService {
           playSound: channel.playSound,
           sound: channel.sound,
           audioAttributesUsage: channel.audioAttributesUsage,
+          vibrationPattern: type == NotificationType.adhan && !muted
+              ? Int64List.fromList([0, 400, 200, 400, 200, 400])
+              : null,
+          enableVibration: type == NotificationType.adhan && !muted,
           fullScreenIntent: type == NotificationType.adhan,
         ),
       );

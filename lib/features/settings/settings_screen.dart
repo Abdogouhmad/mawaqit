@@ -307,7 +307,7 @@ class _SettingsBody extends ConsumerWidget {
               SettingsRow(
                 icon: Icons.campaign_outlined,
                 title: 'Test Notification',
-                subtitle: 'Fires a pre-prayer alert in 3 seconds',
+                subtitle: 'Fires the adhan alarm in 3 seconds',
                 onTap: () => _sendTestNotification(context, ref),
                 trailing: const Icon(
                   Icons.chevron_right,
@@ -404,7 +404,7 @@ class _SettingsBody extends ConsumerWidget {
         SnackBar(
           content: Text(
             scheduled
-                ? 'Pre-prayer reminder card displayed in notification tray.'
+                ? 'Adhan alarm fired — check the tray and lockscreen.'
                 : 'Notifications are off — re-enable them via '
                     '"Notification Permission" below.',
           ),

@@ -14,6 +14,14 @@ class WidgetService {
   static const String _androidQualified =
       'com.mawaqit.mawaqit.PrayerWidgetReceiver';
 
+  /// Writes a neutral snapshot as soon as the app starts so a freshly added
+  /// widget on a launcher that hasn't been fed data yet (or one that resets
+  /// the bridge prefs) is never a blank card. Replaced by the real snapshot
+  /// on the next [updateWidget] push from the home controller.
+  static Future<void> pushPlaceholder() {
+    return updateWidget();
+  }
+
   /// Sends the current next-prayer snapshot to the home-screen widget.
   static Future<void> updateWidget({
     PrayerTime? nextPrayer,
@@ -23,9 +31,12 @@ class WidgetService {
     final at = now ?? DateTime.now();
     try {
       if (nextPrayer == null) {
-        await HomeWidget.saveWidgetData<String>('next_prayer_name', '—');
-        await HomeWidget.saveWidgetData<String>('next_prayer_time', '');
-        await HomeWidget.saveWidgetData<int>('minutes_remaining', 0);
+        await HomeWidget.saveWidgetData<String>('next_prayer_name', 'Mawaqit');
+        await HomeWidget.saveWidgetData<String>(
+          'next_prayer_time',
+          'Loading prayer times…',
+        );
+        await HomeWidget.saveWidgetData<int>('minutes_remaining', -1);
         await HomeWidget.saveWidgetData<double>('progress', 0);
       } else {
         final start =
@@ -46,7 +57,7 @@ class WidgetService {
         );
         await HomeWidget.saveWidgetData<int>(
           'minutes_remaining',
-          nextPrayer.time.difference(at).inMinutes,
+          nextPrayer.time.difference(at).inMinutes.clamp(0, 0x7FFFFFFF).toInt(),
         );
         await HomeWidget.saveWidgetData<double>('progress', progress);
       }

@@ -71,10 +71,10 @@ class PrayerWidget : GlanceAppWidget() {
             Context.MODE_PRIVATE,
         )
         // Defensive reads: never let a bad row turn into Glance's error layout.
-        val name = runCatching { prefs.getString("next_prayer_name", "—") }
-            .getOrNull() ?: "—"
+        val name = runCatching { prefs.getString("next_prayer_name", "Mawaqit") }
+            .getOrNull()?.blankToNull() ?: "Next prayer"
         val time = runCatching { prefs.getString("next_prayer_time", "") }
-            .getOrNull() ?: ""
+            .getOrNull()?.blankToNull() ?: "—"
         val minutesLeft = runCatching { prefs.getInt("minutes_remaining", -1) }
             .getOrNull() ?: -1
         // A Dart double is stored as raw long bits by home_widget — decode it,
@@ -109,6 +109,10 @@ class PrayerWidget : GlanceAppWidget() {
         super.onCompositionError(context, glanceId, appWidgetId, throwable)
     }
 }
+
+/** Treats blank strings from the prefs bridge as "unset". */
+private fun String?.blankToNull(): String? =
+    this?.takeIf { it.isNotBlank() }
 
 @Composable
 fun PrayerWidgetContent(

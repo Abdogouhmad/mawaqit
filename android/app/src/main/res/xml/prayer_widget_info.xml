@@ -9,5 +9,5 @@
     android:resizeMode="horizontal"
     android:updatePeriodMillis="0"
     android:widgetCategory="home_screen"
-    android:initialLayout="@layout/glance_default_loading_layout"
+    android:initialLayout="@layout/widget_prayer_placeholder"
     android:previewLayout="@layout/widget_prayer_preview" />

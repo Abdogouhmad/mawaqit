@@ -11,6 +11,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-09-21
+
+### Changed
+
+- **Test Notification now plays the actual adhan alarm** — instead of a silent
+  countdown card, the Settings test trigger fires the *real* prayer-entry alert
+  3 seconds out: the selected adhan tone ringing on its own channel with alarm
+  audio, vibration, `Priority.max`, `CATEGORY_ALARM` and the full-screen intent
+  that wakes the display over the lockscreen. The exact pipeline a scheduled
+  adhan uses, so you can verify the whole chain before a real prayer.
+- **Adhan vibration** — prayer-entry alerts (test and scheduled) now vibrate,
+  matching alarm behavior; a muted adhan stays fully silent.
+
+### Fixed
+
+- **Home-screen widget never blank again** — the widget now shows a static
+  sage "Mawaqit · Loading prayer times…" card the instant it is added (its own
+  `initialLayout` instead of Glance's bare loading spinner), and the app seeds
+  the widget bridge with a placeholder snapshot on every launch so a fresh card
+  is instantly populated. A blank view after updating still needs the widget
+  removed and re-added from the home screen (launcher metadata caches), but the
+  content itself renders everywhere.
+
 ## [0.4.1] - 2026-09-21
 
 ### Added
@@ -243,3 +266,5 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.3.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.2.1...v0.3.0
 [0.3.1]: https://github.com/Abdogouhmad/mawaqit/compare/v0.3.0...v0.3.1
 [0.3.2]: https://github.com/Abdogouhmad/mawaqit/compare/v0.3.1...v0.3.2
+[0.4.1]: https://github.com/Abdogouhmad/mawaqit/compare/v0.3.2...v0.4.1
+[0.4.2]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.1...v0.4.2
