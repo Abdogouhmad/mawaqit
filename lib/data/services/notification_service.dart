@@ -171,17 +171,24 @@ class NotificationService {
 
   /// Debug trigger (settings): fire a pre-prayer alert 10s from now so the
   /// notify path can be verified on Linux without waiting for a prayer time.
+  /// On Linux, a missing `.desktop` registration can make the D-Bus call fail
+  /// silently — never swallow it: surface the error so the UI can report it.
   Future<bool> scheduleTestNotification() async {
     if (!hasNotificationPermission) return false;
-    await _postAt(
-      id: _testNotificationId,
-      title: 'Test pre-prayer alert',
-      body: 'This is a test. The adhan would follow shortly.',
-      at: DateTime.now().add(const Duration(seconds: 10)),
-      type: NotificationType.preAlert,
-      muted: false,
-      payload: 'test_pre_alert',
-    );
+    try {
+      await _postAt(
+        id: _testNotificationId,
+        title: 'Test pre-prayer alert',
+        body: 'This is a test. The adhan would follow shortly.',
+        at: DateTime.now().add(const Duration(seconds: 10)),
+        type: NotificationType.preAlert,
+        muted: false,
+        payload: 'test_pre_alert',
+      );
+    } catch (e, st) {
+      debugPrint('Test notification failed: $e\n$st');
+      rethrow; // let the UI show a SnackBar with the real error instead of nothing happening
+    }
     return true;
   }
 

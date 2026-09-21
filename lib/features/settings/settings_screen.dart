@@ -414,9 +414,12 @@ class _SettingsBody extends ConsumerWidget {
           ),
         ),
       );
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('Test notification failed: $e\n$st');
       messenger.showSnackBar(
-        const SnackBar(content: Text('Test notification unavailable.')),
+        SnackBar(
+          content: Text('Test notification failed: $e\n$st'),
+        ),
       );
     }
   }
