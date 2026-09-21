@@ -137,3 +137,65 @@ jobs:
             --title "Mawaqit ${{ steps.version.outputs.version }}" \
             --notes-file dist/notes.md \
             "${artifacts[@]}"
+
+      # Rewrite the OTA manifest: version, universal-APK URL + its fresh
+      # sha256, and this release's notes (from CHANGELOG.md, not duplicated).
+      - name: Update update_manifest.json
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_CODE: ${{ steps.version.outputs.versionCode }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, glob, hashlib, datetime
+
+          version = os.environ["VERSION"]
+          version_code = int(os.environ["VERSION_CODE"])
+          tag = os.environ["TAG"]
+
+          with open("dist/notes.md") as fh:
+              release_notes = fh.read().strip()
+          with open("update_manifest.json") as fh:
+              manifest = json.load(fh)
+
+          # The universal APK is what the in-app updater always downloads.
+          manifest["latestVersionName"] = version
+          manifest["latestVersionCode"] = version_code
+          manifest["minSupportedVersionCode"] = int(
+              manifest.get("minSupportedVersionCode") or version_code
+          )
+          manifest["apkUrl"] = (
+              f"https://github.com/Abdogouhmad/mawaqit/releases/download/"
+              f"{tag}/mawaqit-v{version}-universal.apk"
+          )
+
+          # sha256 of the freshly built, staged universal APK.
+          built = glob.glob(f"dist/mawaqit-v{version}-universal.apk")[0]
+          with open(built, "rb") as fh:
+              manifest["sha256"] = hashlib.sha256(fh.read()).hexdigest()
+
+          manifest["releaseNotes"] = release_notes
+          manifest["publishedAt"] = (
+              f"{datetime.datetime.now(datetime.timezone.utc).isoformat()}"
+          )
+
+          with open("update_manifest.json", "w") as fh:
+              json.dump(manifest, fh, indent=2, ensure_ascii=False)
+              fh.write("\n")
+          PY
+          cat update_manifest.json
+
+      - name: Commit manifest back to main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet update_manifest.json; then
+            echo "No manifest changes."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add update_manifest.json
+            git commit -m "chore(release): update OTA manifest for v${{ steps.version.outputs.version }}"
+            git push origin HEAD:main
+          fi

@@ -52,10 +52,10 @@ class SettingsRepository {
         leadMinutes:
             (json['leadMinutes'] as num?)?.toInt() ?? AppSettings.leadOptions[1],
         adhanSoundEnabled: json['adhanSoundEnabled'] as bool? ?? true,
-        adhanTone: json['adhanTone'] as String? ?? 'Traditional Adhan',
+        adhanTone: json['adhanTone'] as String? ?? 'Adham Al Sharqawe',
         adhanDeviceToneUri: json['adhanDeviceToneUri'] as String?,
         adhanDeviceToneName: json['adhanDeviceToneName'] as String?,
-        preAlertTone: json['preAlertTone'] as String? ?? 'Minimal Chime',
+        preAlertTone: json['preAlertTone'] as String? ?? 'Silent',
         themeMode: AppThemeMode.values.firstWhere(
           (e) => e.name == json['themeMode'],
           orElse: () => AppThemeMode.system,

@@ -52,15 +52,15 @@ class NotificationService {
   /// start (2_000_000) to avoid collisions with scheduled prayer ids.
   static const int _testNotificationId = 1_999_999;
 
-  /// Pre-prayer alert channel: short chime card shown `leadMinutes` early.
+  /// Pre-prayer alert channel: silent countdown card shown `leadMinutes`
+  /// early. The adhan is the only audible alert — reminders never ring.
   static const AndroidNotificationChannel preAlertChannel =
       AndroidNotificationChannel(
     'pre_prayer_alert_v2',
     'Pre-prayer alert',
     description: 'Countdown reminder before each prayer',
     importance: Importance.high,
-    playSound: true,
-    sound: RawResourceAndroidNotificationSound('pre_alert'),
+    playSound: false,
     audioAttributesUsage: AudioAttributesUsage.alarm,
   );
 
@@ -483,43 +483,14 @@ class NotificationService {
     );
   }
 
-  /// Pre-prayer alert channel for the selected sound. Like the adhan it gets
-  /// its own per-tone id (`pre_prayer_alert_v2_*`) so Android recreates the
-  /// channel with the new sound instead of keeping the stale one.
-  AndroidNotificationChannel _preAlertChannel(AppSettings settings) {
-    final tone = ToneCatalog.byName(settings.preAlertTone);
-    if (tone.silent) {
-      return const AndroidNotificationChannel(
-        'pre_prayer_alert_v2_silent',
-        'Pre-prayer alert (muted)',
-        description: 'Countdown card without an audible alert',
-        importance: Importance.high,
-        playSound: false,
-        audioAttributesUsage: AudioAttributesUsage.alarm,
-      );
-    }
-    if (tone.androidRawResource.isEmpty) {
-      return preAlertChannel;
-    }
-    return AndroidNotificationChannel(
-      'pre_prayer_alert_v2_${tone.androidRawResource}',
-      preAlertChannel.name,
-      description: preAlertChannel.description,
-      importance: Importance.high,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound(tone.androidRawResource),
-      audioAttributesUsage: AudioAttributesUsage.alarm,
-    );
-  }
+  /// Pre-prayer alert channel is always silent — the adhan is the app's only
+  /// audible alert, so reminder cards never ring.
+  AndroidNotificationChannel _preAlertChannel(AppSettings settings) =>
+      preAlertChannel;
 
-  /// Raw resource used by the native countdown-card channel for the selected
-  /// pre-prayer sound. `'silent'` signals a silent channel; anything else is
-  /// a res/raw name held by both the Dart and native sides.
-  static String _preAlertRawResource(AppSettings settings) {
-    final tone = ToneCatalog.byName(settings.preAlertTone);
-    if (tone.silent) return 'silent';
-    return tone.androidRawResource.isEmpty ? 'pre_alert' : tone.androidRawResource;
-  }
+  /// Raw resource used by the native countdown-card channel. Reminders are
+  /// silent by design (`'silent'` = silent channel), so this never varies.
+  static String _preAlertRawResource(AppSettings settings) => 'silent';
 
   DateTime _nextSunrise(PrayerDay day) {
     final now = DateTime.now();

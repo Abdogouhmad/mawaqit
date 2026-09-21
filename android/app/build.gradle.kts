@@ -6,6 +6,18 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// The versionCode is derived deterministically from the SemVer `versionName`
+// (e.g. "0.4.0" → 400, "1.2.43" → 10243) with the formula
+// `major*10000 + minor*100 + patch`, so `pubspec.yaml` stays the single source
+// of truth and every build of a given tag gets the identical versionCode that
+// update_manifest.json and the release automation expect.
+val pubspecVersionName = flutter.versionName ?: "0.0.0"
+val versionParts = pubspecVersionName.split('.').map { it.toIntOrNull() ?: 0 }
+val derivedVersionCode =
+    versionParts.getOrElse(0) { 0 } * 10000 +
+    versionParts.getOrElse(1) { 0 } * 100 +
+    versionParts.getOrElse(2) { 0 }
+
 android {
     namespace = "com.mawaqit.mawaqit"
     compileSdk = flutter.compileSdkVersion
@@ -24,12 +36,12 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
-        // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
-        // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
-        // flag during build.
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        // Derived from SemVer (major*10000 + minor*100 + patch) so the code
+        // matches the OTA manifest exactly. When building split APKs, 1000 *
+        // ABI_VERSION is added automatically by Flutter; you can force the
+        // single derived value with `-P force-version-code-ignoring-abi=true`.
+        versionCode = derivedVersionCode
+        versionName = pubspecVersionName
     }
 
     signingConfigs {

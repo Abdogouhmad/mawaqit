@@ -24,7 +24,7 @@ class MainActivity : FlutterActivity() {
                     val sunriseMs = call.argument<Number>("sunriseMs")?.toLong() ?: 0L
                     val fajrMs = call.argument<Number>("fajrMs")?.toLong() ?: 0L
                     val sunsetMs = call.argument<Number>("sunsetMs")?.toLong() ?: 0L
-                    val channelSound = call.argument<String>("channelSound") ?: "pre_alert"
+                    val channelSound = call.argument<String>("channelSound") ?: "silent"
                     PrayerScheduler.schedule(this, reminders, sunriseMs, fajrMs, sunsetMs, channelSound)
                     result.success(true)
                 }
@@ -37,7 +37,7 @@ class MainActivity : FlutterActivity() {
                     val sunriseMs = call.argument<Number>("sunriseMs")?.toLong() ?: 0L
                     val fajrMs = call.argument<Number>("fajrMs")?.toLong() ?: 0L
                     val sunsetMs = call.argument<Number>("sunsetMs")?.toLong() ?: 0L
-                    val channelSound = call.argument<String>("channelSound") ?: "pre_alert"
+                    val channelSound = call.argument<String>("channelSound") ?: "silent"
                     PrayerScheduler.showTestReminder(
                         context = this,
                         id = id,

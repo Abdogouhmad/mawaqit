@@ -45,66 +45,6 @@ abstract final class ToneCatalog {
 
   static const List<AdhanTone> tones = [
     AdhanTone(
-      name: 'Traditional Adhan',
-      assetPath: 'audio/tone_traditional_adhan.wav',
-      androidRawResource: 'tone_traditional_adhan',
-    ),
-    AdhanTone(
-      name: 'Mellow Bell',
-      assetPath: 'audio/tone_mellow_bell.wav',
-      androidRawResource: 'tone_mellow_bell',
-    ),
-    AdhanTone(
-      name: 'Minimal Chime',
-      assetPath: 'audio/tone_minimal_chime.wav',
-      androidRawResource: 'tone_minimal_chime',
-    ),
-    AdhanTone(
-      name: 'Desert Wind',
-      assetPath: 'audio/tone_desert_wind.wav',
-      androidRawResource: 'tone_desert_wind',
-    ),
-    AdhanTone(
-      name: 'Nabawi Melody',
-      assetPath: 'audio/tone_nabawi_melody.wav',
-      androidRawResource: 'tone_nabawi_melody',
-    ),
-    AdhanTone(
-      name: 'Zen Bow',
-      assetPath: 'audio/tone_zen_bow.wav',
-      androidRawResource: 'tone_zen_bow',
-    ),
-    AdhanTone(
-      name: 'Dawn Call',
-      assetPath: 'audio/tone_dawn_call.wav',
-      androidRawResource: 'tone_dawn_call',
-    ),
-    AdhanTone(
-      name: 'Amber Bell',
-      assetPath: 'audio/tone_amber_bell.wav',
-      androidRawResource: 'tone_amber_bell',
-    ),
-    AdhanTone(
-      name: 'Soft Harp',
-      assetPath: 'audio/tone_soft_harp.wav',
-      androidRawResource: 'tone_soft_harp',
-    ),
-    AdhanTone(
-      name: 'Medina Breeze',
-      assetPath: 'audio/tone_medina_breeze.wav',
-      androidRawResource: 'tone_medina_breeze',
-    ),
-    AdhanTone(
-      name: 'Night Calm',
-      assetPath: 'audio/tone_night_calm.wav',
-      androidRawResource: 'tone_night_calm',
-    ),
-    AdhanTone(
-      name: 'Tranquil Gong',
-      assetPath: 'audio/tone_tranquil_gong.wav',
-      androidRawResource: 'tone_tranquil_gong',
-    ),
-    AdhanTone(
       name: 'Adham Al Sharqawe',
       assetPath: 'audio/Adham Al Sharqawe.mp3',
       androidRawResource: 'adhan_adham_al_sharqawe',
@@ -118,9 +58,9 @@ abstract final class ToneCatalog {
   ];
 
   static const AdhanTone fallback = AdhanTone(
-    name: 'Traditional Adhan',
-    assetPath: 'audio/tone_traditional_adhan.wav',
-    androidRawResource: 'tone_traditional_adhan',
+    name: 'Adham Al Sharqawe',
+    assetPath: 'audio/Adham Al Sharqawe.mp3',
+    androidRawResource: 'adhan_adham_al_sharqawe',
   );
 
   /// Resolves a persisted tone name to its definition (never null).

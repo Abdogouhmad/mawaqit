@@ -7,6 +7,7 @@ import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/features/home/home_screen.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/features/settings/settings_screen.dart';
+import 'package:mawaqit/features/settings/widgets/ota_update_screen.dart';
 
 class MawaqitApp extends ConsumerWidget {
   const MawaqitApp({super.key});
@@ -32,6 +33,7 @@ class MawaqitApp extends ConsumerWidget {
       routes: {
         '/': (_) => const HomeScreen(),
         '/settings': (_) => const SettingsScreen(),
+        '/update': (_) => const OtaUpdateScreen(),
       },
     );
   }

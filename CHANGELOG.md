@@ -11,6 +11,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-09-21
+
+### Added
+
+- **In-app OTA updates** — a "Software Update" section in Settings checks a
+  committed `update_manifest.json`, compares the installed build, and can
+  download + install the new release directly (universal APK from GitHub
+  Releases, SHA-256 verified before install). The release CI rewrites the
+  manifest after every publish.
+- **About Mawaqit** — an About dialog and a dedicated update screen showing
+  current/latest version, last-check status and the "What's new" changelog.
+
+### Changed
+
+- **Only the adhan rings now** — the pre-prayer reminder card no longer plays
+  a chime; it's a silent countdown card by design. The adhan ("Adham Al
+  Sharqawe") is the app's single audible alert, and the tone picker lists just
+  the adhan recordings (more can be added later) plus "Silent".
+- **SemVer-derived versionCode** — Android `versionCode` is now computed as
+  `major*10000 + minor*100 + patch` from `pubspec.yaml`, matching the OTA
+  manifest and release tags exactly.
+
+### Fixed
+
+- **Home-screen widget "Can't show content"** — widget composition is hardened
+  (all preference reads are guarded, NaN progress is clamped, errors are logged
+  to logcat under "PrayerWidget"), and the widget metadata no longer tries the
+  problematic narrow size bucket.
+
 ## [0.3.2] - 2026-09-21
 
 ### Added

@@ -6,11 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mawaqit/core/audio/tone_catalog.dart';
-import 'package:mawaqit/core/constants.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/data/services/tone_preview_service.dart';
+import 'package:mawaqit/features/settings/services/app_info.dart';
+import 'package:mawaqit/features/settings/widgets/update_section.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/ui/core/widgets/app_card.dart';
 import 'package:mawaqit/ui/core/widgets/section_header.dart';
@@ -270,21 +271,6 @@ class _SettingsBody extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               SettingsRow(
-                icon: Icons.notifications_active_outlined,
-                title: 'Pre-Prayer Sound',
-                subtitle: settings.preAlertLabel,
-                onTap: () => _openPreAlertSoundSheet(context, controller, settings),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  size: AppIconSize.xl,
-                ),
-              ),
-              Divider(
-                height: 1,
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              SettingsRow(
                 icon: Icons.volume_up_outlined,
                 title: 'Adhan Audio',
                 subtitle: 'Play audio at exact prayer entry',
@@ -390,6 +376,11 @@ class _SettingsBody extends ConsumerWidget {
             ],
           ),
         ),
+        const SizedBox(height: AppSpacing.tera),
+
+        // About & OTA updates
+        const SectionHeader(label: 'About & Update'),
+        const UpdateSection(),
         const SizedBox(height: AppSpacing.tera),
         _Footer(),
       ],
@@ -544,21 +535,6 @@ class _SettingsBody extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (_) => _ToneSheet(
-        controller: controller,
-        initialSettings: settings,
-      ),
-    );
-  }
-
-  void _openPreAlertSoundSheet(
-    BuildContext context,
-    SettingsController controller,
-    AppSettings settings,
-  ) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _PreAlertSoundSheet(
         controller: controller,
         initialSettings: settings,
       ),
@@ -886,16 +862,12 @@ class _ToneSheetState extends State<_ToneSheet> {
   final TonePreviewService _preview = TonePreviewService();
   String? _playing;
 
-  List<DeviceTone> _deviceTones = const [];
-  bool _loadingDevice = false;
-
   @override
   void initState() {
     super.initState();
     _preview.onComplete = () {
       if (mounted) setState(() => _playing = null);
     };
-    _loadDeviceTones();
   }
 
   @override
@@ -904,35 +876,11 @@ class _ToneSheetState extends State<_ToneSheet> {
     super.dispose();
   }
 
-  Future<void> _loadDeviceTones() async {
-    if (!_preview.supportsDeviceTones) return;
-    setState(() => _loadingDevice = true);
-    final tones = await _preview.listDeviceTones();
-    if (!mounted) return;
-    setState(() {
-      _deviceTones = tones;
-      _loadingDevice = false;
-    });
-  }
-
   Future<void> _togglePreview(AdhanTone tone) async {
     HapticFeedback.selectionClick();
     final ok = await _preview.toggle(tone);
     if (!mounted) return;
     setState(() => _playing = ok ? _preview.playing : null);
-    if (!ok) _showUnavailable();
-  }
-
-  Future<void> _toggleDevicePreview(DeviceTone tone) async {
-    HapticFeedback.selectionClick();
-    if (_playing == tone.name) {
-      await _preview.stop();
-      if (mounted) setState(() => _playing = null);
-      return;
-    }
-    final ok = await _preview.previewDeviceTone(tone);
-    if (!mounted) return;
-    setState(() => _playing = ok ? tone.name : null);
     if (!ok) _showUnavailable();
   }
 
@@ -1002,101 +950,17 @@ class _ToneSheetState extends State<_ToneSheet> {
                             playing: _playing == tone.name,
                             onPressed: () => _togglePreview(tone),
                           ),
-                    onTap: () => _select(settings.withBundledTone(tone.name)),
+onTap: () => _select(settings.withBundledTone(tone.name)),
                   ),
               ],
             ),
-            if (_preview.supportsDeviceTones) ...[
-              const SizedBox(height: AppSpacing.huge),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _sectionLabel(context, 'Device sounds'),
-                  if (!_loadingDevice)
-                    IconButton(
-                      tooltip: 'Refresh',
-                      visualDensity: VisualDensity.compact,
-                      icon: Icon(
-                        Icons.refresh,
-                        size: AppIconSize.lg,
-                        color: scheme.onSurfaceVariant,
-                      ),
-                      onPressed: _loadDeviceTones,
-                    ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _deviceCard(context, settings),
-            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _deviceCard(BuildContext context, AppSettings settings) {
-    final scheme = Theme.of(context).colorScheme;
-
-    if (_loadingDevice) {
-      return _card(
-        context,
-        [
-          const ListTile(
-            leading: SizedBox(
-              width: AppIconSize.lg,
-              height: AppIconSize.lg,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-            title: Text('Loading device sounds…'),
-          ),
-        ],
-      );
-    }
-
-    if (_deviceTones.isEmpty) {
-      return _card(
-        context,
-        [
-          ListTile(
-            title: const Text('No device sounds found'),
-            subtitle: const Text(
-              'Add ringtones or notification sounds in system settings.',
-            ),
-            titleTextStyle: Theme.of(context).textTheme.bodyMedium,
-            subtitleTextStyle: Theme.of(context).textTheme.labelMedium
-                ?.copyWith(color: scheme.onSurfaceVariant),
-          ),
-        ],
-      );
-    }
-
-    return _card(
-      context,
-      [
-        for (final (index, tone) in _deviceTones.indexed)
-          _tile(
-            context,
-            first: index == 0,
-            title: tone.name,
-            subtitle: 'System sound',
-            selected: settings.usesDeviceTone &&
-                settings.adhanDeviceToneUri == tone.uri,
-            leading: _previewButton(
-              context,
-              enabled: true,
-              playing: _playing == tone.name,
-              onPressed: () => _toggleDevicePreview(tone),
-            ),
-            onTap: () => _select(
-              settings.withDeviceTone(name: tone.name, uri: tone.uri),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-Widget _card(BuildContext context, List<Widget> children) {
+  Widget _card(BuildContext context, List<Widget> children) {
     final scheme = Theme.of(context).colorScheme;
     return Material(
       color: scheme.surfaceContainerLowest,
@@ -1174,121 +1038,6 @@ Widget _card(BuildContext context, List<Widget> children) {
           ),
     );
   }
-
-/// Picks the pre-prayer alert's own chime (separate from the adhan picker).
-class _PreAlertSoundSheet extends StatefulWidget {
-  const _PreAlertSoundSheet({
-    required this.controller,
-    required this.initialSettings,
-  });
-
-  final SettingsController controller;
-  final AppSettings initialSettings;
-
-  @override
-  State<_PreAlertSoundSheet> createState() => _PreAlertSoundSheetState();
-}
-
-class _PreAlertSoundSheetState extends State<_PreAlertSoundSheet> {
-  final TonePreviewService _preview = TonePreviewService();
-  String? _playing;
-
-  @override
-  void initState() {
-    super.initState();
-    _preview.onComplete = () {
-      if (mounted) setState(() => _playing = null);
-    };
-  }
-
-  @override
-  void dispose() {
-    _preview.dispose();
-    super.dispose();
-  }
-
-  Future<void> _togglePreview(AdhanTone tone) async {
-    HapticFeedback.selectionClick();
-    final ok = await _preview.toggle(tone);
-    if (!mounted) return;
-    setState(() => _playing = ok ? _preview.playing : null);
-    if (!ok) _showUnavailable();
-  }
-
-  void _showUnavailable() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Preview unavailable on this device.')),
-    );
-  }
-
-  void _select(AppSettings updated) {
-    HapticFeedback.selectionClick();
-    widget.controller.save(updated);
-    Navigator.of(context).pop();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final settings = widget.initialSettings;
-
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(
-          left: AppSpacing.huge,
-          right: AppSpacing.huge,
-          top: AppSpacing.md,
-          bottom: AppSpacing.giga,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Pre-Prayer Sound', style: textTheme.titleLarge),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Tap the speaker to preview a sound before choosing.',
-              style: textTheme.labelMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xxxl),
-            _sectionLabel(context, 'Built-in sounds'),
-            const SizedBox(height: AppSpacing.sm),
-            _card(
-              context,
-              [
-                for (final (index, tone) in ToneCatalog.tones.indexed)
-                  _tile(
-                    context,
-                    first: index == 0,
-                    title: tone.name,
-                    subtitle: tone.silent
-                        ? 'No sound'
-                        : (_preview.isSupported
-                            ? 'Tap to preview'
-                            : 'Preview unavailable'),
-                    selected: settings.preAlertTone == tone.name,
-                    leading: tone.silent
-                        ? Icon(
-                            Icons.volume_off_outlined,
-                            color: scheme.onSurfaceVariant,
-                          )
-                        : _previewButton(
-                            context,
-                            enabled: _preview.isSupported,
-                            playing: _playing == tone.name,
-                            onPressed: () => _togglePreview(tone),
-                          ),
-                    onTap: () => _select(settings.withPreAlertTone(tone.name)),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _Footer extends StatelessWidget {
@@ -1319,7 +1068,7 @@ class _Footer extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          'Version ${AppConstants.appVersion}',
+          'Version ${AppInfo.version}',
           style: textTheme.labelSmall?.copyWith(
             color: scheme.onSurfaceVariant.withValues(alpha: 0.4),
             letterSpacing: 0.2,

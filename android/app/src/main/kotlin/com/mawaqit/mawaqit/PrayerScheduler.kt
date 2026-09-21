@@ -27,9 +27,9 @@ object PrayerScheduler {
     const val EXTRA_PRAYER_MS = "com.mawaqit.extra.PRAYER_MS"
     const val EXTRA_LEAD_MIN = "com.mawaqit.extra.LEAD_MIN"
 
-    // Base pre-prayer alert channel. The concrete id is per sound
-    // (`pre_prayer_alert_v2_<raw>` / `pre_prayer_alert_v2_silent`) so Android
-    // recreates the channel when the user picks a different chime.
+    // Base pre-prayer alert channel. Reminders are silent by design (the adhan
+    // is the app's only audible alert), so the concrete id always resolves to
+    // `pre_prayer_alert_v2_silent`.
     const val CHANNEL_REMINDERS = "pre_prayer_alert_v2"
     const val PREFS = "mawaqit_reminders"
 
@@ -53,7 +53,7 @@ object PrayerScheduler {
     fun channelIdFor(sound: String): String =
         if (sound == "silent") "${CHANNEL_REMINDERS}_silent" else "${CHANNEL_REMINDERS}_$sound"
 
-    fun ensureReminderChannel(context: Context, sound: String = "pre_alert") {
+    fun ensureReminderChannel(context: Context, sound: String = "silent") {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -83,7 +83,7 @@ object PrayerScheduler {
         sunriseMs: Long = 0L,
         fajrMs: Long = 0L,
         sunsetMs: Long = 0L,
-        channelSound: String = "pre_alert",
+        channelSound: String = "silent",
     ) {
         cancelAll(context)
         ensureReminderChannel(context, channelSound)
@@ -130,7 +130,7 @@ object PrayerScheduler {
         sunriseMs: Long = 0L,
         fajrMs: Long = 0L,
         sunsetMs: Long = 0L,
-        channelSound: String = "pre_alert",
+        channelSound: String = "silent",
     ) {
         ensureReminderChannel(context, channelSound)
 
@@ -224,7 +224,7 @@ object PrayerScheduler {
     /** The channel the cards were scheduled on for the current pre-prayer sound. */
     fun currentChannelId(context: Context): String {
         val sound = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getString(KEY_CHANNEL_SOUND, "pre_alert") ?: "pre_alert"
+            .getString(KEY_CHANNEL_SOUND, "silent") ?: "silent"
         return channelIdFor(sound)
     }
 
