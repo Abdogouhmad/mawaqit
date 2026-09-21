@@ -1,10 +1,10 @@
 {
-  "latestVersionName": "0.4.1",
-  "latestVersionCode": 401,
+  "latestVersionName": "0.4.2",
+  "latestVersionCode": 402,
   "minSupportedVersionCode": 3,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.4.1/mawaqit-v0.4.1-universal.apk",
-  "sha256": "9ca4cf7b577715a79ee96fed90071c8279b64af6cdb068ed69b15263f5007006",
-  "releaseNotes": "## [0.4.1] - 2026-09-21\n\n### Added\n\n- **Adhan plays while the screen is locked** — `USE_FULL_SCREEN_INTENT` and the\nfull-screen intent on the prayer-entry alert wake the display over the\nlockscreen (complementing the exact-alarm / wake-lock permissions already\npresent), so the adhan actually sounds when the device is off or locked.\n\n### Changed\n\n- **Pre-prayer alert rings again (as before)** — the countdown card is audible\nonce more using the selected pre-prayer tone's own channel instead of being\na silent card by design; selecting \"Silent\" still silences it.\n- **Test notification fires in 3 seconds** (was 10 s, which was dropped on\nseveral launchers) — the Settings test trigger and its fallback timer now\npost the pre-prayer alert after 3 s.\n\n### Fixed\n\n- Home-screen widget \"Can't show content\" hardened further — `SizeMode.Single`\nrenders once at the widget's own metadata size, avoiding the Glance\nresponsive-size re-composition path that produced the error card on some\nlaunchers. If a blank view remains after updating, remove and re-add the\nwidget from the home screen.",
-  "publishedAt": "2026-09-21T20:06:37.396849+00:00"
+  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.4.2/mawaqit-v0.4.2-universal.apk",
+  "sha256": "cb1be971ca9a57b57e9fc5d5afa854086d379a09ab2c7e0a5e937185c2ffa0dd",
+  "releaseNotes": "## [0.4.2] - 2026-09-21\n\n### Changed\n\n- **Test Notification now plays the actual adhan alarm** — instead of a silent\ncountdown card, the Settings test trigger fires the *real* prayer-entry alert\n3 seconds out: the selected adhan tone ringing on its own channel with alarm\naudio, vibration, `Priority.max`, `CATEGORY_ALARM` and the full-screen intent\nthat wakes the display over the lockscreen. The exact pipeline a scheduled\nadhan uses, so you can verify the whole chain before a real prayer.\n- **Adhan vibration** — prayer-entry alerts (test and scheduled) now vibrate,\nmatching alarm behavior; a muted adhan stays fully silent.\n\n### Fixed\n\n- **Home-screen widget never blank again** — the widget now shows a static\nsage \"Mawaqit · Loading prayer times…\" card the instant it is added (its own\n`initialLayout` instead of Glance's bare loading spinner), and the app seeds\nthe widget bridge with a placeholder snapshot on every launch so a fresh card\nis instantly populated. A blank view after updating still needs the widget\nremoved and re-added from the home screen (launcher metadata caches), but the\ncontent itself renders everywhere.",
+  "publishedAt": "2026-09-21T20:52:01.390894+00:00"
 }
