@@ -1,6 +1,7 @@
 package com.mawaqit.mawaqit
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
@@ -33,14 +34,20 @@ import androidx.glance.unit.ColorProvider
  * `HomeWidgetPreferences` bridge on every re-render. Decoupled from the
  * plugin's own Glance helper classes so it only depends on androidx.glance.
  *
- * Responsive: [sizeMode] registers distinct sizes (110dp / 180dp / 260dp wide)
- * so the launcher has valid resize steps for 3x1 and 4x1. Content avoids
+ * Responsive: [sizeMode] registers distinct widths (180dp / 260dp) so the
+ * launcher has valid resize steps for 2x1 and 4x1. Content avoids
  * `LocalSize.current` — reading a `CompositionLocal<DpSize>` (inline class)
  * trips a known Kotlin backend bug (`Couldn't inline method call`) — so the
  * single layout below is sized and `maxLines = 1`-clipped to fit every
  * registered width instead. Every Text is `maxLines = 1`: glance text that
  * overflows its bounds can render fully clipped/invisible rather than
  * truncated depending on host.
+ *
+ * Every data read is wrapped in [runCatching] so a malformed/missing row in
+ * the home_widget preferences bridge can never throw inside the composition —
+ * an uncaught throwable there is exactly what makes Glance revert to its
+ * "Can't show content" error layout. [onCompositionError] logs the real
+ * stack so a still-broken widget can be diagnosed from logcat.
  *
  * NOTE: changing [sizeMode] (or the provider XML) changes the widget's size
  * metadata, which some launchers only re-read when the widget is removed and
@@ -51,7 +58,6 @@ class PrayerWidget : GlanceAppWidget() {
 
     override val sizeMode = SizeMode.Responsive(
         setOf(
-            DpSize(110.dp, 90.dp), // narrow (3-cell-ish on dense grids)
             DpSize(180.dp, 90.dp), // default 2x1
             DpSize(260.dp, 90.dp), // wide 4x1
         ),
@@ -62,14 +68,20 @@ class PrayerWidget : GlanceAppWidget() {
             "HomeWidgetPreferences",
             Context.MODE_PRIVATE,
         )
-        val name = prefs.getString("next_prayer_name", "—") ?: "—"
-        val time = prefs.getString("next_prayer_time", "") ?: ""
-        val minutesLeft = prefs.getInt("minutes_remaining", -1)
-        // A Dart double is stored as raw long bits by home_widget — decode it.
-        val progress = java.lang.Double
-            .longBitsToDouble(prefs.getLong("progress", 0L))
-            .toFloat()
-            .coerceIn(0f, 1f)
+        // Defensive reads: never let a bad row turn into Glance's error layout.
+        val name = runCatching { prefs.getString("next_prayer_name", "—") }
+            .getOrNull() ?: "—"
+        val time = runCatching { prefs.getString("next_prayer_time", "") }
+            .getOrNull() ?: ""
+        val minutesLeft = runCatching { prefs.getInt("minutes_remaining", -1) }
+            .getOrNull() ?: -1
+        // A Dart double is stored as raw long bits by home_widget — decode it,
+        // clamping non-finite/out-of-range values to a valid 0..1 progress.
+        val progress = runCatching {
+            java.lang.Double.longBitsToDouble(prefs.getLong("progress", 0L)).toFloat()
+        }.getOrElse { 0f }
+            .takeIf { it.isFinite() && !it.isNaN() }
+            ?.coerceIn(0f, 1f) ?: 0f
         val sage = ColorProvider(Color(0xFF2E7D5B))
         val white = ColorProvider(Color.White)
 
@@ -83,6 +95,16 @@ class PrayerWidget : GlanceAppWidget() {
                 white = white,
             )
         }
+    }
+
+    override fun onCompositionError(
+        context: Context,
+        glanceId: GlanceId,
+        appWidgetId: Int,
+        throwable: Throwable,
+    ) {
+        Log.e("PrayerWidget", "widget composition failed (appWidgetId=$appWidgetId)", throwable)
+        super.onCompositionError(context, glanceId, appWidgetId, throwable)
     }
 }
 
