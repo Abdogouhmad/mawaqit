@@ -1,0 +1,2 @@
+# mawaqit
+simple prayer app
