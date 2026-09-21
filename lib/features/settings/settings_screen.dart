@@ -307,7 +307,7 @@ class _SettingsBody extends ConsumerWidget {
               SettingsRow(
                 icon: Icons.campaign_outlined,
                 title: 'Test Notification',
-                subtitle: 'Fires a pre-prayer alert in 10 seconds',
+                subtitle: 'Fires a pre-prayer alert in 3 seconds',
                 onTap: () => _sendTestNotification(context, ref),
                 trailing: const Icon(
                   Icons.chevron_right,

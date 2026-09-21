@@ -45,22 +45,24 @@ class NotificationService {
   static const int _reminderBucket = 1_000_000;
   static const int _nativeCardBucket = 2_000_000;
 
-  /// Debug-only id for the "Test notification in 10s" settings trigger.
+  /// Debug-only id for the "Test notification in 3s" settings trigger.
   ///
   /// Must fit within a signed 32-bit integer — Android's [validateId] enforces
   /// this (max = 2^31-1 = 2,147,483,647). Kept well below the nativeCard bucket
   /// start (2_000_000) to avoid collisions with scheduled prayer ids.
   static const int _testNotificationId = 1_999_999;
 
-  /// Pre-prayer alert channel: silent countdown card shown `leadMinutes`
-  /// early. The adhan is the only audible alert — reminders never ring.
+  /// Pre-prayer alert channel: audible countdown card shown `leadMinutes`
+  /// early. Restored "as before" (0.3.x): the pre-prayer alert rings with the
+  /// selected tone instead of being a silent card by design.
   static const AndroidNotificationChannel preAlertChannel =
       AndroidNotificationChannel(
     'pre_prayer_alert_v2',
     'Pre-prayer alert',
     description: 'Countdown reminder before each prayer',
     importance: Importance.high,
-    playSound: false,
+    playSound: true,
+    sound: RawResourceAndroidNotificationSound('pre_alert'),
     audioAttributesUsage: AudioAttributesUsage.alarm,
   );
 
@@ -219,7 +221,7 @@ class NotificationService {
         id: _testNotificationId,
         title: 'Test pre-prayer alert',
         body: 'This is a test. The adhan would follow shortly.',
-        at: DateTime.now().add(const Duration(seconds: 10)),
+        at: DateTime.now().add(const Duration(seconds: 3)),
         type: NotificationType.preAlert,
         muted: false,
         payload: 'test_pre_alert',
@@ -426,6 +428,7 @@ class NotificationService {
           playSound: channel.playSound,
           sound: channel.sound,
           audioAttributesUsage: channel.audioAttributesUsage,
+          fullScreenIntent: type == NotificationType.adhan,
         ),
       );
     }
@@ -483,14 +486,39 @@ class NotificationService {
     );
   }
 
-  /// Pre-prayer alert channel is always silent — the adhan is the app's only
-  /// audible alert, so reminder cards never ring.
-  AndroidNotificationChannel _preAlertChannel(AppSettings settings) =>
-      preAlertChannel;
+  AndroidNotificationChannel _preAlertChannel(AppSettings settings) {
+    final tone = ToneCatalog.byName(settings.preAlertTone);
+    if (tone.silent) {
+      return const AndroidNotificationChannel(
+        'pre_prayer_alert_v2_silent',
+        'Pre-prayer alert (muted)',
+        description: 'Countdown card without an audible alert',
+        importance: Importance.high,
+        playSound: false,
+        audioAttributesUsage: AudioAttributesUsage.alarm,
+      );
+    }
+    return AndroidNotificationChannel(
+      'pre_prayer_alert_v2_${settings.preAlertTone}',
+      preAlertChannel.name,
+      description: preAlertChannel.description,
+      importance: Importance.high,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound(_preAlertRawResource(settings)),
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+    );
+  }
 
-  /// Raw resource used by the native countdown-card channel. Reminders are
-  /// silent by design (`'silent'` = silent channel), so this never varies.
-  static String _preAlertRawResource(AppSettings settings) => 'silent';
+  /// Raw resource used by the native countdown-card channel. Uses the
+  /// per-tone channel's resource when the selected tone is audible, otherwise
+  /// falls back to the default `'pre_alert'`.
+  static String _preAlertRawResource(AppSettings settings) {
+    final tone = ToneCatalog.byName(settings.preAlertTone);
+    if (tone.silent) return 'silent';
+    return tone.androidRawResource.isEmpty
+        ? 'pre_alert'
+        : tone.androidRawResource;
+  }
 
   DateTime _nextSunrise(PrayerDay day) {
     final now = DateTime.now();

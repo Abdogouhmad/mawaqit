@@ -56,12 +56,14 @@ import androidx.glance.unit.ColorProvider
  */
 class PrayerWidget : GlanceAppWidget() {
 
-    override val sizeMode = SizeMode.Responsive(
-        setOf(
-            DpSize(180.dp, 90.dp), // default 2x1
-            DpSize(260.dp, 90.dp), // wide 4x1
-        ),
-    )
+    // SizeMode.Single renders once at the widget-info size (180x90 / 2x1)
+    // using the size declared in prayer_widget_info.xml. With Responsive,
+    // Glance re-composes per requested size and reads a pinned LocalSize,
+    // which trips a known Kotlin backend inline-class bug ("Couldn't inline
+    // method call") that manifests as the blank "Can't show content" card.
+    // Single size mode avoids that entirely — the layout clips (maxLines = 1)
+    // so it still fits wide 4x1 hosts.
+    override val sizeMode = SizeMode.Single
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val prefs = context.getSharedPreferences(

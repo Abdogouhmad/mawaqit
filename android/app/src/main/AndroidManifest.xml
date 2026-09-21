@@ -2,6 +2,14 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- Adhan must break through the lock screen when the device is asleep:
+         the full-screen intent wakes the display and shows the adhan card over
+         the lockscreen, and the wake lock keeps playback alive while the
+         screen is off. USE_FULL_SCREEN_INTENT is a normal (auto-granted)
+         permission on API 29+; SCHEDULE_EXACT_ALARM / USE_EXACT_ALARM below
+         gate the exact-alarm scheduling itself. -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>

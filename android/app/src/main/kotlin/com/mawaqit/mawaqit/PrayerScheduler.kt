@@ -53,7 +53,7 @@ object PrayerScheduler {
     fun channelIdFor(sound: String): String =
         if (sound == "silent") "${CHANNEL_REMINDERS}_silent" else "${CHANNEL_REMINDERS}_$sound"
 
-    fun ensureReminderChannel(context: Context, sound: String = "silent") {
+    fun ensureReminderChannel(context: Context, sound: String = "pre_alert") {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -83,7 +83,7 @@ object PrayerScheduler {
         sunriseMs: Long = 0L,
         fajrMs: Long = 0L,
         sunsetMs: Long = 0L,
-        channelSound: String = "silent",
+        channelSound: String = "pre_alert",
     ) {
         cancelAll(context)
         ensureReminderChannel(context, channelSound)
@@ -130,7 +130,7 @@ object PrayerScheduler {
         sunriseMs: Long = 0L,
         fajrMs: Long = 0L,
         sunsetMs: Long = 0L,
-        channelSound: String = "silent",
+        channelSound: String = "pre_alert",
     ) {
         ensureReminderChannel(context, channelSound)
 

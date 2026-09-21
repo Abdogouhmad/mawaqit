@@ -11,6 +11,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-09-21
+
+### Added
+
+- **Adhan plays while the screen is locked** — `USE_FULL_SCREEN_INTENT` and the
+  full-screen intent on the prayer-entry alert wake the display over the
+  lockscreen (complementing the exact-alarm / wake-lock permissions already
+  present), so the adhan actually sounds when the device is off or locked.
+
+### Changed
+
+- **Pre-prayer alert rings again (as before)** — the countdown card is audible
+  once more using the selected pre-prayer tone's own channel instead of being
+  a silent card by design; selecting "Silent" still silences it.
+- **Test notification fires in 3 seconds** (was 10 s, which was dropped on
+  several launchers) — the Settings test trigger and its fallback timer now
+  post the pre-prayer alert after 3 s.
+
+### Fixed
+
+- Home-screen widget "Can't show content" hardened further — `SizeMode.Single`
+  renders once at the widget's own metadata size, avoiding the Glance
+  responsive-size re-composition path that produced the error card on some
+  launchers. If a blank view remains after updating, remove and re-add the
+  widget from the home screen.
+
 ## [0.4.0] - 2026-09-21
 
 ### Added
