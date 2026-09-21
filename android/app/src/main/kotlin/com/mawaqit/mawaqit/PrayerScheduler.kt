@@ -36,6 +36,7 @@ object PrayerScheduler {
     /** Ambient footer timestamps shown on the card (shared across that day). */
     const val KEY_SUNRISE = "info_sunrise"
     const val KEY_FAJR = "info_fajr"
+    const val KEY_SUNSET = "info_sunset"
     const val KEY_CHANNEL_SOUND = "info_channel_sound"
 
     val TICK_MS = 60_000L
@@ -81,6 +82,7 @@ object PrayerScheduler {
         reminders: List<Map<String, Any>>,
         sunriseMs: Long = 0L,
         fajrMs: Long = 0L,
+        sunsetMs: Long = 0L,
         channelSound: String = "pre_alert",
     ) {
         cancelAll(context)
@@ -108,8 +110,56 @@ object PrayerScheduler {
         }
         editor.putLong(KEY_SUNRISE, sunriseMs)
         editor.putLong(KEY_FAJR, fajrMs)
+        editor.putLong(KEY_SUNSET, sunsetMs)
         editor.putString(KEY_CHANNEL_SOUND, channelSound)
         editor.apply()
+    }
+
+    /**
+     * Shows a test pre-prayer notification immediately so the user can preview
+     * the exact Stitch card design (narrative body, countdown, synchronized progress bar,
+     * quick actions, and ambient footer) on their Android device (e.g. Pixel 9).
+     */
+    fun showTestReminder(
+        context: Context,
+        id: Int = 1_999_999,
+        name: String = "Maghrib",
+        prayerId: String = "test_maghrib",
+        leadMinutes: Int = 10,
+        prayerMs: Long = 0L,
+        sunriseMs: Long = 0L,
+        fajrMs: Long = 0L,
+        sunsetMs: Long = 0L,
+        channelSound: String = "pre_alert",
+    ) {
+        ensureReminderChannel(context, channelSound)
+
+        val now = System.currentTimeMillis()
+        val targetPrayerMs = if (prayerMs > now) {
+            prayerMs
+        } else {
+            now + (leadMinutes * 60_000L)
+        }
+
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(
+                "reminder_$id",
+                JSONObject()
+                    .put(EXTRA_PRAYER_ID, prayerId)
+                    .put(EXTRA_NAME, name)
+                    .put(EXTRA_PRAYER_MS, targetPrayerMs)
+                    .put(EXTRA_LEAD_MIN, leadMinutes)
+                    .toString(),
+            )
+            .putLong(KEY_SUNRISE, sunriseMs)
+            .putLong(KEY_FAJR, fajrMs)
+            .putLong(KEY_SUNSET, sunsetMs)
+            .putString(KEY_CHANNEL_SOUND, channelSound)
+            .apply()
+
+        // Post the notification card immediately
+        PrayerReminderReceiver.postReminder(context, id)
     }
 
     fun cancelAll(context: Context) {

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sun / sunrise glyph for the notification footer (Stitch "wb_sunny"). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Center sun disk -->
+    <path
+        android:fillColor="#2E7D5B"
+        android:pathData="M12,7c-2.76,0 -5,2.24 -5,5s2.24,5 5,5 5,-2.24 5,-5 -2.24,-5 -5,-5z" />
+    <!-- Rays -->
+    <path
+        android:fillColor="#2E7D5B"
+        android:pathData="M11,1h2v3h-2zM11,20h2v3h-2zM1,11h3v2h-3zM20,11h3v2h-3zM4.93,3.52l2.12,2.12 -1.41,1.41 -2.12,-2.12zM16.95,15.54l2.12,2.12 -1.41,1.41 -2.12,-2.12zM3.52,19.07l2.12,-2.12 1.41,1.41 -2.12,2.12zM15.54,7.05l2.12,-2.12 1.41,1.41 -2.12,2.12z" />
+</vector>

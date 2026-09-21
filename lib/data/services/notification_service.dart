@@ -46,7 +46,11 @@ class NotificationService {
   static const int _nativeCardBucket = 2_000_000;
 
   /// Debug-only id for the "Test notification in 10s" settings trigger.
-  static const int _testNotificationId = 9_000_000_001;
+  ///
+  /// Must fit within a signed 32-bit integer — Android's [validateId] enforces
+  /// this (max = 2^31-1 = 2,147,483,647). Kept well below the nativeCard bucket
+  /// start (2_000_000) to avoid collisions with scheduled prayer ids.
+  static const int _testNotificationId = 1_999_999;
 
   /// Pre-prayer alert channel: short chime card shown `leadMinutes` early.
   static const AndroidNotificationChannel preAlertChannel =
@@ -153,6 +157,7 @@ class NotificationService {
           'reminders': _buildReminders(day, settings.leadMinutes),
           'sunriseMs': _nextSunrise(day).millisecondsSinceEpoch,
           'fajrMs': _nextFajr(day).millisecondsSinceEpoch,
+          'sunsetMs': day.sunset.millisecondsSinceEpoch,
           'channelSound': _preAlertRawResource(settings),
         });
         return;
@@ -169,12 +174,46 @@ class NotificationService {
     );
   }
 
-  /// Debug trigger (settings): fire a pre-prayer alert 10s from now so the
-  /// notify path can be verified on Linux without waiting for a prayer time.
-  /// On Linux, a missing `.desktop` registration can make the D-Bus call fail
-  /// silently — never swallow it: surface the error so the UI can report it.
-  Future<bool> scheduleTestNotification() async {
-    if (!hasNotificationPermission) return false;
+  /// Debug trigger (settings): fires the pre-prayer alert card immediately
+  /// on Android (with live countdown, synchronized progress bar, quick actions,
+  /// and ambient footer matching Stitch) or schedules a 10s alert on desktop.
+  Future<bool> scheduleTestNotification({
+    AppSettings? settings,
+    PrayerDay? day,
+  }) async {
+    if (_isAndroid && hasNotificationPermission) {
+      try {
+        final currentSettings = settings ?? const AppSettings();
+        final leadMin = currentSettings.leadMinutes > 0 ? currentSettings.leadMinutes : 10;
+        final now = DateTime.now();
+        final nextPrayer = day?.currentOrNextPrayer(now);
+        final prayerName = nextPrayer?.kind.displayName ?? 'Maghrib';
+
+        final prayerMs = now.add(Duration(minutes: leadMin)).millisecondsSinceEpoch;
+        final sunriseMs = day != null ? _nextSunrise(day).millisecondsSinceEpoch : 0;
+        final fajrMs = day != null ? _nextFajr(day).millisecondsSinceEpoch : 0;
+        final sunsetMs = day?.sunset.millisecondsSinceEpoch ?? 0;
+
+        await _channel.invokeMethod('showTestReminder', {
+          'id': _testNotificationId,
+          'name': prayerName,
+          'prayerId': day != null
+              ? prayerIdFor(day.date, nextPrayer?.kind ?? PrayerKind.maghrib)
+              : 'test_maghrib',
+          'leadMinutes': leadMin,
+          'prayerTimestampMs': prayerMs,
+          'sunriseMs': sunriseMs,
+          'fajrMs': fajrMs,
+          'sunsetMs': sunsetMs,
+          'channelSound': _preAlertRawResource(currentSettings),
+        });
+        return true;
+      } catch (e, st) {
+        debugPrint('Native test notification failed: $e\n$st');
+        // Fall through to plain Flutter notification if method channel fails
+      }
+    }
+
     try {
       await _postAt(
         id: _testNotificationId,
@@ -187,7 +226,7 @@ class NotificationService {
       );
     } catch (e, st) {
       debugPrint('Test notification failed: $e\n$st');
-      rethrow; // let the UI show a SnackBar with the real error instead of nothing happening
+      rethrow;
     }
     return true;
   }

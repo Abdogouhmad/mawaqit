@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layer-list progress drawable for the notification pre-prayer progress bar.
+     Matches Stitch: background pill in soft sage (#B9EFD0) and progress pill in #2E7D5B. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <solid android:color="#B9EFD0" />
+        </shape>
+    </item>
+    <item android:id="@android:id/progress">
+        <scale
+            android:drawable="@drawable/notif_progress_fill"
+            android:scaleWidth="100%" />
+    </item>
+</layer-list>

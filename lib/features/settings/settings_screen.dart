@@ -16,6 +16,7 @@ import 'package:mawaqit/ui/core/widgets/app_card.dart';
 import 'package:mawaqit/ui/core/widgets/section_header.dart';
 import 'package:mawaqit/ui/core/widgets/segmented_control.dart';
 import 'package:mawaqit/ui/core/widgets/settings_row.dart';
+import 'package:mawaqit/features/home/home_controller.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -401,14 +402,18 @@ class _SettingsBody extends ConsumerWidget {
   ) async {
     final messenger = ScaffoldMessenger.of(context);
     final service = ref.read(notificationServiceProvider);
+    final homeState = ref.read(homeControllerProvider).value;
     try {
       await service.init();
-      final scheduled = await service.scheduleTestNotification();
+      final scheduled = await service.scheduleTestNotification(
+        settings: settings,
+        day: homeState?.day,
+      );
       messenger.showSnackBar(
         SnackBar(
           content: Text(
             scheduled
-                ? 'Test pre-prayer alert in 10 seconds.'
+                ? 'Pre-prayer reminder card displayed in notification tray.'
                 : 'Notifications are off — re-enable them via '
                     '"Notification Permission" below.',
           ),

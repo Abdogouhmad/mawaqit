@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mawaqit prayer reminder card — mirrors the Stitch "system tray mock" design:
-     app badge + MAWAQIT label, next-prayer title with status dot, prayer-time
-     meta line, horizon glyph, sage progress bar, two pill quick actions and
-     an ambient sunrise/fajr footer row. -->
+<!-- Mawaqit pre-prayer reminder card (Expanded View) — mirrors Stitch "system tray mock":
+     next-prayer title with status dot, prayer-time & sunset meta line, horizon glyph,
+     sage progress bar, two pill quick actions (Mute / Dismiss), and ambient sunrise/fajr footer. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingStart="4dp"
+    android:paddingTop="2dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="6dp">
 
-    <!-- App identification bar -->
+    <!-- Optional App identification bar (hidden by default when decorated) -->
     <LinearLayout
+        android:id="@+id/notif_app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:contentDescription="@string/app_name"
             android:src="@drawable/notif_app_badge" />
 
@@ -50,7 +55,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -101,22 +105,21 @@
             android:src="@drawable/notif_twilight_badge" />
     </LinearLayout>
 
-    <!-- Sage progress bar -->
+    <!-- Sage progress bar synchronized with pre-prayer time -->
     <ProgressBar
         android:id="@+id/notif_progress"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="6dp"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="12dp"
         android:max="100"
         android:minHeight="6dp"
-        android:progressBackgroundTint="#B9EFD0"
-        android:progressTint="#2E7D5B" />
+        android:progressDrawable="@drawable/notif_progress_bar" />
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="14dp"
+        android:layout_marginTop="12dp"
         android:background="#1A2E7D5B" />
 
     <!-- Quick actions -->
@@ -182,7 +185,7 @@
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:contentDescription="@null"
-            android:src="@drawable/ic_twilight" />
+            android:src="@drawable/ic_sunny" />
 
         <TextView
             android:id="@+id/notif_sunrise"

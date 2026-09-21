@@ -7,8 +7,11 @@
     <string name="notif_dismiss">Dismiss</string>
     <string name="notif_min_short">m</string>
     <string name="notif_now">%1$s now</string>
+    <string name="notif_title_in_min">%1$s in %2$d minutes</string>
+    <string name="notif_title_in_one_min">%1$s in 1 minute</string>
     <string name="notif_subtitle">Prayer time is at %1$s</string>
-    <string name="notif_sunrise">Sunrise %1$s</string>
+    <string name="notif_subtitle_with_sunset">Prayer time is at %1$s • Sunset at %2$s</string>
+    <string name="notif_sunrise">Sunrise: %1$s</string>
     <string name="notif_fajr">Fajr %1$s</string>
     <string name="notif_prayer_time">%1$s — prayer time</string>
     <string name="notif_prayer_time_body">It is now time for the prayer at %1$s</string>

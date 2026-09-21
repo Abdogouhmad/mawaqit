@@ -105,6 +105,11 @@ abstract final class ToneCatalog {
       androidRawResource: 'tone_tranquil_gong',
     ),
     AdhanTone(
+      name: 'Adham Al Sharqawe',
+      assetPath: 'audio/Adham Al Sharqawe.mp3',
+      androidRawResource: 'adhan_adham_al_sharqawe',
+    ),
+    AdhanTone(
       name: silentName,
       assetPath: '',
       androidRawResource: '',

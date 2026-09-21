@@ -12,12 +12,21 @@ import 'package:mawaqit/core/audio/tone_catalog.dart';
 /// On Android/iOS the bundled `audioplayers` engine is used. On Linux desktop
 /// `audioplayers` needs the GStreamer `wavparse`/`autoaudiosink` plugins, which
 /// are frequently absent on dev machines, so we fall back to a system audio CLI
-/// (`paplay`, `aplay` or `ffplay`) instead. All failures are swallowed and
-/// reported via the returned bool so a missing backend never crashes the app.
+/// (`paplay`/`aplay` for WAV, `ffplay` for anything) instead. All failures are
+/// swallowed and reported via the returned bool so a missing backend never
+/// crashes the app.
+///
+/// MP3 assets (e.g. "Adham Al Sharqawe") are handled transparently:
+/// - Linux: `ffplay` is preferred when the tone is non-WAV; `paplay`/`aplay`
+///   are skipped because they cannot decode MP3.
+/// - Android: `audioplayers` handles MP3 natively via MediaPlayer.
+/// - The temp file written for CLI playback preserves the original extension so
+///   the player can detect the codec from the filename.
 class TonePreviewService {
   TonePreviewService() {
     if (_isLinux) {
-      _linuxPlayer = _detectLinuxPlayer();
+      _linuxPlayerWav = _detectLinuxPlayer(const ['paplay', 'aplay', 'ffplay']);
+      _linuxPlayerAny = _detectLinuxPlayer(const ['ffplay']);
     } else {
       _player = AudioPlayer();
       _completeSub = _player!.onPlayerComplete.listen((_) {
@@ -35,7 +44,12 @@ class TonePreviewService {
   AudioPlayer? _player;
   StreamSubscription<void>? _completeSub;
   Process? _process;
-  String? _linuxPlayer;
+
+  /// Best CLI player that can handle WAV (paplay / aplay / ffplay).
+  String? _linuxPlayerWav;
+
+  /// Best CLI player that handles any format (ffplay only).
+  String? _linuxPlayerAny;
 
   String? _playing;
 
@@ -46,7 +60,10 @@ class TonePreviewService {
   String? get playing => _playing;
 
   /// Whether a preview backend is available on this platform.
-  bool get isSupported => _isLinux ? _linuxPlayer != null : true;
+  bool get isSupported {
+    if (_isLinux) return _linuxPlayerWav != null || _linuxPlayerAny != null;
+    return true;
+  }
 
   /// Device ringtones/notifications are an Android-only concept.
   bool get supportsDeviceTones => _isAndroid;
@@ -145,8 +162,16 @@ class TonePreviewService {
   }
 
   Future<bool> _playLinux(AdhanTone tone) async {
-    final command = _linuxPlayer;
+    // Determine which CLI player to use:
+    //   - WAV assets → prefer paplay/aplay (lower latency), fall back to ffplay.
+    //   - MP3 / other formats → ffplay only (paplay/aplay cannot decode MP3).
+    final ext = _fileExtension(tone.assetPath).toLowerCase();
+    final isWav = ext == '.wav';
+    final command = isWav
+        ? (_linuxPlayerWav ?? _linuxPlayerAny)
+        : _linuxPlayerAny;
     if (command == null) return false;
+
     try {
       final file = await _extractAsset(tone);
       final args = command == 'ffplay'
@@ -170,20 +195,36 @@ class TonePreviewService {
   }
 
   /// Copies a bundled tone asset to a temp file for CLI playback.
+  ///
+  /// The temp filename preserves the **original extension** (e.g. `.mp3`) so
+  /// the player can detect the codec. Using a fixed `.wav` extension for MP3
+  /// content causes `paplay`/`aplay` to fail and `ffplay` to misparse the file.
   Future<File> _extractAsset(AdhanTone tone) async {
+    final ext = _fileExtension(tone.assetPath); // e.g. ".wav" or ".mp3"
+    // Sanitise the resource name for use as a filename (spaces → underscores).
+    final safeName = tone.androidRawResource.replaceAll(RegExp(r'[^\w]'), '_');
+    final file = File(
+      '${Directory.systemTemp.path}/mawaqit_$safeName$ext',
+    );
     final data = await rootBundle.load('assets/${tone.assetPath}');
     final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-    final file = File(
-      '${Directory.systemTemp.path}/mawaqit_${tone.androidRawResource}.wav',
-    );
     if (!file.existsSync() || file.lengthSync() != bytes.length) {
       await file.writeAsBytes(bytes, flush: true);
     }
     return file;
   }
 
-  static String? _detectLinuxPlayer() {
-    for (final candidate in const ['paplay', 'aplay', 'ffplay']) {
+  /// Returns the file extension including the dot, e.g. `".mp3"` or `".wav"`.
+  /// Returns an empty string if the asset path has no extension.
+  static String _fileExtension(String assetPath) {
+    final name = assetPath.split('/').last;
+    final dot = name.lastIndexOf('.');
+    return dot >= 0 ? name.substring(dot) : '';
+  }
+
+  /// Returns the first CLI player from [candidates] that is available on PATH.
+  static String? _detectLinuxPlayer(List<String> candidates) {
+    for (final candidate in candidates) {
       try {
         final result = Process.runSync('which', [candidate]);
         if (result.exitCode == 0 && (result.stdout as String).trim().isNotEmpty) {

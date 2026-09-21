@@ -11,6 +11,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-09-21
+
+### Added
+
+- **Stitch pre-prayer notification card for Android & Pixel 9** —
+  - Added dedicated collapsed layout (`notification_prayer_collapsed.xml`) to prevent vertical clipping on modern Android lockscreens (API 31+ / Android 14/15 on Pixel 9).
+  - Designed custom rounded pill progress bar (`notif_progress_bar.xml`) in sage emerald (`#2E7D5B`) with soft sage track (`#B9EFD0`), matching the Stitch design.
+  - Added sun icon (`ic_sunny.xml`) for the ambient footer row with sunrise/fajr times.
+  - Subtitle dynamically displays sunset time for Maghrib (`Prayer time is at 6:15 PM • Sunset at 6:14 PM`).
+  - Formatted countdown titles ("Maghrib in 10 minutes", "Maghrib in 1 minute", "Maghrib now").
+- **Linked test notification to native pre-prayer card** — Tapping "Test Notification" in Settings now triggers the actual decorated Stitch pre-prayer reminder card on Android immediately, displaying the live countdown, synchronized progress bar, quick actions (Mute / Dismiss), and ambient footer.
+
+## [0.3.1] - 2026-09-21
+
+### Added
+
+- **Adham Al Sharqawe adhan** — a new full-call MP3 adhan by Adham Al Sharqawe
+  is now available in the Adhan Tone picker alongside the existing built-in
+  tones. Previewing it works on Linux (`ffplay`) and Android (`audioplayers`).
+
+### Fixed
+
+- **Test notification crash on Android** — `_testNotificationId` was
+  `9_000_000_001`, exceeding the signed 32-bit integer range enforced by
+  Android's `validateId`. Changed to `1_999_999`, which is below the
+  `nativeCard` bucket start (2,000,000) and well within the 32-bit limit.
+- **Test notification button reported "unavailable"** — `scheduleTestNotification`
+  was gated on `hasNotificationPermission`, silently returning `false` when
+  Android permissions weren't yet granted. The guard is removed; the method now
+  always attempts to post and rethrows any real error so the UI can display it
+  in a SnackBar instead of showing nothing.
+- **Widget renders blank at 3×1** — `PrayerWidgetContent` always rendered all
+  content (name + subtitle + progress bar) regardless of widget width. Overflowing
+  Glance text is fully clipped by some launchers rather than truncated. The
+  composable now reads `LocalSize.current` inside `provideContent` and switches
+  to a compact layout (name only, larger font) when `width < 150 dp`, preventing
+  the blank 3×1 card. **Removing and re-adding the widget from the home screen
+  is required** to pick up the new size metadata.
+- **MP3 adhan tones silent on Linux** — `_extractAsset` always wrote the temp
+  file with a `.wav` extension regardless of the actual format. MP3 content
+  saved as `.wav` fails with `paplay`/`aplay` (WAV-only decoders) and is
+  misparsed by `ffplay`. The temp filename now preserves the original extension
+  (`.mp3` / `.wav`), and MP3 tones are routed to `ffplay` only since
+  `paplay`/`aplay` cannot decode MP3.
+
 ## [0.3.0] - 2026-09-21
 
 Reliable, testable notifications and the first home-screen widget.
@@ -140,4 +185,6 @@ release (0.x): feedback is welcome, stability guarantees come later.
   ordering — the pipeline derives everything from `version:` in `pubspec.yaml`.
 
 [0.2.1]: https://github.com/Abdogouhmad/mawaqit/releases/tag/v0.2.1
-[0.3.0]: https://github.com/Abdogouhmad/mawaqit/releases/tag/v0.3.0
+[0.3.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.2.1...v0.3.0
+[0.3.1]: https://github.com/Abdogouhmad/mawaqit/compare/v0.3.0...v0.3.1
+[0.3.2]: https://github.com/Abdogouhmad/mawaqit/compare/v0.3.1...v0.3.2

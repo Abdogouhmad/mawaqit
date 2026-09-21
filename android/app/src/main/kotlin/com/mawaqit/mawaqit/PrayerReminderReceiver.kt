@@ -16,6 +16,13 @@ import kotlin.math.ceil
  */
 class PrayerReminderReceiver : BroadcastReceiver() {
 
+    companion object {
+        fun postReminder(context: Context, id: Int) {
+            val receiver = PrayerReminderReceiver()
+            receiver.handleShow(context, id)
+        }
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         val id = intent.getIntExtra(PrayerScheduler.EXTRA_ID, -1)
         if (id == -1) return
@@ -36,7 +43,7 @@ class PrayerReminderReceiver : BroadcastReceiver() {
         PrayerScheduler.removePref(context, id)
     }
 
-    private fun handleShow(context: Context, id: Int) {
+    fun handleShow(context: Context, id: Int) {
         val prefs = context.getSharedPreferences(PrayerScheduler.PREFS, Context.MODE_PRIVATE)
         val raw = prefs.getString("reminder_$id", null) ?: return
         val data = JSONObject(raw)
@@ -52,6 +59,7 @@ class PrayerReminderReceiver : BroadcastReceiver() {
             return
         }
 
+        // Progress bar calculation: fraction of the pre-prayer lead interval elapsed towards prayer entry
         val leadStartMs = prayerMs - leadMin * 60_000L
         val totalMs = prayerMs - leadStartMs
         val elapsedMs = now - leadStartMs
@@ -62,22 +70,40 @@ class PrayerReminderReceiver : BroadcastReceiver() {
         }
 
         val remainingMin = ceil((prayerMs - now) / 60_000.0).toInt()
-        val title = if (remainingMin >= 1) {
-            "$name in ${remainingMin}${context.getString(R.string.notif_min_short)}"
+        val title = if (remainingMin > 1) {
+            context.getString(R.string.notif_title_in_min, name, remainingMin)
+        } else if (remainingMin == 1) {
+            context.getString(R.string.notif_title_in_one_min, name)
         } else {
             context.getString(R.string.notif_now, name)
         }
+
         val time = PrayerScheduler.timeLabel(prayerMs)
+        val sunsetMs = prefs.getLong(PrayerScheduler.KEY_SUNSET, 0L)
+        val subtitle = if (name.equals("Maghrib", ignoreCase = true) && sunsetMs > 0L) {
+            context.getString(
+                R.string.notif_subtitle_with_sunset,
+                time,
+                PrayerScheduler.timeLabel(sunsetMs),
+            )
+        } else {
+            context.getString(R.string.notif_subtitle, time)
+        }
+
         val sunriseMs = prefs.getLong(PrayerScheduler.KEY_SUNRISE, 0L)
         val fajrMs = prefs.getLong(PrayerScheduler.KEY_FAJR, 0L)
 
-        val views = RemoteViews(context.packageName, R.layout.notification_prayer).apply {
-            setTextViewText(R.id.notif_now, context.getString(R.string.notif_label_now))
+        // Collapsed notification view (avoids vertical clipping on Android 12+ / Pixel 9 lockscreen)
+        val collapsedViews = RemoteViews(context.packageName, R.layout.notification_prayer_collapsed).apply {
             setTextViewText(R.id.notif_title, title)
-            setTextViewText(
-                R.id.notif_subtitle,
-                context.getString(R.string.notif_subtitle, time),
-            )
+            setTextViewText(R.id.notif_subtitle, subtitle)
+            setProgressBar(R.id.notif_progress, 100, percent, false)
+        }
+
+        // Expanded notification view (Stitch system tray mock design with actions and ambient footer)
+        val views = RemoteViews(context.packageName, R.layout.notification_prayer).apply {
+            setTextViewText(R.id.notif_title, title)
+            setTextViewText(R.id.notif_subtitle, subtitle)
             setProgressBar(R.id.notif_progress, 100, percent, false)
             if (sunriseMs > 0L) {
                 setTextViewText(
@@ -99,6 +125,8 @@ class PrayerReminderReceiver : BroadcastReceiver() {
             }
             if (sunriseMs <= 0L && fajrMs <= 0L) {
                 setViewVisibility(R.id.notif_footer, View.GONE)
+            } else {
+                setViewVisibility(R.id.notif_footer, View.VISIBLE)
             }
             setOnClickPendingIntent(
                 R.id.notif_mute,
@@ -116,7 +144,7 @@ class PrayerReminderReceiver : BroadcastReceiver() {
         )
             .setSmallIcon(R.drawable.ic_stat_mawaqit)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
-            .setCustomContentView(views)
+            .setCustomContentView(collapsedViews)
             .setCustomBigContentView(views)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setCategory(NotificationCompat.CATEGORY_ALARM)

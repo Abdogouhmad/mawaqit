@@ -23,8 +23,33 @@ class MainActivity : FlutterActivity() {
                         call.argument<List<Map<String, Any>>>("reminders") ?: emptyList()
                     val sunriseMs = call.argument<Number>("sunriseMs")?.toLong() ?: 0L
                     val fajrMs = call.argument<Number>("fajrMs")?.toLong() ?: 0L
+                    val sunsetMs = call.argument<Number>("sunsetMs")?.toLong() ?: 0L
                     val channelSound = call.argument<String>("channelSound") ?: "pre_alert"
-                    PrayerScheduler.schedule(this, reminders, sunriseMs, fajrMs, channelSound)
+                    PrayerScheduler.schedule(this, reminders, sunriseMs, fajrMs, sunsetMs, channelSound)
+                    result.success(true)
+                }
+                "showTestReminder" -> {
+                    val id = call.argument<Number>("id")?.toInt() ?: 1_999_999
+                    val name = call.argument<String>("name") ?: "Maghrib"
+                    val prayerId = call.argument<String>("prayerId") ?: "test_maghrib"
+                    val leadMinutes = call.argument<Number>("leadMinutes")?.toInt() ?: 10
+                    val prayerMs = call.argument<Number>("prayerTimestampMs")?.toLong() ?: 0L
+                    val sunriseMs = call.argument<Number>("sunriseMs")?.toLong() ?: 0L
+                    val fajrMs = call.argument<Number>("fajrMs")?.toLong() ?: 0L
+                    val sunsetMs = call.argument<Number>("sunsetMs")?.toLong() ?: 0L
+                    val channelSound = call.argument<String>("channelSound") ?: "pre_alert"
+                    PrayerScheduler.showTestReminder(
+                        context = this,
+                        id = id,
+                        name = name,
+                        prayerId = prayerId,
+                        leadMinutes = leadMinutes,
+                        prayerMs = prayerMs,
+                        sunriseMs = sunriseMs,
+                        fajrMs = fajrMs,
+                        sunsetMs = sunsetMs,
+                        channelSound = channelSound,
+                    )
                     result.success(true)
                 }
                 "cancelReminders" -> {
