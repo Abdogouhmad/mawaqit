@@ -1,6 +1,6 @@
 package com.mawaqit.mawaqit
 
-import androidx.glance.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 
 /**
