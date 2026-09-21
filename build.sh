@@ -13,21 +13,21 @@
 # Release-signing is central: Android refuses to install an unsigned release
 # APK (`INSTALL_FAILED_INVALID_APK`) and refuses a "signature update" over a
 # differently-signed app. Every release APK is therefore signed with the SAME
-# stable keystore, provisioned here from the MAWAQIT_* secrets, and in CI the
+# stable keystore, provisioned here from the WAQT_* secrets, and in CI the
 # keystore is REQUIRED — the build fails rather than ever ship an unsigned or
 # debug-signed release. `build.sh --detect-version` and `--release-notes` back
 # the thin release.yml workflow (version/notes/commits stay in the workflow).
 #
-# Works locally and in CI (CI=true). Locally, when no MAWAQIT_* env vars are set
+# Works locally and in CI (CI=true). Locally, when no WAQT_* env vars are set
 # it reuses an existing android/key.properties if there is one, else it falls
 # back to Android's debug key (see android/app/build.gradle.kts) — enough for
 # local `flutter run --release` on a fresh clone.
 #
 # GitHub secrets (also used directly by release.yml):
-#   MAWAQIT_KEYSTORE_BASE64   = base64 of the mawaqit-release.jks keystore
-#   MAWAQIT_KEYSTORE_PASSWORD = keystore password
-#   MAWAQIT_KEY_ALIAS         = signing key alias
-#   MAWAQIT_KEY_PASSWORD      = signing key password
+#   WAQT_KEYSTORE_BASE64   = base64 of the mawaqit-release.jks keystore
+#   WAQT_KEYSTORE_PASSWORD = keystore password
+#   WAQT_KEY_ALIAS         = signing key alias
+#   WAQT_KEY_PASSWORD      = signing key password
 #
 # Usage:
 #   ./build.sh                      provision keystore + build + stage artifacts
@@ -140,25 +140,25 @@ if [[ "$MODE" == keygen ]]; then
   echo
   info "Keystore written to $KEYSTORE_FILE (KEEP IT SAFE — anyone with it can ship your app)."
   echo "Writes these into android/key.properties locally and these GitHub secrets:"
-  echo "  MAWAQIT_KEYSTORE_BASE64   = $(base64 -w0 "$KEYSTORE_FILE")"
-  echo "  MAWAQIT_KEYSTORE_PASSWORD = $STORE_PASS"
-  echo "  MAWAQIT_KEY_ALIAS         = $ALIAS"
-  echo "  MAWAQIT_KEY_PASSWORD      = $KEY_PASS"
+  echo "  WAQT_KEYSTORE_BASE64   = $(base64 -w0 "$KEYSTORE_FILE")"
+  echo "  WAQT_KEYSTORE_PASSWORD = $STORE_PASS"
+  echo "  WAQT_KEY_ALIAS         = $ALIAS"
+  echo "  WAQT_KEY_PASSWORD      = $KEY_PASS"
   exit 0
 fi
 
 # ── Provision the Android release keystore ──────────────────────────────────
-# In CI the MAWAQIT_* secrets are REQUIRED (see header). Locally they're optional:
+# In CI the WAQT_* secrets are REQUIRED (see header). Locally they're optional:
 # reuse an existing key.properties or fall back to debug signing.
 provision_keystore() {
-  if [[ -n "${MAWAQIT_KEYSTORE_BASE64:-}" ]]; then
-    local store_password="${MAWAQIT_KEYSTORE_PASSWORD:?MAWAQIT_KEYSTORE_PASSWORD not set}"
-    local key_alias="${MAWAQIT_KEY_ALIAS:?MAWAQIT_KEY_ALIAS not set}"
-    local key_password="${MAWAQIT_KEY_PASSWORD:?MAWAQIT_KEY_PASSWORD not set}"
+  if [[ -n "${WAQT_KEYSTORE_BASE64:-}" ]]; then
+    local store_password="${WAQT_KEYSTORE_PASSWORD:?WAQT_KEYSTORE_PASSWORD not set}"
+    local key_alias="${WAQT_KEY_ALIAS:?WAQT_KEY_ALIAS not set}"
+    local key_password="${WAQT_KEY_PASSWORD:?WAQT_KEY_PASSWORD not set}"
 
     info "Provisioning Android release keystore (alias '$key_alias')..."
     mkdir -p android/app/keystores
-    printf '%s' "$MAWAQIT_KEYSTORE_BASE64" | base64 -d > android/app/keystores/mawaqit.jks
+    printf '%s' "$WAQT_KEYSTORE_BASE64" | base64 -d > android/app/keystores/mawaqit.jks
     # storeFile is relative to android/app/ (where build.gradle.kts resolves file()).
     cat > android/key.properties <<EOF
 storePassword=${store_password}
@@ -173,15 +173,15 @@ EOF
   fi
 
   if [[ "$CI_RUNNER" == true ]]; then
-    err "MAWAQIT_KEYSTORE_BASE64 is not set — CI release builds MUST be signed"
-    err "with the stable release keystore. Configure the MAWAQIT_* secrets on"
+    err "WAQT_KEYSTORE_BASE64 is not set — CI release builds MUST be signed"
+    err "with the stable release keystore. Configure the WAQT_* secrets on"
     err "GitHub (see build.sh header / ./build.sh --keygen). Refusing to"
     err "ship an unsigned release."
     exit 1
   fi
 
   if [[ -f android/key.properties ]]; then
-    warn "No MAWAQIT_* secrets in env — reusing android/key.properties."
+    warn "No WAQT_* secrets in env — reusing android/key.properties."
   else
     warn "No keystore found — building with Android's debug signing (local only)."
   fi
