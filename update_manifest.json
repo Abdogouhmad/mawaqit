@@ -4,7 +4,7 @@
   "minSupportedVersionCode": 3,
   "mandatory": false,
   "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.4.0/mawaqit-v0.4.0-universal.apk",
-  "sha256": "",
-  "releaseNotes": "",
-  "publishedAt": "2026-09-21T00:00:00+00:00"
+  "sha256": "03c07e2a0d8de6527c4100687c92f4260aa9022526dd799ecd2ab93f3accddd6",
+  "releaseNotes": "## [0.4.0] - 2026-09-21\n\n### Added\n\n- **In-app OTA updates** — a \"Software Update\" section in Settings checks a\ncommitted `update_manifest.json`, compares the installed build, and can\ndownload + install the new release directly (universal APK from GitHub\nReleases, SHA-256 verified before install). The release CI rewrites the\nmanifest after every publish.\n- **About Mawaqit** — an About dialog and a dedicated update screen showing\ncurrent/latest version, last-check status and the \"What's new\" changelog.\n\n### Changed\n\n- **Only the adhan rings now** — the pre-prayer reminder card no longer plays\na chime; it's a silent countdown card by design. The adhan (\"Adham Al\nSharqawe\") is the app's single audible alert, and the tone picker lists just\nthe adhan recordings (more can be added later) plus \"Silent\".\n- **SemVer-derived versionCode** — Android `versionCode` is now computed as\n`major*10000 + minor*100 + patch` from `pubspec.yaml`, matching the OTA\nmanifest and release tags exactly.\n\n### Fixed\n\n- **Home-screen widget \"Can't show content\"** — widget composition is hardened\n(all preference reads are guarded, NaN progress is clamped, errors are logged\nto logcat under \"PrayerWidget\"), and the widget metadata no longer tries the\nproblematic narrow size bucket.",
+  "publishedAt": "2026-09-21T18:07:36.500801+00:00"
 }
