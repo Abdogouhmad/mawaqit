@@ -8,7 +8,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.LocalSize
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.SizeMode
@@ -35,11 +34,13 @@ import androidx.glance.unit.ColorProvider
  * plugin's own Glance helper classes so it only depends on androidx.glance.
  *
  * Responsive: [sizeMode] registers distinct sizes (110dp / 180dp / 260dp wide)
- * so the launcher has valid resize steps for 3x1 and 4x1. [LocalSize.current]
- * is read inside [provideContent] to branch layout at narrow widths — hiding
- * the subtitle and progress bar keeps the 3x1 card from rendering blank when
- * the host clips overflowing content rather than truncating it. Every Text is
- * `maxLines = 1` for the same reason.
+ * so the launcher has valid resize steps for 3x1 and 4x1. Content avoids
+ * `LocalSize.current` — reading a `CompositionLocal<DpSize>` (inline class)
+ * trips a known Kotlin backend bug (`Couldn't inline method call`) — so the
+ * single layout below is sized and `maxLines = 1`-clipped to fit every
+ * registered width instead. Every Text is `maxLines = 1`: glance text that
+ * overflows its bounds can render fully clipped/invisible rather than
+ * truncated depending on host.
  *
  * NOTE: changing [sizeMode] (or the provider XML) changes the widget's size
  * metadata, which some launchers only re-read when the widget is removed and
@@ -73,10 +74,6 @@ class PrayerWidget : GlanceAppWidget() {
         val white = ColorProvider(Color.White)
 
         provideContent {
-            // LocalSize.current gives the size bucket chosen by Glance from
-            // sizeMode — use it to switch to a compact layout at narrow widths
-            // so the 3x1 card renders content instead of a blank host frame.
-            val compact = LocalSize.current.width < 150.dp
             PrayerWidgetContent(
                 prayerName = name,
                 prayerTime = time,
@@ -84,7 +81,6 @@ class PrayerWidget : GlanceAppWidget() {
                 progress = progress,
                 sage = sage,
                 white = white,
-                compact = compact,
             )
         }
     }
@@ -98,7 +94,6 @@ fun PrayerWidgetContent(
     progress: Float,
     sage: ColorProvider,
     white: ColorProvider,
-    compact: Boolean = false,
 ) {
     Box(
         modifier = GlanceModifier
@@ -113,31 +108,29 @@ fun PrayerWidgetContent(
                 maxLines = 1,
                 style = TextStyle(
                     color = white,
-                    fontSize = if (compact) 16.sp else 20.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 ),
             )
-            if (!compact) {
-                Spacer(GlanceModifier.height(4.dp))
-                Text(
-                    text = if (minutesLeft >= 0)
-                        "in $minutesLeft min • $prayerTime"
-                    else
-                        prayerTime,
-                    maxLines = 1,
-                    style = TextStyle(
-                        color = ColorProvider(Color.White.copy(alpha = 0.8f)),
-                        fontSize = 13.sp,
-                    ),
-                )
-                Spacer(GlanceModifier.defaultWeight())
-                LinearProgressIndicator(
-                    progress = progress,
-                    modifier = GlanceModifier.fillMaxWidth().height(6.dp),
-                    color = white,
-                    backgroundColor = ColorProvider(Color.White.copy(alpha = 0.25f)),
-                )
-            }
+            Spacer(GlanceModifier.height(4.dp))
+            Text(
+                text = if (minutesLeft >= 0)
+                    "in $minutesLeft min • $prayerTime"
+                else
+                    prayerTime,
+                maxLines = 1,
+                style = TextStyle(
+                    color = ColorProvider(Color.White.copy(alpha = 0.8f)),
+                    fontSize = 13.sp,
+                ),
+            )
+            Spacer(GlanceModifier.defaultWeight())
+            LinearProgressIndicator(
+                progress = progress,
+                modifier = GlanceModifier.fillMaxWidth().height(6.dp),
+                color = white,
+                backgroundColor = ColorProvider(Color.White.copy(alpha = 0.25f)),
+            )
         }
     }
 }
