@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate Waqt's built-in adhan/notification tones.
+"""Generate Mawaqit's built-in adhan/notification tones.
 
 No third-party audio is bundled — every preset is synthesised here from pure
 sine partials and shaped noise, so the tones are original and licence-free.
@@ -135,7 +135,7 @@ def _write(name: str, samples: list[float]) -> None:
 
 
 def main() -> None:
-    print("Generating Waqt tones...")
+    print("Generating Mawaqit tones...")
 
     # A calm three-phrase call (E4 -> A4 -> B4), vibrato like a distant muezzin.
     _write(

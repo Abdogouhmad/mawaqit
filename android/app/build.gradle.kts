@@ -57,7 +57,7 @@ android {
     buildTypes {
         release {
             // Signed with the stable release keystore provisioned by ./build.sh
-            // (android/key.properties, written from the WAQT_* secrets or
+            // (android/key.properties, written from the MAWAQIT_* secrets or
             // reused locally). Falls back to the debug key when no keystore is
             // present so `flutter run --release` still works on a fresh clone.
             signingConfig = signingConfigs.getByName("release")
@@ -77,4 +77,6 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.glance:glance-material3:1.1.1")
 }

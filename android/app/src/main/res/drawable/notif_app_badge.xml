@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Rounded sage app badge with the Waqt clock glyph, mirrors the Stitch
+<!-- Rounded sage app badge with the Mawaqit clock glyph, mirrors the Stitch
      notification "app identification" bar. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
@@ -11,6 +11,6 @@
     <item
         android:width="16dp"
         android:height="16dp"
-        android:drawable="@drawable/ic_stat_waqt"
+        android:drawable="@drawable/ic_stat_mawaqit"
         android:gravity="center" />
 </layer-list>

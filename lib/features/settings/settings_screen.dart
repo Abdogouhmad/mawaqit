@@ -269,6 +269,21 @@ class _SettingsBody extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               SettingsRow(
+                icon: Icons.notifications_active_outlined,
+                title: 'Pre-Prayer Sound',
+                subtitle: settings.preAlertLabel,
+                onTap: () => _openPreAlertSoundSheet(context, controller, settings),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  size: AppIconSize.xl,
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              SettingsRow(
                 icon: Icons.volume_up_outlined,
                 title: 'Adhan Audio',
                 subtitle: 'Play audio at exact prayer entry',
@@ -293,6 +308,34 @@ class _SettingsBody extends ConsumerWidget {
                 title: 'Adhan Tone',
                 subtitle: settings.adhanLabel,
                 onTap: () => _openToneSheet(context, controller, settings),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  size: AppIconSize.xl,
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+              SettingsRow(
+                icon: Icons.campaign_outlined,
+                title: 'Test Notification',
+                subtitle: 'Fires a pre-prayer alert in 10 seconds',
+                onTap: () => _sendTestNotification(context, ref),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  size: AppIconSize.xl,
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+              SettingsRow(
+                icon: Icons.verified_user_outlined,
+                title: 'Notification Permission',
+                subtitle: 'Re-ask for notifications & exact alarms',
+                onTap: () => _requestPermissions(context, ref),
                 trailing: const Icon(
                   Icons.chevron_right,
                   size: AppIconSize.xl,
@@ -350,6 +393,57 @@ class _SettingsBody extends ConsumerWidget {
         _Footer(),
       ],
     );
+  }
+
+  Future<void> _sendTestNotification(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final service = ref.read(notificationServiceProvider);
+    try {
+      await service.init();
+      final scheduled = await service.scheduleTestNotification();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            scheduled
+                ? 'Test pre-prayer alert in 10 seconds.'
+                : 'Notifications are off — re-enable them via '
+                    '"Notification Permission" below.',
+          ),
+        ),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Test notification unavailable.')),
+      );
+    }
+  }
+
+  Future<void> _requestPermissions(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final service = ref.read(notificationServiceProvider);
+    try {
+      final granted = await service.ensurePermissions();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            granted
+                ? 'Permissions OK — notifications enabled.'
+                : 'Permission denied — enable notifications in system '
+                    'settings, then tap again.',
+          ),
+        ),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not request permissions.')),
+      );
+    }
   }
 
   String _locationSubtitle(AppSettings settings) {
@@ -442,6 +536,21 @@ class _SettingsBody extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       builder: (_) => _ToneSheet(
+        controller: controller,
+        initialSettings: settings,
+      ),
+    );
+  }
+
+  void _openPreAlertSoundSheet(
+    BuildContext context,
+    SettingsController controller,
+    AppSettings settings,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _PreAlertSoundSheet(
         controller: controller,
         initialSettings: settings,
       ),
@@ -977,8 +1086,9 @@ class _ToneSheetState extends State<_ToneSheet> {
       ],
     );
   }
+}
 
-  Widget _card(BuildContext context, List<Widget> children) {
+Widget _card(BuildContext context, List<Widget> children) {
     final scheme = Theme.of(context).colorScheme;
     return Material(
       color: scheme.surfaceContainerLowest,
@@ -1056,6 +1166,121 @@ class _ToneSheetState extends State<_ToneSheet> {
           ),
     );
   }
+
+/// Picks the pre-prayer alert's own chime (separate from the adhan picker).
+class _PreAlertSoundSheet extends StatefulWidget {
+  const _PreAlertSoundSheet({
+    required this.controller,
+    required this.initialSettings,
+  });
+
+  final SettingsController controller;
+  final AppSettings initialSettings;
+
+  @override
+  State<_PreAlertSoundSheet> createState() => _PreAlertSoundSheetState();
+}
+
+class _PreAlertSoundSheetState extends State<_PreAlertSoundSheet> {
+  final TonePreviewService _preview = TonePreviewService();
+  String? _playing;
+
+  @override
+  void initState() {
+    super.initState();
+    _preview.onComplete = () {
+      if (mounted) setState(() => _playing = null);
+    };
+  }
+
+  @override
+  void dispose() {
+    _preview.dispose();
+    super.dispose();
+  }
+
+  Future<void> _togglePreview(AdhanTone tone) async {
+    HapticFeedback.selectionClick();
+    final ok = await _preview.toggle(tone);
+    if (!mounted) return;
+    setState(() => _playing = ok ? _preview.playing : null);
+    if (!ok) _showUnavailable();
+  }
+
+  void _showUnavailable() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Preview unavailable on this device.')),
+    );
+  }
+
+  void _select(AppSettings updated) {
+    HapticFeedback.selectionClick();
+    widget.controller.save(updated);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final settings = widget.initialSettings;
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(
+          left: AppSpacing.huge,
+          right: AppSpacing.huge,
+          top: AppSpacing.md,
+          bottom: AppSpacing.giga,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('Pre-Prayer Sound', style: textTheme.titleLarge),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Tap the speaker to preview a sound before choosing.',
+              style: textTheme.labelMedium?.copyWith(
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xxxl),
+            _sectionLabel(context, 'Built-in sounds'),
+            const SizedBox(height: AppSpacing.sm),
+            _card(
+              context,
+              [
+                for (final (index, tone) in ToneCatalog.tones.indexed)
+                  _tile(
+                    context,
+                    first: index == 0,
+                    title: tone.name,
+                    subtitle: tone.silent
+                        ? 'No sound'
+                        : (_preview.isSupported
+                            ? 'Tap to preview'
+                            : 'Preview unavailable'),
+                    selected: settings.preAlertTone == tone.name,
+                    leading: tone.silent
+                        ? Icon(
+                            Icons.volume_off_outlined,
+                            color: scheme.onSurfaceVariant,
+                          )
+                        : _previewButton(
+                            context,
+                            enabled: _preview.isSupported,
+                            playing: _playing == tone.name,
+                            onPressed: () => _togglePreview(tone),
+                          ),
+                    onTap: () => _select(settings.withPreAlertTone(tone.name)),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _Footer extends StatelessWidget {
@@ -1075,7 +1300,7 @@ class _Footer extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.sm),
             Text(
-              'Waqt • No accounts, no tracking.',
+              'Mawaqit • No accounts, no tracking.',
               style: textTheme.labelSmall?.copyWith(
                 color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
                 letterSpacing: 0.2,

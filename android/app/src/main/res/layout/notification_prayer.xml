@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Waqt prayer reminder card — mirrors the Stitch "system tray mock" design:
-     app badge + WAQT label, next-prayer title with status dot, prayer-time
+<!-- Mawaqit prayer reminder card — mirrors the Stitch "system tray mock" design:
+     app badge + MAWAQIT label, next-prayer title with status dot, prayer-time
      meta line, horizon glyph, sage progress bar, two pill quick actions and
      an ambient sunrise/fajr footer row. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

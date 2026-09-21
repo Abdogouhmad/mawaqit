@@ -21,6 +21,7 @@ class AppSettings {
     this.adhanTone = 'Traditional Adhan',
     this.adhanDeviceToneUri,
     this.adhanDeviceToneName,
+    this.preAlertTone = 'Minimal Chime',
     this.themeMode = AppThemeMode.system,
     this.locationMode = LocationMode.autoGps,
     this.cityName,
@@ -38,6 +39,9 @@ class AppSettings {
   /// precedence over the bundled [adhanTone].
   final String? adhanDeviceToneUri;
   final String? adhanDeviceToneName;
+
+  /// Bundled sound for the pre-prayer countdown card (its own channel).
+  final String preAlertTone;
 
   final AppThemeMode themeMode;
   final LocationMode locationMode;
@@ -58,6 +62,9 @@ class AppSettings {
   String get adhanLabel =>
       usesDeviceTone ? (adhanDeviceToneName ?? 'Device sound') : adhanTone;
 
+  /// Human-readable name of the currently selected pre-prayer sound.
+  String get preAlertLabel => preAlertTone;
+
   AppSettings copyWith({
     CalculationMethod? calculationMethod,
     Madhab? madhab,
@@ -67,6 +74,7 @@ class AppSettings {
     String? adhanDeviceToneUri,
     String? adhanDeviceToneName,
     bool clearDeviceTone = false,
+    String? preAlertTone,
     AppThemeMode? themeMode,
     LocationMode? locationMode,
     String? cityName,
@@ -83,6 +91,7 @@ class AppSettings {
           clearDeviceTone ? null : (adhanDeviceToneUri ?? this.adhanDeviceToneUri),
       adhanDeviceToneName:
           clearDeviceTone ? null : (adhanDeviceToneName ?? this.adhanDeviceToneName),
+      preAlertTone: preAlertTone ?? this.preAlertTone,
       themeMode: themeMode ?? this.themeMode,
       locationMode: locationMode ?? this.locationMode,
       cityName: cityName ?? this.cityName,
@@ -94,6 +103,9 @@ class AppSettings {
   /// Selects a bundled tone, clearing any device-sound override.
   AppSettings withBundledTone(String name) =>
       copyWith(adhanTone: name, clearDeviceTone: true);
+
+  /// Selects a bundled pre-prayer sound.
+  AppSettings withPreAlertTone(String name) => copyWith(preAlertTone: name);
 
   /// Selects a device ringtone/notification sound.
   AppSettings withDeviceTone({required String name, required String uri}) =>

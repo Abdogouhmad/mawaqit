@@ -33,7 +33,7 @@ split:
 release:
     ./build.sh
 
-# Generate a release keystore and print the WAQT_* secrets for GitHub
+# Generate a release keystore and print the MAWAQIT_* secrets for GitHub
 keygen:
     ./build.sh --keygen
 

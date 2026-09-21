@@ -119,6 +119,7 @@ class HomeController extends AsyncNotifier<HomeState> {
             .scheduleDay(day, settings)
             .catchError((_) {}),
       );
+      unawaited(BackgroundScheduler.pushWidget(day));
       return home;
     } catch (error) {
 final previous = state.hasValue ? state.value : null;
@@ -199,7 +200,24 @@ final previous = state.hasValue ? state.value : null;
       _reload(previous);
       return;
     }
-    state = AsyncData(_deriveWith(previous, now));
+    final derived = _deriveWith(previous, now);
+    _pushWidgetOnTransition(previous.nextPrayer, derived.nextPrayer, derived.day);
+    state = AsyncData(derived);
+  }
+
+  /// FEAT: refresh the home-screen card when the "next prayer" rolls over
+  /// (5×/day), not every second.
+  void _pushWidgetOnTransition(
+    PrayerTime? previous,
+    PrayerTime? next,
+    PrayerDay? day,
+  ) {
+    if (day == null || next == null) return;
+    if (previous == null ||
+        previous.kind != next.kind ||
+        previous.time != next.time) {
+      unawaited(BackgroundScheduler.pushWidget(day));
+    }
   }
 
   void _reload(HomeState previous) {

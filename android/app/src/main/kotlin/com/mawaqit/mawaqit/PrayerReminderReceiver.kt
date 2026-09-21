@@ -110,8 +110,11 @@ class PrayerReminderReceiver : BroadcastReceiver() {
             )
         }
 
-        val notification = NotificationCompat.Builder(context, PrayerScheduler.CHANNEL_REMINDERS)
-            .setSmallIcon(R.drawable.ic_stat_waqt)
+        val notification = NotificationCompat.Builder(
+            context,
+            PrayerScheduler.currentChannelId(context),
+        )
+            .setSmallIcon(R.drawable.ic_stat_mawaqit)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setCustomContentView(views)
             .setCustomBigContentView(views)
@@ -133,8 +136,11 @@ class PrayerReminderReceiver : BroadcastReceiver() {
         prayerMs: Long,
     ) {
         val time = PrayerScheduler.timeLabel(prayerMs)
-        val notification = NotificationCompat.Builder(context, PrayerScheduler.CHANNEL_REMINDERS)
-            .setSmallIcon(R.drawable.ic_stat_waqt)
+        val notification = NotificationCompat.Builder(
+            context,
+            PrayerScheduler.currentChannelId(context),
+        )
+            .setSmallIcon(R.drawable.ic_stat_mawaqit)
             .setContentTitle(context.getString(R.string.notif_prayer_time, name))
             .setContentText(context.getString(R.string.notif_prayer_time_body, time))
             .setStyle(NotificationCompat.BigTextStyle())

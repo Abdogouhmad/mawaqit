@@ -23,7 +23,8 @@ class MainActivity : FlutterActivity() {
                         call.argument<List<Map<String, Any>>>("reminders") ?: emptyList()
                     val sunriseMs = call.argument<Number>("sunriseMs")?.toLong() ?: 0L
                     val fajrMs = call.argument<Number>("fajrMs")?.toLong() ?: 0L
-                    PrayerScheduler.schedule(this, reminders, sunriseMs, fajrMs)
+                    val channelSound = call.argument<String>("channelSound") ?: "pre_alert"
+                    PrayerScheduler.schedule(this, reminders, sunriseMs, fajrMs, channelSound)
                     result.success(true)
                 }
                 "cancelReminders" -> {

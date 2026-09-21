@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Sage Emerald — calm, non-symbolic green for the Waqt prayer app.
+/// Sage Emerald — calm, non-symbolic green for the Mawaqit prayer app.
 abstract final class AppColors {
   // Light mode
   static const Color canvasLight = Color(0xFFFAFAF7);

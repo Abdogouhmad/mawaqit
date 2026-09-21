@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
@@ -14,13 +15,20 @@ class PrayerScheduleTile extends StatelessWidget {
     required this.prayer,
     required this.status,
     this.countdownLabel,
-    this.notificationsOn = true,
+    this.muted = false,
+    this.onToggleMute,
   });
 
   final PrayerTime prayer;
   final PrayerTileStatus status;
   final String? countdownLabel;
-  final bool notificationsOn;
+  final bool muted;
+  final VoidCallback? onToggleMute;
+
+  void _handleToggle() {
+    HapticFeedback.selectionClick();
+    onToggleMute?.call();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -154,19 +162,69 @@ class PrayerScheduleTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.lg),
-          Icon(
-            passed
-                ? Icons.notifications_off_outlined
-                : active
-                    ? Icons.notifications_active
-                    : Icons.notifications_none,
-            size: AppIconSize.md,
-            color: active
-                ? scheme.primary
-                : passed
-                    ? scheme.onSurfaceVariant.withValues(alpha: 0.5)
-                    : scheme.onSurfaceVariant,
-          ),
+          if (muted)
+            Tooltip(
+              message: 'Tap to unmute adhan',
+              child: InkWell(
+                key: const Key('mute-toggle'),
+                onTap: onToggleMute == null ? null : _handleToggle,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: scheme.tertiaryContainer
+                        .withValues(alpha: isLight ? 0.6 : 0.35),
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.volume_off,
+                        size: AppIconSize.sm,
+                        color: scheme.onTertiaryContainer,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Muted',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: scheme.onTertiaryContainer,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          else
+            Tooltip(
+              message: 'Tap to mute adhan',
+              child: InkResponse(
+                key: const Key('notification-mute-toggle'),
+                onTap: onToggleMute == null ? null : _handleToggle,
+                radius: AppSpacing.lg,
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(
+                    passed
+                        ? Icons.notifications_off_outlined
+                        : active
+                            ? Icons.notifications_active
+                            : Icons.notifications_none,
+                    size: AppIconSize.md,
+                    color: active
+                        ? scheme.primary
+                        : passed
+                            ? scheme.onSurfaceVariant.withValues(alpha: 0.5)
+                            : scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

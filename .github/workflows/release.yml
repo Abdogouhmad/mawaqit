@@ -7,7 +7,7 @@ name: release
 #
 #   Signs-policy: Android refuses to install an UNSIGNED release APK
 #   (`INSTALL_FAILED_INVALID_APK`). Every APK here is signed with the SAME
-#   stable keystore provisioned from the WAQT_* secrets, the build FAILS when
+#   stable keystore provisioned from the MAWAQIT_* secrets, the build FAILS when
 #   the secrets are missing (never ship unsigned/debug again), and build.sh
 #   verifies every APK's signature with apksigner before publish.
 #
@@ -32,10 +32,10 @@ name: release
 #   3. Merge onto main — the tag + GitHub release follow.
 #
 # Secrets to configure in the repo:
-#   WAQT_KEYSTORE_BASE64        = base64 of the waqt-release.jks keystore
-#   WAQT_KEYSTORE_PASSWORD      = keystore password
-#   WAQT_KEY_ALIAS              = signing key alias
-#   WAQT_KEY_PASSWORD           = signing key password
+#   MAWAQIT_KEYSTORE_BASE64        = base64 of the mawaqit-release.jks keystore
+#   MAWAQIT_KEYSTORE_PASSWORD      = keystore password
+#   MAWAQIT_KEY_ALIAS              = signing key alias
+#   MAWAQIT_KEY_PASSWORD           = signing key password
 #
 # (Generate a keystore + base64 locally with: ./build.sh --keygen)
 
@@ -95,10 +95,10 @@ jobs:
       - name: Build, sign and stage APKs
         env:
           CI: "true"
-          WAQT_KEYSTORE_BASE64: ${{ secrets.WAQT_KEYSTORE_BASE64 }}
-          WAQT_KEYSTORE_PASSWORD: ${{ secrets.WAQT_KEYSTORE_PASSWORD }}
-          WAQT_KEY_ALIAS: ${{ secrets.WAQT_KEY_ALIAS }}
-          WAQT_KEY_PASSWORD: ${{ secrets.WAQT_KEY_PASSWORD }}
+          MAWAQIT_KEYSTORE_BASE64: ${{ secrets.MAWAQIT_KEYSTORE_BASE64 }}
+          MAWAQIT_KEYSTORE_PASSWORD: ${{ secrets.MAWAQIT_KEYSTORE_PASSWORD }}
+          MAWAQIT_KEY_ALIAS: ${{ secrets.MAWAQIT_KEY_ALIAS }}
+          MAWAQIT_KEY_PASSWORD: ${{ secrets.MAWAQIT_KEY_PASSWORD }}
         run: |
           chmod +x ./build.sh
           ./build.sh
@@ -134,6 +134,6 @@ jobs:
           git tag "$TAG"
           git push origin "$TAG"
           gh release create "$TAG" \
-            --title "Waqt ${{ steps.version.outputs.version }}" \
+            --title "Mawaqit ${{ steps.version.outputs.version }}" \
             --notes-file dist/notes.md \
             "${artifacts[@]}"

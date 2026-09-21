@@ -92,7 +92,7 @@ class LocationRepository {
     int limit,
   ) async {
     final client = HttpClient()
-      ..userAgent = 'WaqtPrayerApp/1.0 (prayer clock; dev build)';
+      ..userAgent = 'MawaqitPrayerApp/1.0 (prayer clock; dev build)';
     try {
       final uri = Uri.https('nominatim.openstreetmap.org', '/search', {
         'q': query,

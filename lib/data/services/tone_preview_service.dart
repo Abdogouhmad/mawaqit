@@ -174,7 +174,7 @@ class TonePreviewService {
     final data = await rootBundle.load('assets/${tone.assetPath}');
     final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
     final file = File(
-      '${Directory.systemTemp.path}/waqt_${tone.androidRawResource}.wav',
+      '${Directory.systemTemp.path}/mawaqit_${tone.androidRawResource}.wav',
     );
     if (!file.existsSync() || file.lengthSync() != bytes.length) {
       await file.writeAsBytes(bytes, flush: true);

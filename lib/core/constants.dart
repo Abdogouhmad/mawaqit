@@ -1,8 +1,8 @@
 abstract final class AppConstants {
-  static const String appName = 'Waqt';
+  static const String appName = 'Mawaqit';
 
   /// Mirrors `version:` in pubspec.yaml (Android versionName / GitHub tag).
-  static const String appVersion = '0.2.0';
+  static const String appVersion = '0.3.0';
 
   static const String notificationChannelId = 'mawaqit_prayer_reminders';
   static const String notificationChannelName = 'Prayer reminders';

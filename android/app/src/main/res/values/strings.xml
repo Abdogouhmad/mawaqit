@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Waqt</string>
-    <string name="notif_app_name">WAQT</string>
+    <string name="app_name">Mawaqit</string>
+    <string name="notif_app_name">MAWAQIT</string>
     <string name="notif_label_now">now</string>
     <string name="notif_mute">Mute this adhan</string>
     <string name="notif_dismiss">Dismiss</string>

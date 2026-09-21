@@ -1,10 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:workmanager/workmanager.dart';
 
+import 'package:mawaqit/data/models/app_settings.dart';
+import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/repositories/settings_repository.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
+import 'package:mawaqit/data/services/widget_service.dart';
 
 /// Native background scheduling for daily re-computation and notification
 /// (re)scheduling — resilient across reboots via WorkManager.
@@ -40,20 +43,57 @@ abstract final class BackgroundScheduler {
       final cached = await LocationRepository.cached();
       if (cached == null) return false;
 
-      final day = PrayerTimesRepository().forDate(
-        date: DateTime.now(),
-        latitude: cached.latitude,
-        longitude: cached.longitude,
-        parameters: settings.parameters,
-      );
-
-      final notifications = NotificationService();
+      final day = _dayFor(cached, settings);
+      final notifications = NotificationService.instance;
       await notifications.init();
       await notifications.scheduleDay(day, settings);
+      await pushWidget(day);
       return true;
     } catch (_) {
       return false;
     }
+  }
+
+  /// Immediate recompute + reschedule used after a settings / mute change so
+  /// the new lead-time, tone or mute state applies without waiting for the
+  /// next daily task.
+  static Future<bool> rescheduleNow(AppSettings settings) async {
+    try {
+      final cached = await LocationRepository.cached();
+      if (cached == null) return false;
+
+      final day = _dayFor(cached, settings);
+      final notifications = NotificationService.instance;
+      await notifications.init();
+      await notifications.scheduleDay(day, settings);
+      await pushWidget(day);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Refreshes the home-screen widget to the current "next prayer" snapshot.
+  /// Called on the daily recompute and once after each prayer transition.
+  static Future<void> pushWidget(PrayerDay day) async {
+    final now = DateTime.now();
+    final next = day.currentOrNextPrayer(now) ??
+        PrayerTime(kind: PrayerKind.fajr, time: day.nextDayFajr);
+    final current = day.currentPrayer(now);
+    await WidgetService.updateWidget(
+      nextPrayer: next,
+      currentPrayer: current,
+      now: now,
+    );
+  }
+
+  static PrayerDay _dayFor(ResolvedLocation cached, AppSettings settings) {
+    return PrayerTimesRepository().forDate(
+      date: DateTime.now(),
+      latitude: cached.latitude,
+      longitude: cached.longitude,
+      parameters: settings.parameters,
+    );
   }
 }
 

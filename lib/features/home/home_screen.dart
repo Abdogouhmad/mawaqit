@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:mawaqit/core/constants.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
+import 'package:mawaqit/data/services/notification_service.dart';
+import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/ui/core/widgets/app_card.dart';
 import 'package:mawaqit/ui/core/widgets/pulse_dot.dart';
 import 'package:mawaqit/ui/core/widgets/section_header.dart';
@@ -67,7 +70,7 @@ class _HomeHeader extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.md),
           Text(
-            'Waqt',
+            AppConstants.appName,
             style: textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w700,
               letterSpacing: -0.4,
@@ -86,16 +89,17 @@ class _HomeHeader extends StatelessWidget {
   }
 }
 
-class _HomeBody extends StatelessWidget {
+class _HomeBody extends ConsumerWidget {
   const _HomeBody({required this.state});
 
   final HomeState state;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final day = state.day;
+    final mutedIds = ref.watch(mutedPrayersProvider).value ?? const <String>{};
 
     if (day == null) {
       return _HomeError(message: state.error ?? 'Unable to load prayer times.');
@@ -175,6 +179,11 @@ class _HomeBody extends StatelessWidget {
               prayer: prayer,
               status: _statusFor(prayer, now, next),
               countdownLabel: _countdownFor(prayer, next, state),
+              muted: mutedIds
+                  .contains(NotificationService.prayerIdFor(day.date, prayer.kind)),
+              onToggleMute: () => ref
+                  .read(mutedPrayersProvider.notifier)
+                  .toggle(NotificationService.prayerIdFor(day.date, prayer.kind)),
             ),
           ),
         const SizedBox(height: AppSpacing.xl),

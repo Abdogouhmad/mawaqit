@@ -32,6 +32,7 @@ class SettingsRepository {
         'adhanTone': s.adhanTone,
         'adhanDeviceToneUri': s.adhanDeviceToneUri,
         'adhanDeviceToneName': s.adhanDeviceToneName,
+        'preAlertTone': s.preAlertTone,
         'themeMode': s.themeMode.name,
         'locationMode': s.locationMode.name,
         'cityName': s.cityName,
@@ -54,6 +55,7 @@ class SettingsRepository {
         adhanTone: json['adhanTone'] as String? ?? 'Traditional Adhan',
         adhanDeviceToneUri: json['adhanDeviceToneUri'] as String?,
         adhanDeviceToneName: json['adhanDeviceToneName'] as String?,
+        preAlertTone: json['preAlertTone'] as String? ?? 'Minimal Chime',
         themeMode: AppThemeMode.values.firstWhere(
           (e) => e.name == json['themeMode'],
           orElse: () => AppThemeMode.system,
