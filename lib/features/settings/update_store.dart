@@ -8,6 +8,10 @@ class UpdateStore {
   static const String kLastUpdateCheckKey = 'last_update_check_ms';
   static const String kLastUpdateCheckResultKey = 'last_update_check_result';
 
+  /// Latest release the user was already alerted about, so the push-notify
+  /// fires exactly once per version (brewline-style `kLastUpdateNotifiedKey`).
+  static const String kLastUpdateNotifiedKey = 'last_update_notified_version';
+
   Future<DateTime?> lastUpdateCheck() async {
     final prefs = await SharedPreferences.getInstance();
     final ms = prefs.getInt(kLastUpdateCheckKey);
@@ -32,5 +36,15 @@ class UpdateStore {
   Future<void> saveLastUpdateCheckResult(UpdateCheckResult result) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(kLastUpdateCheckResultKey, result.name);
+  }
+
+  Future<String?> lastUpdateNotifiedVersion() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(kLastUpdateNotifiedKey);
+  }
+
+  Future<void> saveLastUpdateNotifiedVersion(String version) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(kLastUpdateNotifiedKey, version);
   }
 }

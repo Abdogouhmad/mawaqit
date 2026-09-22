@@ -9,6 +9,7 @@ import 'package:mawaqit/core/audio/tone_catalog.dart';
 import 'package:mawaqit/core/utils/timezone_setup.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
+import 'package:mawaqit/data/repositories/settings_repository.dart';
 import 'package:mawaqit/data/services/muted_prayers_store.dart';
 
 /// Which audible notification an alert belongs to.
@@ -68,6 +69,22 @@ class NotificationService {
   /// this (max = 2^31-1 = 2,147,483,647). Kept well below the nativeCard bucket
   /// start (2_000_000) to avoid collisions with scheduled prayer ids.
   static const int _testNotificationId = 1_999_999;
+
+  /// Id for the OTA "new release available" notification. Must stay below
+  /// 2^31-1 (Android's signed-int id cap) and clear of the native card bucket.
+  static const int _updateNotificationId = 3_000_000;
+
+  /// Channel for "a new Mawaqit version is available" alerts, fired once per
+  /// release when an update check discovers something newer than the installed
+  /// build (brewline-style OTA push notification).
+  static const AndroidNotificationChannel updateChannel =
+      AndroidNotificationChannel(
+    'ota_new_release',
+    'App updates',
+    description: 'Alerts when a new Mawaqit version is available',
+    importance: Importance.high,
+    playSound: true,
+  );
 
   /// Pre-prayer alert channel: audible countdown card shown `leadMinutes`
   /// early. Restored "as before" (0.3.x): the pre-prayer alert rings with the
@@ -150,6 +167,8 @@ class NotificationService {
 
   /// Re-asks POST_NOTIFICATIONS and (API 31–32) exact-alarm access — surfaced
   /// from Settings so a first-launch denial can be undone without reinstalling.
+  /// Also asks for full-screen-notification access on Android 14+, without
+  /// which the screen-off alarm can't take over the lockscreen.
   Future<bool> ensurePermissions() async {
     if (!_isAndroid) return true;
     final android = _plugin.resolvePlatformSpecificImplementation<
@@ -157,6 +176,7 @@ class NotificationService {
     _notificationsGranted =
         await android?.requestNotificationsPermission() ?? false;
     _exactAlarmGranted = await android?.requestExactAlarmsPermission() ?? false;
+    await android?.requestFullScreenIntentPermission();
     return hasNotificationPermission;
   }
 
@@ -225,6 +245,89 @@ class NotificationService {
       rethrow;
     }
     return true;
+  }
+
+  /// Shows the test adhan alarm **immediately** from a background isolate.
+  ///
+  /// This is the screen-off half of the fix: the exact wakeup alarm in
+  /// [`AlarmService`] runs here after the device wakes, with the app possibly
+  /// killed. It mirrors the foreground trigger — same channel, sound, vibration
+  /// and full-screen intent — but posts right away instead of scheduling. No
+  /// permission prompts are made here; those are already settled in the
+  /// foreground isolate.
+  Future<void> showAdhanAlarmFromBackground() async {
+    await _ensurePostable();
+    final settings = await SettingsRepository().load();
+    final muted = !settings.adhanSoundEnabled;
+    await _plugin.show(
+      id: _testNotificationId,
+      title: 'Test — Adhan',
+      body: 'This is how the prayer alarm rings. The adhan follows.',
+      notificationDetails: _detailsFor(
+        NotificationType.adhan,
+        settings: settings,
+        muted: muted,
+      ),
+      payload: 'test_adhan',
+    );
+  }
+
+  /// Posts a "new release available" alert (once per release — the caller
+  /// guards the version). Used by the OTA updater after a check finds an
+  /// update so the user learns about it even before opening the app.
+  Future<void> notifyUpdateAvailable({
+    required String version,
+    required String releaseNotes,
+  }) async {
+    if (!hasNotificationPermission) return;
+    await _ensurePostable();
+    await _plugin.show(
+      id: _updateNotificationId,
+      title: 'Mawaqit $version is available',
+      body: _updateSummary(releaseNotes),
+      notificationDetails: NotificationDetails(
+        android: AndroidNotificationDetails(
+          updateChannel.id,
+          updateChannel.name,
+          channelDescription: updateChannel.description,
+          importance: Importance.high,
+          priority: Priority.high,
+          category: AndroidNotificationCategory.recommendation,
+          playSound: true,
+        ),
+        linux: LinuxNotificationDetails(defaultActionName: 'Open'),
+      ),
+      payload: version,
+    );
+  }
+
+  /// First meaningful line of the release notes as the notification body,
+  /// falling back to a generic prompt when the notes are empty.
+  static String _updateSummary(String notes) {
+    for (final raw in notes.split('\n')) {
+      final line = raw.trim();
+      if (line.isEmpty) continue;
+      final bullet = line.startsWith('-') ||
+              line.startsWith('•') ||
+              line.startsWith('*')
+          ? line.substring(1).trim()
+          : line;
+      final plain = bullet.replaceAll('**', '').replaceAll('*', '');
+      if (plain.isNotEmpty) return plain;
+    }
+    return 'A new version of Mawaqit is ready to install.';
+  }
+
+  /// Initializes just the plugin plumbing (no permission prompts) — needed in
+  /// background isolates, where the foreground-only permission dialogs are
+  /// unavailable.
+  Future<void> _ensurePostable() async {
+    await _plugin.initialize(
+      settings: const InitializationSettings(
+        android: AndroidInitializationSettings('ic_stat_mawaqit'),
+        linux: LinuxInitializationSettings(defaultActionName: 'Open'),
+      ),
+    );
   }
 
   /// Human-readable id for one prayer occurrence, e.g. `"2026-09-21_maghrib"`.

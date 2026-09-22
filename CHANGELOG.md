@@ -11,6 +11,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] - 2026-09-22
+
+### Added
+
+- **New-release alerts, pushed to the tray** — on every launch (and on the
+  update screen) the app now checks the OTA manifest in the background. When a
+  newer version exists it posts a "Mawaqit vX.Y.Z is available" notification
+  once per release, so you find out about an update without opening the app.
+  The notification body previews the first highlight from the release notes.
+
+### Fixed
+
+- **Test Notification now fires with the screen off** — the settings trigger no
+  longer relies on Doze-throttled timers. On Android it arms a real
+  `AlarmManager` `RTC_WAKEUP` exact alarm (Rakiz-style) and, when it fires,
+  wakes the device and posts the adhan alert from a background isolate — even
+  with the app killed. It degrades to an inexact wakeup alarm when exact-alarm
+  access was never granted.
+- **Full-screen alarm on Android 14+** — "Notification Permission" in Settings
+  now also requests full-screen-notification access, without which Android 14+
+  silently caps whole-screen alerts and the adhan couldn't take over the
+  lockscreen while the device sleeps.
+
 ## [0.4.3] - 2026-09-22
 
 ### Added

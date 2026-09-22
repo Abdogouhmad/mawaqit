@@ -5,6 +5,7 @@ import 'package:mawaqit/data/models/update_manifest.dart';
 import 'package:mawaqit/data/services/update_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_store.dart';
+import 'package:mawaqit/providers/providers.dart';
 
 final updateServiceProvider =
     Provider<UpdateService>((ref) => const UpdateService());
@@ -162,7 +163,39 @@ class UpdateNotifier extends Notifier<UpdateState> {
 
     await ref.read(lastUpdateCheckProvider.notifier).markChecked();
     await ref.read(lastUpdateCheckResultProvider.notifier).markResult(outcome);
+
+    // Push a local notification for the new release — once per version.
+    await _notifyIfNew(manifest, outcome);
   }
+
+  /// Fires a "Mawaqit vX.Y.Z is available" notification the first time a given
+  /// release is detected, then remembers it so re-checks stay silent. Mirrors
+  /// BrewLine's OTA push: silent-on-failure, never blocks the check flow.
+  Future<void> _notifyIfNew(
+    UpdateManifest? manifest,
+    UpdateCheckResult outcome,
+  ) async {
+    if (!_hasRelease(outcome) || manifest == null) return;
+    try {
+      final store = ref.read(updateStoreProvider);
+      final alreadyNotified = await store.lastUpdateNotifiedVersion();
+      if (alreadyNotified == manifest.latestVersionName) return;
+
+      final notifications = ref.read(notificationServiceProvider);
+      await notifications.init();
+      await notifications.notifyUpdateAvailable(
+        version: manifest.latestVersionName,
+        releaseNotes: manifest.releaseNotes,
+      );
+      await store.saveLastUpdateNotifiedVersion(manifest.latestVersionName);
+    } catch (_) {
+      // A failed notification must never surface as an update check error.
+    }
+  }
+
+  static bool _hasRelease(UpdateCheckResult outcome) =>
+      outcome == UpdateCheckResult.updateAvailable ||
+      outcome == UpdateCheckResult.updateMandatory;
 
   /// Downloads and installs the update. `ota_update` verifies the manifest's
   /// SHA-256 before anything is installed and hands off to Android's

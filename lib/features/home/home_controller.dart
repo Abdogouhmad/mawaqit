@@ -11,6 +11,7 @@ import 'package:mawaqit/data/services/background_scheduler.dart';
 import 'package:mawaqit/data/services/widget_service.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
+import 'package:mawaqit/features/settings/update_controller.dart';
 
 /// Immutable snapshot of everything the Home screen renders.
 @immutable
@@ -85,6 +86,10 @@ class HomeController extends AsyncNotifier<HomeState> {
       await notificationService.init();
       unawaited(BackgroundScheduler.registerDailyReschedule());
     } catch (_) {}
+
+    // OTA: check once at launch and surface a push notification when a new
+    // release exists (silent on failure / when already up to date).
+    unawaited(ref.read(updateProvider.notifier).checkForUpdates());
 
     // Seed the home-screen widget the moment the engine is up so a freshly
     // added card is never blank, even before the first real snapshot lands.
