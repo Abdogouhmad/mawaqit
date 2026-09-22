@@ -1,10 +1,10 @@
 {
-  "latestVersionName": "0.4.4",
-  "latestVersionCode": 404,
+  "latestVersionName": "0.4.5",
+  "latestVersionCode": 405,
   "minSupportedVersionCode": 3,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.4.4/mawaqit-v0.4.4-universal.apk",
-  "sha256": "c5ee3c224c910421baee3125c1d186e0a3d7f67460978f83ee9acb5e403f0de7",
-  "releaseNotes": "## [0.4.4] - 2026-09-22\n\n### Added\n\n- **New-release alerts, pushed to the tray** — on every launch (and on the\nupdate screen) the app now checks the OTA manifest in the background. When a\nnewer version exists it posts a \"Mawaqit vX.Y.Z is available\" notification\nonce per release, so you find out about an update without opening the app.\nThe notification body previews the first highlight from the release notes.\n\n### Fixed\n\n- **Test Notification reliably fires the real adhan alarm** — the settings test\nno longer goes through the Doze-throttled alarm pipeline that silently\nswallowed it. It posts the full-screen adhan directly from the app 3 seconds\nafter tapping: enough time to lock the screen and watch it wake, with the\nselected tone, vibration and full-screen intent on its own channel. Tapping\nthe test re-asks notifications, exact-alarm and (Android 14+) full-screen\naccess, so a first-launch denial no longer leaves the test dead.\n- **Full-screen alarm on Android 14+** — \"Notification Permission\" in Settings\nnow also requests full-screen-notification access, without which Android 14+\nsilently caps whole-screen alerts and the adhan couldn't take over the\nlockscreen while the device sleeps.\n\n### Removed\n\n- **Home-screen widget** — the next-prayer card was removed from the app and is\nbeing rebuilt separately; prayer reminders are unaffected.",
-  "publishedAt": "2026-09-22T19:18:49.487683+00:00"
+  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.4.5/mawaqit-v0.4.5-universal.apk",
+  "sha256": "50fd678058cb84401055b9f7238adc3fff898ff94c3f23afe4543905fb354bab",
+  "releaseNotes": "## [0.4.5] - 2026-09-22\n\n### Fixed\n\n- **The adhan now rings directly, Rakiz-style** — the \"Test Notification\" alarm\nno longer depends on the notification channel's sound being routable. The\nselected adhan tone (Settings → Adhan Tone) plays **directly through the app**\non the Android alarm stream: it rings at the alarm volume regardless of how\nthe channel sound was configured, and a disabled adhan sound stays silent.\n- **Full-screen adhan presenter** — while the app is open the adhan now takes\nover the whole screen with a dedicated presenter (dark display, live clock,\n\"Adhan — prayer time\", and a **Stop alarm** button) instead of only a tray\ntoast, so the call feels like a real alarm rather than a notification. The\nmirroring tray notification still carries vibration and the full-screen intent\nfor the locked-sleeping case — now on its own silent channel, so nothing\ndouble-rings on top of the direct playback.",
+  "publishedAt": "2026-09-22T20:17:14.733605+00:00"
 }
