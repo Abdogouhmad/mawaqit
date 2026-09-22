@@ -305,6 +305,21 @@ class _SettingsBody extends ConsumerWidget {
                 color: scheme.outlineVariant.withValues(alpha: 0.4),
               ),
               SettingsRow(
+                icon: Icons.notifications_active_outlined,
+                title: 'Pre-Prayer Tone',
+                subtitle: settings.preAlertLabel,
+                onTap: () =>
+                    _openToneSheet(context, controller, settings, isAdhan: false),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  size: AppIconSize.xl,
+                ),
+              ),
+              Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+              SettingsRow(
                 icon: Icons.campaign_outlined,
                 title: 'Test Notification',
                 subtitle: 'Fires the adhan alarm in 3 seconds',
@@ -529,14 +544,16 @@ class _SettingsBody extends ConsumerWidget {
   void _openToneSheet(
     BuildContext context,
     SettingsController controller,
-    AppSettings settings,
-  ) {
+    AppSettings settings, {
+    bool isAdhan = true,
+  }) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (_) => _ToneSheet(
         controller: controller,
         initialSettings: settings,
+        isAdhan: isAdhan,
       ),
     );
   }
@@ -849,10 +866,17 @@ class _LocationSheetState extends State<_LocationSheet> {
 }
 
 class _ToneSheet extends StatefulWidget {
-  const _ToneSheet({required this.controller, required this.initialSettings});
+  const _ToneSheet({
+    required this.controller,
+    required this.initialSettings,
+    this.isAdhan = true,
+  });
 
   final SettingsController controller;
   final AppSettings initialSettings;
+
+  /// When true the sheet picks the adhan tone; otherwise the pre-prayer tone.
+  final bool isAdhan;
 
   @override
   State<_ToneSheet> createState() => _ToneSheetState();
@@ -861,6 +885,11 @@ class _ToneSheet extends StatefulWidget {
 class _ToneSheetState extends State<_ToneSheet> {
   final TonePreviewService _preview = TonePreviewService();
   String? _playing;
+
+  bool get _isAdhan => widget.isAdhan;
+
+  List<AdhanTone> get _tones =>
+      _isAdhan ? ToneCatalog.tones : ToneCatalog.preAlertTones;
 
   @override
   void initState() {
@@ -913,7 +942,10 @@ class _ToneSheetState extends State<_ToneSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Adhan Tone', style: textTheme.titleLarge),
+            Text(
+              _isAdhan ? 'Adhan Tone' : 'Pre-Prayer Tone',
+              style: textTheme.titleLarge,
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Tap the speaker to preview a sound before choosing.',
@@ -927,7 +959,7 @@ class _ToneSheetState extends State<_ToneSheet> {
             _card(
               context,
               [
-                for (final (index, tone) in ToneCatalog.tones.indexed)
+                for (final (index, tone) in _tones.indexed)
                   _tile(
                     context,
                     first: index == 0,
@@ -937,8 +969,10 @@ class _ToneSheetState extends State<_ToneSheet> {
                         : (_preview.isSupported
                               ? 'Tap to preview'
                               : 'Preview unavailable'),
-                    selected: !settings.usesDeviceTone &&
-                        settings.adhanTone == tone.name,
+                    selected: _isAdhan
+                        ? !settings.usesDeviceTone &&
+                            settings.adhanTone == tone.name
+                        : settings.preAlertTone == tone.name,
                     leading: tone.silent
                         ? Icon(
                             Icons.volume_off_outlined,
@@ -950,7 +984,11 @@ class _ToneSheetState extends State<_ToneSheet> {
                             playing: _playing == tone.name,
                             onPressed: () => _togglePreview(tone),
                           ),
-onTap: () => _select(settings.withBundledTone(tone.name)),
+                    onTap: () => _select(
+                      _isAdhan
+                          ? settings.withBundledTone(tone.name)
+                          : settings.withPreAlertTone(tone.name),
+                    ),
                   ),
               ],
             ),

@@ -81,6 +81,7 @@ abstract final class BackgroundScheduler {
         PrayerTime(kind: PrayerKind.fajr, time: day.nextDayFajr);
     final current = day.currentPrayer(now);
     await WidgetService.updateWidget(
+      day: day,
       nextPrayer: next,
       currentPrayer: current,
       now: now,

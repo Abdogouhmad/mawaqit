@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Static RemoteViews shown the instant the widget is added, before the
-     first Glance composition lands. Mirrors the Glance card (sage background,
-     white name + time + progress) so a freshly placed widget is never a blank
-     or "Loading…" spinner on any launcher; Glance content replaces it on the
-     first app-driven update. -->
+<!-- Compact "next prayer" home-screen card (RemoteViews).
+     Rendered by PrayerWidgetProvider from the snapshot Flutter pushes through
+     home_widget's SharedPreferences bridge. Shows the next prayer name, its
+     time, the remaining countdown and a progress bar; every field degrades
+     gracefully when data is missing. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#2E7D5B"
@@ -16,7 +17,7 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/placeholder_name"
+            android:id="@+id/widget_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
@@ -27,23 +28,33 @@
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/placeholder_time"
+            android:id="@+id/widget_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:paddingTop="4dp"
-            android:text="@string/widget_placeholder_subtitle"
+            android:paddingTop="2dp"
             android:textColor="#CCFFFFFF"
             android:textSize="13sp" />
 
-        <View
+        <Space
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1" />
 
+        <TextView
+            android:id="@+id/widget_countdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:paddingTop="2dp"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
         <ProgressBar
-            android:id="@+id/placeholder_progress"
+            android:id="@+id/widget_progress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="6dp"

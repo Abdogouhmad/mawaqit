@@ -105,29 +105,31 @@ class HomeController extends AsyncNotifier<HomeState> {
     AppSettings settings,
     DateTime now,
   ) async {
+    // GPS mode renders instantly from the last known fix, then applies the
+    // fresh GPS location in the background once it lands. The user never waits
+    // on the GPS chip to see prayer times again.
+    if (settings.locationMode == LocationMode.autoGps) {
+      final cached = await LocationRepository.cached();
+      if (cached != null) {
+        final day = _dayFor(cached.latitude, cached.longitude, settings, now);
+        final home = _derive(cached, day, settings, now);
+        _apply(day, settings);
+        unawaited(_refreshFromGps(settings, now, cached));
+        return home;
+      }
+    }
+
     try {
       final location = await ref
           .read(locationRepositoryProvider)
           .resolve(settings: settings);
 
-      final day = ref.read(prayerTimesRepositoryProvider).forDate(
-            date: now,
-            latitude: location.latitude,
-            longitude: location.longitude,
-            parameters: settings.parameters,
-          );
-
+      final day = _dayFor(location.latitude, location.longitude, settings, now);
       final home = _derive(location, day, settings, now);
-      unawaited(
-        ref
-            .read(notificationServiceProvider)
-            .scheduleDay(day, settings)
-            .catchError((_) {}),
-      );
-      unawaited(BackgroundScheduler.pushWidget(day));
+      _apply(day, settings);
       return home;
     } catch (error) {
-final previous = state.hasValue ? state.value : null;
+      final previous = state.hasValue ? state.value : null;
       return HomeState(
         now: now,
         day: previous?.day,
@@ -135,6 +137,74 @@ final previous = state.hasValue ? state.value : null;
         isLoading: false,
         error: error.toString(),
       );
+    }
+  }
+
+  PrayerDay _dayFor(
+    double latitude,
+    double longitude,
+    AppSettings settings,
+    DateTime now,
+  ) {
+    return ref.read(prayerTimesRepositoryProvider).forDate(
+          date: now,
+          latitude: latitude,
+          longitude: longitude,
+          parameters: settings.parameters,
+        );
+  }
+
+  /// Fires notification scheduling + widget push for [day] without blocking.
+  void _apply(PrayerDay day, AppSettings settings) {
+    unawaited(
+      ref
+          .read(notificationServiceProvider)
+          .scheduleDay(day, settings)
+          .catchError((_) {}),
+    );
+    unawaited(BackgroundScheduler.pushWidget(day));
+  }
+
+  /// Polls a fresh GPS fix in the background and, when the coordinates moved
+  /// meaningfully, recomputes the day and swaps it into the running state.
+  Future<void> _refreshFromGps(
+    AppSettings settings,
+    DateTime now,
+    ResolvedLocation cached,
+  ) async {
+    try {
+      final location = await ref
+          .read(locationRepositoryProvider)
+          .resolve(settings: settings);
+      if (!ref.mounted || location.fromManual) return;
+
+      // resolve() returns the cached fix when GPS is unavailable — no-op.
+      final moved =
+          (location.latitude - cached.latitude).abs() > 0.0005 ||
+              (location.longitude - cached.longitude).abs() > 0.0005;
+      if (!moved && location.displayName == cached.displayName) return;
+
+      // Bail if settings changed under us (e.g. the user picked a city).
+      final latest = await ref.read(settingsProvider.future);
+      if (!ref.mounted ||
+          latest.locationMode != LocationMode.autoGps ||
+          latest.calculationMethod != settings.calculationMethod ||
+          latest.madhab != settings.madhab) {
+        return;
+      }
+
+      final day = _dayFor(
+        location.latitude,
+        location.longitude,
+        settings,
+        DateTime.now(),
+      );
+      final home = _derive(location, day, settings, DateTime.now());
+      _apply(day, settings);
+      _computedFor = home.now;
+      state = AsyncData(home);
+    } catch (_) {
+      // GPS fix unavailable — the cached snapshot continues to serve.
     }
   }
 

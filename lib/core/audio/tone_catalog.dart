@@ -43,6 +43,7 @@ class DeviceTone {
 abstract final class ToneCatalog {
   static const String silentName = 'Silent';
 
+  /// Built-in adhan tones (prayer call). Full recitations / long clips.
   static const List<AdhanTone> tones = [
     AdhanTone(
       name: 'Adham Al Sharqawe',
@@ -57,6 +58,78 @@ abstract final class ToneCatalog {
     ),
   ];
 
+  /// Built-in pre-prayer alert tones (short chimes), kept separate from the
+  /// adhan so the countdown before a prayer is instantly distinguishable from
+  /// the actual call.
+  static const List<AdhanTone> preAlertTones = [
+    AdhanTone(
+      name: silentName,
+      assetPath: '',
+      androidRawResource: '',
+      silent: true,
+    ),
+    AdhanTone(
+      name: 'Amber Bell',
+      assetPath: 'audio/tone_amber_bell.wav',
+      androidRawResource: 'tone_amber_bell',
+    ),
+    AdhanTone(
+      name: 'Night Calm',
+      assetPath: 'audio/tone_night_calm.wav',
+      androidRawResource: 'tone_night_calm',
+    ),
+    AdhanTone(
+      name: 'Soft Harp',
+      assetPath: 'audio/tone_soft_harp.wav',
+      androidRawResource: 'tone_soft_harp',
+    ),
+    AdhanTone(
+      name: 'Mellow Bell',
+      assetPath: 'audio/tone_mellow_bell.wav',
+      androidRawResource: 'tone_mellow_bell',
+    ),
+    AdhanTone(
+      name: 'Minimal Chime',
+      assetPath: 'audio/tone_minimal_chime.wav',
+      androidRawResource: 'tone_minimal_chime',
+    ),
+    AdhanTone(
+      name: 'Tranquil Gong',
+      assetPath: 'audio/tone_tranquil_gong.wav',
+      androidRawResource: 'tone_tranquil_gong',
+    ),
+    AdhanTone(
+      name: 'Dawn Call',
+      assetPath: 'audio/tone_dawn_call.wav',
+      androidRawResource: 'tone_dawn_call',
+    ),
+    AdhanTone(
+      name: 'Zen Bow',
+      assetPath: 'audio/tone_zen_bow.wav',
+      androidRawResource: 'tone_zen_bow',
+    ),
+    AdhanTone(
+      name: 'Desert Wind',
+      assetPath: 'audio/tone_desert_wind.wav',
+      androidRawResource: 'tone_desert_wind',
+    ),
+    AdhanTone(
+      name: 'Traditional Adhan',
+      assetPath: 'audio/tone_traditional_adhan.wav',
+      androidRawResource: 'tone_traditional_adhan',
+    ),
+    AdhanTone(
+      name: 'Nabawi Melody',
+      assetPath: 'audio/tone_nabawi_melody.wav',
+      androidRawResource: 'tone_nabawi_melody',
+    ),
+    AdhanTone(
+      name: 'Medina Breeze',
+      assetPath: 'audio/tone_medina_breeze.wav',
+      androidRawResource: 'tone_medina_breeze',
+    ),
+  ];
+
   static const AdhanTone fallback = AdhanTone(
     name: 'Adham Al Sharqawe',
     assetPath: 'audio/Adham Al Sharqawe.mp3',
@@ -65,7 +138,7 @@ abstract final class ToneCatalog {
 
   /// Resolves a persisted tone name to its definition (never null).
   static AdhanTone byName(String name) {
-    for (final tone in tones) {
+    for (final tone in [...tones, ...preAlertTones]) {
       if (tone.name == name) return tone;
     }
     return fallback;

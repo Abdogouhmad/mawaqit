@@ -39,6 +39,23 @@ class NotificationService {
 
   static const String _nativeChannel = 'mawaqit/native';
 
+  /// Application id — `android.resource://` notification sound URIs must point
+  /// at the app's own raw resources. Kept in sync with the Android package.
+  static const String _androidApplicationId = 'com.mawaqit.mawaqit';
+
+  /// Binds a bundled `res/raw` sound by explicit `android.resource://` URI.
+  ///
+  /// The plugin's `RawResourceAndroidNotificationSound` validates the resource
+  /// with `Resources.getIdentifier` before scheduling and hard-fails the whole
+  /// notification with `invalid_sound` when it can't match (e.g. a stale
+  /// installed APK that predates the resource). The URI form skips that
+  /// pre-validation: a missing resource degrades to a silent alert instead of
+  /// aborting the schedule.
+  static UriAndroidNotificationSound _soundForResource(String rawName) =>
+      UriAndroidNotificationSound(
+        'android.resource://$_androidApplicationId/raw/$rawName',
+      );
+
   // Deterministic per-day id spaces. `epochDay * 10 + prayerIndex` keeps every
   // prayer's id unique across days without colliding between alert kinds.
   static const int _adhanBucket = 0;
@@ -62,7 +79,9 @@ class NotificationService {
     description: 'Countdown reminder before each prayer',
     importance: Importance.high,
     playSound: true,
-    sound: RawResourceAndroidNotificationSound('pre_alert'),
+    sound: UriAndroidNotificationSound(
+      'android.resource://com.mawaqit.mawaqit/raw/pre_alert',
+    ),
     audioAttributesUsage: AudioAttributesUsage.alarm,
   );
 
@@ -87,7 +106,9 @@ class NotificationService {
     description: 'Plays the adhan clip at prayer entry',
     importance: Importance.max,
     playSound: true,
-    sound: RawResourceAndroidNotificationSound('adhan'),
+    sound: UriAndroidNotificationSound(
+      'android.resource://com.mawaqit.mawaqit/raw/adhan',
+    ),
     audioAttributesUsage: AudioAttributesUsage.alarm,
   );
 
@@ -354,7 +375,7 @@ class NotificationService {
         } else if (settings != null) {
           final tone = ToneCatalog.byName(settings.preAlertTone);
           if (!tone.silent) {
-            sound = AssetsLinuxSound('audio/${tone.assetPath}');
+            sound = AssetsLinuxSound(tone.assetPath);
           } else {
             sound = ThemeLinuxSound('message');
           }
@@ -364,7 +385,7 @@ class NotificationService {
       } else if (settings != null && !settings.usesDeviceTone) {
         final tone = ToneCatalog.byName(settings.adhanTone);
         if (!muted && !tone.silent) {
-          sound = AssetsLinuxSound('audio/${tone.assetPath}');
+          sound = AssetsLinuxSound(tone.assetPath);
         }
       }
       return NotificationDetails(
@@ -458,7 +479,7 @@ class NotificationService {
       description: description,
       importance: Importance.max,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound(tone.androidRawResource),
+      sound: _soundForResource(tone.androidRawResource),
       audioAttributesUsage: AudioAttributesUsage.alarm,
     );
   }
@@ -476,12 +497,12 @@ class NotificationService {
       );
     }
     return AndroidNotificationChannel(
-      'pre_prayer_alert_v2_${settings.preAlertTone}',
+      'pre_prayer_alert_v2_${tone.androidRawResource}',
       preAlertChannel.name,
       description: preAlertChannel.description,
       importance: Importance.high,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound(_preAlertRawResource(settings)),
+      sound: _soundForResource(_preAlertRawResource(settings)),
       audioAttributesUsage: AudioAttributesUsage.alarm,
     );
   }

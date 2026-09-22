@@ -58,7 +58,7 @@
             android:exported="false" />
         <!-- Next-prayer home-screen widget (FEAT) -->
         <receiver
-            android:name=".PrayerWidgetReceiver"
+            android:name=".PrayerWidgetProvider"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>

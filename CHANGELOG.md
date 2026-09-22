@@ -11,6 +11,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-09-22
+
+### Added
+
+- **Pre-prayer tone picker** — Settings now has its own "Pre-Prayer Tone" row
+  alongside the Adhan Tone: twelve short chime tones (Amber Bell, Night Calm,
+  Soft Harp, Mellow Bell, Minimal Chime, Tranquil Gong, Dawn Call, Zen Bow,
+  Desert Wind, Traditional Adhan, Nabawi Melody, Medina Breeze) or Silent, fully
+  independent from the adhan tone. The chime rings on its own channel, so the
+  countdown before a prayer is instantly distinguishable from the call itself.
+- **Widget survives with the app closed** — the home-screen widget was rebuilt
+  as a native Android widget (plain RemoteViews, no Glance). It stores absolute
+  timestamps: it advances to the next prayer on its own, counts down in real
+  time, rolls past midnight into the next day's Fajr, and refreshes itself in
+  the background even while Flutter is killed. Tapping the card opens the app.
+
+### Changed
+
+- **Instant launch from last location** — on startup the app no longer waits
+  for a fresh GPS fix. It renders the prayer times immediately from the last
+  cached location and refreshes in the background when the fix arrives, so the
+  home screen is always populated right away and location-method or settings
+  changes swap in the recomputed day without a visible reload.
+
+### Fixed
+
+- **"Test notification failed: invalid_sound" on Android** — bundled adhan and
+  pre-prayer sounds are now attached with explicit `android.resource://` URIs
+  instead of raw-resource names, which the notification plugin silently
+  rejected. The selected adhan tone now plays reliably, including as the
+  full-screen alarm that wakes the display over the lockscreen.
+- To keep the adhan priority intact, a missing sound resource now degrades to a
+  silent alert instead of aborting the whole notification.
+- Notification sounds on Linux desktop load from the correct asset path
+  (`audio/…` was doubled).
+
 ## [0.4.2] - 2026-09-21
 
 ### Changed
@@ -268,3 +304,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.3.2]: https://github.com/Abdogouhmad/mawaqit/compare/v0.3.1...v0.3.2
 [0.4.1]: https://github.com/Abdogouhmad/mawaqit/compare/v0.3.2...v0.4.1
 [0.4.2]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.1...v0.4.2
+[0.4.3]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.2...v0.4.3
