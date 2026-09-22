@@ -1,15 +1,19 @@
 import 'dart:async';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'package:mawaqit/core/app_navigator.dart';
 import 'package:mawaqit/core/audio/tone_catalog.dart';
 import 'package:mawaqit/core/utils/timezone_setup.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/services/muted_prayers_store.dart';
+import 'package:mawaqit/features/home/adhan_overlay_screen.dart';
 
 /// Which audible notification an alert belongs to.
 ///
@@ -128,11 +132,31 @@ class NotificationService {
     audioAttributesUsage: AudioAttributesUsage.alarm,
   );
 
+  /// Channel for the debug adhan trigger. The tone is played by the app itself
+  /// (audioplayers, alarm stream) — see [`playAdhanNow`] — so this channel is
+  /// deliberately silent (`importance: max` keeps the full-screen intent alive
+  /// on the lockscreen without double-ringing on top of the direct playback).
+  static const AndroidNotificationChannel adhanTestChannel =
+      AndroidNotificationChannel(
+    'prayer_adhan_test',
+    'Prayer call (test)',
+    description: 'Test adhan — sound is played by the app directly',
+    importance: Importance.max,
+    playSound: false,
+    audioAttributesUsage: AudioAttributesUsage.alarm,
+  );
+
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   final MethodChannel _channel = const MethodChannel(_nativeChannel);
   final Map<int, Timer> _timers = {};
   final MutedPrayersStore _mutedStore = MutedPrayersStore();
+
+  /// Single adhan player (alarm stream) used for direct, Rakiz-style playback
+  /// that rings regardless of the notification-channel sound config. The audio
+  /// context is applied once and reused across fires.
+  final AudioPlayer _adhanPlayer = AudioPlayer();
+  bool _adhanAudioContextSet = false;
 
   bool _initialized = false;
   bool _exactAlarmGranted = false;
@@ -228,6 +252,13 @@ class NotificationService {
   /// wake" demo intact. Notifications, exact-alarm and Android 14+ full-screen
   /// access are re-asked first, because a first-launch denial would otherwise
   /// leave the test dead.
+  ///
+  /// Rakiz-style behaviour: the selected tone is played **directly** through
+  /// audioplayers on the alarm stream (so it rings regardless of the channel
+  /// sound state) and a full-screen presenter is pushed over the app when it is
+  /// open. The mirroring tray notification keeps `fullScreenIntent` for the
+  /// locked case — on Android it uses the silent test channel, because the app
+  /// itself is already ringing and a second channel sound would echo on top.
   Future<bool> scheduleTestNotification({
     AppSettings? settings,
     PrayerDay? day,
@@ -239,17 +270,24 @@ class NotificationService {
     final currentSettings = settings ?? const AppSettings();
     // A disabled adhan sound still tests the full-screen alarm silently.
     final muted = !currentSettings.adhanSoundEnabled;
-    final details = _detailsFor(
-      NotificationType.adhan,
-      settings: currentSettings,
-      muted: muted,
-    );
     try {
       _timers.remove(_testNotificationId)?.cancel();
       _timers[_testNotificationId] = Timer(
         const Duration(seconds: 3),
         () async {
           try {
+            await playAdhanNow(currentSettings);
+            showAdhanOverlay(
+              title: 'Test — Adhan',
+              notificationId: _testNotificationId,
+            );
+            final details = _isAndroid
+                ? _testAdhanDetails()
+                : _detailsFor(
+                    NotificationType.adhan,
+                    settings: currentSettings,
+                    muted: muted,
+                  );
             await _plugin.show(
               id: _testNotificationId,
               title: 'Test — Adhan',
@@ -268,6 +306,112 @@ class NotificationService {
       rethrow;
     }
     return true;
+  }
+
+  /// Plays the selected adhan tone **directly** through audioplayers on the
+  /// Android alarm stream. This is what makes the call actually ring: the
+  /// background (zonedSchedule) path relies on the channel sound, which is
+  /// frozen at channel creation and easily silenced — direct playback cannot
+  /// be, and a muted adhan simply never starts (`adhanSoundEnabled` guard).
+  Future<void> playAdhanNow(AppSettings settings) async {
+    if (!settings.adhanSoundEnabled) return;
+    final source = _adhanSource(settings);
+    if (source == null) return;
+    try {
+      if (!_adhanAudioContextSet) {
+        // Alarm usage: rings on the alarm stream and takes transient audio
+        // focus (music ducks out of the way, alarm ends → music resumes).
+        await _adhanPlayer.setAudioContext(
+          AudioContext(
+            android: AudioContextAndroid(
+              usageType: AndroidUsageType.alarm,
+              contentType: AndroidContentType.music,
+              audioFocus: AndroidAudioFocus.gainTransient,
+            ),
+          ),
+        );
+        _adhanAudioContextSet = true;
+      }
+      await _adhanPlayer.stop();
+      await _adhanPlayer.setReleaseMode(ReleaseMode.stop);
+      await _adhanPlayer.play(source);
+    } catch (e) {
+      debugPrint('Adhan playback failed: $e');
+    }
+  }
+
+  /// Stops any running adhan playback.
+  Future<void> stopAdhanPlayback() async {
+    try {
+      await _adhanPlayer.stop();
+    } catch (_) {}
+  }
+
+  /// Stops the ringing adhan and, when given, dismisses the mirroring tray
+  /// notification. Used by the full-screen presenter's Stop control.
+  Future<void> stopAlarm({int? notificationId}) async {
+    await stopAdhanPlayback();
+    if (notificationId != null) {
+      try {
+        await _plugin.cancel(id: notificationId);
+      } catch (_) {}
+    }
+  }
+
+  /// Pushes the full-screen adhan presenter over the app when it is open.
+  /// No-op when the navigator is unavailable (e.g. app backgrounded).
+  void showAdhanOverlay({required String title, int? notificationId}) {
+    final navigator = appNavigatorKey.currentState;
+    if (navigator == null) return;
+    navigator.push(
+      PageRouteBuilder<void>(
+        opaque: true,
+        barrierDismissible: false,
+        transitionDuration: const Duration(milliseconds: 400),
+        reverseTransitionDuration: const Duration(milliseconds: 250),
+        pageBuilder: (_, _, _) => AdhanOverlayScreen(
+          title: title,
+          notificationId: notificationId,
+        ),
+      ),
+    );
+  }
+
+  /// Resolves the selected tone to an audioplayers [`Source`], or null when
+  /// there is nothing audible to play (muted tone or empty device URI).
+  Source? _adhanSource(AppSettings settings) {
+    if (settings.usesDeviceTone &&
+        (settings.adhanDeviceToneUri?.isNotEmpty ?? false)) {
+      // `content://` document URIs are accepted by the Android MediaPlayer
+      // through `DeviceFileSource`, exactly like the preview path.
+      return DeviceFileSource(settings.adhanDeviceToneUri!);
+    }
+    final tone = ToneCatalog.byName(settings.adhanTone);
+    if (tone.silent || tone.assetPath.isEmpty) return null;
+    return AssetSource(tone.assetPath);
+  }
+
+  /// Notification details for the debug trigger: full-screen intent (lockscreen
+  /// wake) and vibration, but no channel sound — see [`adhanTestChannel`].
+  NotificationDetails _testAdhanDetails() {
+    final details = AndroidNotificationDetails(
+      adhanTestChannel.id,
+      adhanTestChannel.name,
+      channelDescription: adhanTestChannel.description,
+      importance: Importance.max,
+      priority: Priority.max,
+      category: AndroidNotificationCategory.alarm,
+      visibility: NotificationVisibility.public,
+      playSound: false,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+      vibrationPattern: Int64List.fromList([0, 400, 200, 400, 200, 400]),
+      enableVibration: true,
+      fullScreenIntent: true,
+    );
+    return NotificationDetails(
+      android: details,
+      linux: LinuxNotificationDetails(defaultActionName: 'Open'),
+    );
   }
 
   /// Posts a "new release available" alert (once per release — the caller
@@ -634,6 +778,7 @@ class NotificationService {
   }
 
   Future<void> cancelAll() async {
+    await stopAdhanPlayback();
     _timers.values.toList().forEach((timer) => timer.cancel());
     _timers.clear();
 

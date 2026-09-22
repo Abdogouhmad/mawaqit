@@ -11,6 +11,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5] - 2026-09-22
+
+### Fixed
+
+- **The adhan now rings directly, Rakiz-style** — the "Test Notification" alarm
+  no longer depends on the notification channel's sound being routable. The
+  selected adhan tone (Settings → Adhan Tone) plays **directly through the app**
+  on the Android alarm stream: it rings at the alarm volume regardless of how
+  the channel sound was configured, and a disabled adhan sound stays silent.
+- **Full-screen adhan presenter** — while the app is open the adhan now takes
+  over the whole screen with a dedicated presenter (dark display, live clock,
+  "Adhan — prayer time", and a **Stop alarm** button) instead of only a tray
+  toast, so the call feels like a real alarm rather than a notification. The
+  mirroring tray notification still carries vibration and the full-screen intent
+  for the locked-sleeping case — now on its own silent channel, so nothing
+  double-rings on top of the direct playback.
+
 ## [0.4.4] - 2026-09-22
 
 ### Added
@@ -334,3 +351,5 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.4.1]: https://github.com/Abdogouhmad/mawaqit/compare/v0.3.2...v0.4.1
 [0.4.2]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.1...v0.4.2
 [0.4.3]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.2...v0.4.3
+[0.4.4]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.3...v0.4.4
+[0.4.5]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.4...v0.4.5
