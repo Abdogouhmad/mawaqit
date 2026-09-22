@@ -1,10 +1,10 @@
 {
-  "latestVersionName": "0.4.5",
-  "latestVersionCode": 405,
+  "latestVersionName": "0.4.6",
+  "latestVersionCode": 406,
   "minSupportedVersionCode": 3,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.4.5/mawaqit-v0.4.5-universal.apk",
-  "sha256": "50fd678058cb84401055b9f7238adc3fff898ff94c3f23afe4543905fb354bab",
-  "releaseNotes": "## [0.4.5] - 2026-09-22\n\n### Fixed\n\n- **The adhan now rings directly, Rakiz-style** — the \"Test Notification\" alarm\nno longer depends on the notification channel's sound being routable. The\nselected adhan tone (Settings → Adhan Tone) plays **directly through the app**\non the Android alarm stream: it rings at the alarm volume regardless of how\nthe channel sound was configured, and a disabled adhan sound stays silent.\n- **Full-screen adhan presenter** — while the app is open the adhan now takes\nover the whole screen with a dedicated presenter (dark display, live clock,\n\"Adhan — prayer time\", and a **Stop alarm** button) instead of only a tray\ntoast, so the call feels like a real alarm rather than a notification. The\nmirroring tray notification still carries vibration and the full-screen intent\nfor the locked-sleeping case — now on its own silent channel, so nothing\ndouble-rings on top of the direct playback.",
-  "publishedAt": "2026-09-22T20:17:14.733605+00:00"
+  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.4.6/mawaqit-v0.4.6-universal.apk",
+  "sha256": "b2c3722a5ccb214d459cea26506e252f735dc49b1c19a78480a1c72f86596a01",
+  "releaseNotes": "## [0.4.6] - 2026-09-22\n\n### Changed\n\n- **Live seconds in the next-prayer countdown** — the focal \"NEXT PRAYER in\n2h 24m 13s\" hero and the active prayer tile now count down to the second\n(the home clock already ticks every second), so the approach to each prayer\nis precise instead of rounding to the minute.",
+  "publishedAt": "2026-09-22T20:44:33.708386+00:00"
 }
