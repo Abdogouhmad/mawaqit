@@ -1,10 +1,10 @@
 {
-  "latestVersionName": "0.4.6",
-  "latestVersionCode": 406,
+  "latestVersionName": "0.5.0",
+  "latestVersionCode": 500,
   "minSupportedVersionCode": 3,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.4.6/mawaqit-v0.4.6-universal.apk",
-  "sha256": "b2c3722a5ccb214d459cea26506e252f735dc49b1c19a78480a1c72f86596a01",
-  "releaseNotes": "## [0.4.6] - 2026-09-22\n\n### Changed\n\n- **Live seconds in the next-prayer countdown** — the focal \"NEXT PRAYER in\n2h 24m 13s\" hero and the active prayer tile now count down to the second\n(the home clock already ticks every second), so the approach to each prayer\nis precise instead of rounding to the minute.",
-  "publishedAt": "2026-09-22T20:44:33.708386+00:00"
+  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.5.0/mawaqit-v0.5.0-universal.apk",
+  "sha256": "768e7a2b4d0a36dae13bfa93341c3256999efb854c1e32fd7a034d667f8f8683",
+  "releaseNotes": "## [0.5.0] - 2026-09-22\n\n### Added\n\n- **Home-screen widget, rebuilt from scratch** — the next-prayer card returns as\na native Android widget (Glance via `home_widget`): a \"Next prayer\" highlight\nwith its clock time, an in-widget \"in 1h 24m 13s\" countdown, and all five\nprayer times (Fajr → Isha) in the app's sage look. It refreshes on app\nlaunch, at every prayer rollover, on settings changes and whenever the\nbackground reschedule runs, and tapping the card opens the app.",
+  "publishedAt": "2026-09-22T21:11:12.121992+00:00"
 }
