@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:adhan_dart/adhan_dart.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +10,6 @@ import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/data/services/tone_preview_service.dart';
-import 'package:mawaqit/data/services/alarm_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/widgets/update_section.dart';
 import 'package:mawaqit/providers/providers.dart';
@@ -413,14 +411,10 @@ class _SettingsBody extends ConsumerWidget {
     final homeState = ref.read(homeControllerProvider).value;
     try {
       await service.init();
-      final scheduled = defaultTargetPlatform == TargetPlatform.android
-          // Screen-off path: an exact RTC_WAKEUP alarm fires the adhan alert in
-          // a background isolate, so the test works with the display off.
-          ? await AlarmService.scheduleTest()
-          : await service.scheduleTestNotification(
-              settings: settings,
-              day: homeState?.day,
-            );
+      final scheduled = await service.scheduleTestNotification(
+        settings: settings,
+        day: homeState?.day,
+      );
       messenger.showSnackBar(
         SnackBar(
           content: Text(

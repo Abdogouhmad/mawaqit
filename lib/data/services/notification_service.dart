@@ -9,7 +9,6 @@ import 'package:mawaqit/core/audio/tone_catalog.dart';
 import 'package:mawaqit/core/utils/timezone_setup.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
-import 'package:mawaqit/data/repositories/settings_repository.dart';
 import 'package:mawaqit/data/services/muted_prayers_store.dart';
 
 /// Which audible notification an alert belongs to.
@@ -217,59 +216,58 @@ class NotificationService {
     );
   }
 
-  /// Debug trigger (settings): fires a real **adhan alarm** 3 seconds out —
-  /// exactly the same path as a scheduled prayer entry, so the whole alert
-  /// chain is verifiable: selected adhan tone on its own channel, alarm audio
-  /// usage, vibration, priority max and the full-screen intent over the
-  /// lockscreen. Works on Android and Linux desktop.
+  /// Debug trigger (settings): fires a real **adhan alarm** 3 seconds out.
+  ///
+  /// On Android it posts straight from the app with a short foreground timer
+  /// (the same path Linux desktop already uses) rather than round-tripping
+  /// through `AlarmManager`/the scheduled-receiver chain. That chain is what
+  /// silently swallowed the test on real devices — both the alarm-manager and
+  /// FLN `zonedSchedule` variants returned success while nothing ever fired.
+  /// Direct [`show`] posts the exact same full-screen adhan notification
+  /// reliably, and a 3s head start keeps the "lock the screen and watch it
+  /// wake" demo intact. Notifications, exact-alarm and Android 14+ full-screen
+  /// access are re-asked first, because a first-launch denial would otherwise
+  /// leave the test dead.
   Future<bool> scheduleTestNotification({
     AppSettings? settings,
     PrayerDay? day,
   }) async {
+    if (_isAndroid) {
+      final granted = await ensurePermissions();
+      if (!granted) return false;
+    }
     final currentSettings = settings ?? const AppSettings();
     // A disabled adhan sound still tests the full-screen alarm silently.
     final muted = !currentSettings.adhanSoundEnabled;
+    final details = _detailsFor(
+      NotificationType.adhan,
+      settings: currentSettings,
+      muted: muted,
+    );
     try {
-      await _postAt(
-        id: _testNotificationId,
-        title: 'Test — Adhan',
-        body: 'This is how the prayer alarm rings. The adhan follows.',
-        at: DateTime.now().add(const Duration(seconds: 3)),
-        type: NotificationType.adhan,
-        settings: currentSettings,
-        muted: muted,
-        payload: 'test_adhan',
+      _timers.remove(_testNotificationId)?.cancel();
+      _timers[_testNotificationId] = Timer(
+        const Duration(seconds: 3),
+        () async {
+          try {
+            await _plugin.show(
+              id: _testNotificationId,
+              title: 'Test — Adhan',
+              body: 'This is how the prayer alarm rings. The adhan follows.',
+              notificationDetails: details,
+              payload: 'test_adhan',
+            );
+          } catch (e, st) {
+            debugPrint('Test notification post failed: $e\n$st');
+          }
+          _timers.remove(_testNotificationId);
+        },
       );
     } catch (e, st) {
       debugPrint('Test notification failed: $e\n$st');
       rethrow;
     }
     return true;
-  }
-
-  /// Shows the test adhan alarm **immediately** from a background isolate.
-  ///
-  /// This is the screen-off half of the fix: the exact wakeup alarm in
-  /// [`AlarmService`] runs here after the device wakes, with the app possibly
-  /// killed. It mirrors the foreground trigger — same channel, sound, vibration
-  /// and full-screen intent — but posts right away instead of scheduling. No
-  /// permission prompts are made here; those are already settled in the
-  /// foreground isolate.
-  Future<void> showAdhanAlarmFromBackground() async {
-    await _ensurePostable();
-    final settings = await SettingsRepository().load();
-    final muted = !settings.adhanSoundEnabled;
-    await _plugin.show(
-      id: _testNotificationId,
-      title: 'Test — Adhan',
-      body: 'This is how the prayer alarm rings. The adhan follows.',
-      notificationDetails: _detailsFor(
-        NotificationType.adhan,
-        settings: settings,
-        muted: muted,
-      ),
-      payload: 'test_adhan',
-    );
   }
 
   /// Posts a "new release available" alert (once per release — the caller

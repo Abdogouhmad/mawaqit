@@ -56,37 +56,6 @@
             android:name=".MutePrayerReceiver"
             android:enabled="true"
             android:exported="false" />
-        <!-- Screen-off exact alarms: the test/adhan alarm fires through the
-             AlarmManager (RTC_WAKEUP + setExactAndAllowWhileIdle) into this
-             JobIntentService, which wakes the device and runs the adhan alert
-             from a background isolate — the same pattern Rakiz uses so the
-             alarm works while the screen is off and the app is killed. -->
-        <service
-            android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="false"/>
-        <receiver
-            android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmBroadcastReceiver"
-            android:exported="false"/>
-        <receiver
-            android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
-            android:enabled="false"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-            </intent-filter>
-        </receiver>
-        <!-- Next-prayer home-screen widget (FEAT) -->
-        <receiver
-            android:name=".PrayerWidgetProvider"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/prayer_widget_info"/>
-        </receiver>
         <!-- OTA update file provider (package installer handoff) -->
         <provider
             android:name=".OtaUpdateFileProvider"

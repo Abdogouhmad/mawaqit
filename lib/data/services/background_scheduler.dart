@@ -7,7 +7,6 @@ import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/repositories/settings_repository.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
-import 'package:mawaqit/data/services/widget_service.dart';
 
 /// Native background scheduling for daily re-computation and notification
 /// (re)scheduling — resilient across reboots via WorkManager.
@@ -47,7 +46,6 @@ abstract final class BackgroundScheduler {
       final notifications = NotificationService.instance;
       await notifications.init();
       await notifications.scheduleDay(day, settings);
-      await pushWidget(day);
       return true;
     } catch (_) {
       return false;
@@ -66,26 +64,10 @@ abstract final class BackgroundScheduler {
       final notifications = NotificationService.instance;
       await notifications.init();
       await notifications.scheduleDay(day, settings);
-      await pushWidget(day);
       return true;
     } catch (_) {
       return false;
     }
-  }
-
-  /// Refreshes the home-screen widget to the current "next prayer" snapshot.
-  /// Called on the daily recompute and once after each prayer transition.
-  static Future<void> pushWidget(PrayerDay day) async {
-    final now = DateTime.now();
-    final next = day.currentOrNextPrayer(now) ??
-        PrayerTime(kind: PrayerKind.fajr, time: day.nextDayFajr);
-    final current = day.currentPrayer(now);
-    await WidgetService.updateWidget(
-      day: day,
-      nextPrayer: next,
-      currentPrayer: current,
-      now: now,
-    );
   }
 
   static PrayerDay _dayFor(ResolvedLocation cached, AppSettings settings) {

@@ -1,7 +1,7 @@
 # Mawaqit
 
 A calm, focused prayer-times app for Android (and Linux desktop for development) with
-adhan reminders, per-prayer mute, and a home-screen widget.
+adhan reminders and per-prayer mute.
 
 ## Features
 
@@ -24,8 +24,6 @@ adhan reminders, per-prayer mute, and a home-screen widget.
   card on Android to preview the live countdown, progress bar, and layout on your device.
 - **Per-prayer mute in-app & on card** — tap the bell icon on any prayer in-app or tap
   "Mute this adhan" directly on the lockscreen card to mute that single prayer occurrence.
-- **Home-screen widget** — responsive "Next prayer" card via Jetpack Glance + `home_widget`:
-  adapts responsively across 2x1, 3x1, and 4x1 grid sizes with compact fallback layouts.
 - **Islamic calendar** — Hijri date alongside the Gregorian.
 - **Privacy-first** — no accounts, no tracking; all computation is on-device.
 
@@ -52,7 +50,7 @@ lib/
     models/        AppSettings, PrayerDay/PrayerTime
     repositories/  settings, location, prayer-times (adhan_dart)
     services/      notification_service, background_scheduler,
-                   widget_service, muted_prayers_store, tone_preview_service
+                   muted_prayers_store, tone_preview_service
   features/
     home/          home screen + countdown controller
     settings/      settings screen + saved-state controller
@@ -68,7 +66,6 @@ Native Android (`android/app/src/main/kotlin/com/mawaqit/mawaqit/`):
 - `PrayerScheduler.kt` — reminder channels, AlarmManager cards, test card dispatch, sunrise/sunset bookends.
 - `PrayerReminderReceiver.kt` — renders the decorated collapsed and expanded cards + prayer-time flip card.
 - `MutePrayerReceiver.kt` — persists per-occurrence mutes from the card's action into shared preferences.
-- `PrayerWidget.kt` / `PrayerWidgetReceiver.kt` — responsive Glance home-screen widget.
 
 Layout resources (`android/app/src/main/res/`):
 - `layout/notification_prayer_collapsed.xml` — collapsed notification card for Android 12+ lockscreens.

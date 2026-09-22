@@ -23,16 +23,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Test Notification now fires with the screen off** — the settings trigger no
-  longer relies on Doze-throttled timers. On Android it arms a real
-  `AlarmManager` `RTC_WAKEUP` exact alarm (Rakiz-style) and, when it fires,
-  wakes the device and posts the adhan alert from a background isolate — even
-  with the app killed. It degrades to an inexact wakeup alarm when exact-alarm
-  access was never granted.
+- **Test Notification reliably fires the real adhan alarm** — the settings test
+  no longer goes through the Doze-throttled alarm pipeline that silently
+  swallowed it. It posts the full-screen adhan directly from the app 3 seconds
+  after tapping: enough time to lock the screen and watch it wake, with the
+  selected tone, vibration and full-screen intent on its own channel. Tapping
+  the test re-asks notifications, exact-alarm and (Android 14+) full-screen
+  access, so a first-launch denial no longer leaves the test dead.
 - **Full-screen alarm on Android 14+** — "Notification Permission" in Settings
   now also requests full-screen-notification access, without which Android 14+
   silently caps whole-screen alerts and the adhan couldn't take over the
   lockscreen while the device sleeps.
+
+### Removed
+
+- **Home-screen widget** — the next-prayer card was removed from the app and is
+  being rebuilt separately; prayer reminders are unaffected.
 
 ## [0.4.3] - 2026-09-22
 

@@ -8,7 +8,6 @@ import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
-import 'package:mawaqit/data/services/widget_service.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
@@ -91,10 +90,6 @@ class HomeController extends AsyncNotifier<HomeState> {
     // release exists (silent on failure / when already up to date).
     unawaited(ref.read(updateProvider.notifier).checkForUpdates());
 
-    // Seed the home-screen widget the moment the engine is up so a freshly
-    // added card is never blank, even before the first real snapshot lands.
-    unawaited(WidgetService.pushPlaceholder());
-
     final settings = await ref.watch(settingsProvider.future);
 
     _ticker?.cancel();
@@ -159,7 +154,7 @@ class HomeController extends AsyncNotifier<HomeState> {
         );
   }
 
-  /// Fires notification scheduling + widget push for [day] without blocking.
+  /// Fires notification scheduling for [day] without blocking.
   void _apply(PrayerDay day, AppSettings settings) {
     unawaited(
       ref
@@ -167,7 +162,6 @@ class HomeController extends AsyncNotifier<HomeState> {
           .scheduleDay(day, settings)
           .catchError((_) {}),
     );
-    unawaited(BackgroundScheduler.pushWidget(day));
   }
 
   /// Polls a fresh GPS fix in the background and, when the coordinates moved
@@ -281,23 +275,7 @@ class HomeController extends AsyncNotifier<HomeState> {
       return;
     }
     final derived = _deriveWith(previous, now);
-    _pushWidgetOnTransition(previous.nextPrayer, derived.nextPrayer, derived.day);
     state = AsyncData(derived);
-  }
-
-  /// FEAT: refresh the home-screen card when the "next prayer" rolls over
-  /// (5×/day), not every second.
-  void _pushWidgetOnTransition(
-    PrayerTime? previous,
-    PrayerTime? next,
-    PrayerDay? day,
-  ) {
-    if (day == null || next == null) return;
-    if (previous == null ||
-        previous.kind != next.kind ||
-        previous.time != next.time) {
-      unawaited(BackgroundScheduler.pushWidget(day));
-    }
   }
 
   void _reload(HomeState previous) {
