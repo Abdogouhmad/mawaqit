@@ -7,6 +7,7 @@ import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/repositories/settings_repository.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
+import 'package:mawaqit/data/services/prayer_widget_service.dart';
 
 /// Native background scheduling for daily re-computation and notification
 /// (re)scheduling — resilient across reboots via WorkManager.
@@ -46,6 +47,7 @@ abstract final class BackgroundScheduler {
       final notifications = NotificationService.instance;
       await notifications.init();
       await notifications.scheduleDay(day, settings);
+      await PrayerWidgetService.sync(day);
       return true;
     } catch (_) {
       return false;
@@ -64,6 +66,7 @@ abstract final class BackgroundScheduler {
       final notifications = NotificationService.instance;
       await notifications.init();
       await notifications.scheduleDay(day, settings);
+      await PrayerWidgetService.sync(day);
       return true;
     } catch (_) {
       return false;

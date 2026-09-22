@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_widget_prayer_widget_label">PrayerWidget</string>
+    <string name="home_widget_prayer_widget_description">Today\'s prayer times</string>
+</resources>

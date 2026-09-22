@@ -11,6 +11,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-09-22
+
+### Added
+
+- **Home-screen widget, rebuilt from scratch** — the next-prayer card returns as
+  a native Android widget (Glance via `home_widget`): a "Next prayer" highlight
+  with its clock time, an in-widget "in 1h 24m 13s" countdown, and all five
+  prayer times (Fajr → Isha) in the app's sage look. It refreshes on app
+  launch, at every prayer rollover, on settings changes and whenever the
+  background reschedule runs, and tapping the card opens the app.
+
 ## [0.4.6] - 2026-09-22
 
 ### Changed
@@ -363,3 +374,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.4.4]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.3...v0.4.4
 [0.4.5]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.4...v0.4.5
 [0.4.6]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.5...v0.4.6
+[0.5.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.6...v0.5.0

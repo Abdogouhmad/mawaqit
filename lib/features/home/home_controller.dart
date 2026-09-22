@@ -8,6 +8,7 @@ import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
+import 'package:mawaqit/data/services/prayer_widget_service.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
@@ -154,7 +155,8 @@ class HomeController extends AsyncNotifier<HomeState> {
         );
   }
 
-  /// Fires notification scheduling for [day] without blocking.
+  /// Fires notification scheduling for [day] without blocking, and refreshes
+  /// the Android home-screen widget with the same day's snapshot.
   void _apply(PrayerDay day, AppSettings settings) {
     unawaited(
       ref
@@ -162,6 +164,7 @@ class HomeController extends AsyncNotifier<HomeState> {
           .scheduleDay(day, settings)
           .catchError((_) {}),
     );
+    unawaited(PrayerWidgetService.sync(day));
   }
 
   /// Polls a fresh GPS fix in the background and, when the coordinates moved
@@ -275,6 +278,12 @@ class HomeController extends AsyncNotifier<HomeState> {
       return;
     }
     final derived = _deriveWith(previous, now);
+    final nextChanged = derived.nextPrayer?.time != previous.nextPrayer?.time;
+    if (nextChanged && derived.day != null) {
+      // A prayer rolled over — refresh the widget's next-prayer highlight and
+      // countdown so it never goes stale between app launches.
+      unawaited(PrayerWidgetService.sync(derived.day!));
+    }
     state = AsyncData(derived);
   }
 

@@ -1,6 +1,7 @@
 import java.util.Properties
 
 plugins {
+    id("org.jetbrains.kotlin.plugin.compose") version "2.4.0"
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
@@ -75,6 +76,10 @@ android {
             signingConfig = signingConfigs.getByName("release")
         }
     }
+    buildFeatures {
+        compose = true
+    }
+
 }
 
 kotlin {
@@ -88,5 +93,6 @@ flutter {
 }
 
 dependencies {
+    implementation("androidx.glance:glance-appwidget:1.2.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }
