@@ -31,17 +31,21 @@ abstract final class TimeFormatter {
     return '${h.hDay} ${names[month - 1]} ${h.hYear}'.toLowerCase();
   }
 
-  /// "1h 24m" style countdown, omits leading zeros.
+  /// "1h 24m 13s" style countdown for the next-prayer hero/tile. Seconds are
+  /// always shown (the home ticker runs every second); the largest unit omits
+  /// its leading zero.
   static String countdown(Duration d) {
-    final hours = d.inHours;
+    final totalSeconds = d.inSeconds;
+    if (totalSeconds <= 0) return '0s';
+    final days = d.inDays;
+    final hours = days > 0 ? d.inHours % 24 : d.inHours;
     final minutes = d.inMinutes % 60;
-    final seconds = d.inSeconds % 60;
-    if (d.inDays > 0) {
-      return '${d.inDays}d ${hours % 24}h ${minutes}m';
-    }
-    if (hours > 0) return '${hours}h ${minutes}m';
-    if (minutes > 0) return '${minutes}m ${seconds.toString().padLeft(2, '0')}s';
-    return '${seconds}s';
+    final seconds = totalSeconds % 60;
+    final s = '${seconds.toString().padLeft(2, '0')}s';
+    if (days > 0) return '${days}d ${hours}h ${minutes}m $s';
+    if (hours > 0) return '${hours}h ${minutes}m $s';
+    if (minutes > 0) return '${minutes}m $s';
+    return s;
   }
 
   /// Long human friendly countdown: "1 hour 24 minutes".

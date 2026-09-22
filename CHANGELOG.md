@@ -11,6 +11,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.6] - 2026-09-22
+
+### Changed
+
+- **Live seconds in the next-prayer countdown** — the focal "NEXT PRAYER in
+  2h 24m 13s" hero and the active prayer tile now count down to the second
+  (the home clock already ticks every second), so the approach to each prayer
+  is precise instead of rounding to the minute.
+
 ## [0.4.5] - 2026-09-22
 
 ### Fixed
@@ -353,3 +362,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.4.3]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.2...v0.4.3
 [0.4.4]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.3...v0.4.4
 [0.4.5]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.4...v0.4.5
+[0.4.6]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.5...v0.4.6
