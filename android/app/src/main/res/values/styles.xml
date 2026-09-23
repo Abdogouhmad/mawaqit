@@ -15,4 +15,11 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+
+    <!-- Full-screen Adhan alarm (AdhanAlarmActivity): dark, no title bar, and
+         laid out edge-to-edge so it presents cleanly over the lockscreen. -->
+    <style name="Theme.Mawaqit.Alarm" parent="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+        <item name="android:windowBackground">@color/alarm_background</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
 </resources>
