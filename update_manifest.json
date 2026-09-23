@@ -4,7 +4,7 @@
   "minSupportedVersionCode": 3,
   "mandatory": false,
   "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.5.0/mawaqit-v0.5.0-universal.apk",
-  "sha256": "768e7a2b4d0a36dae13bfa93341c3256999efb854c1e32fd7a034d667f8f8683",
+  "sha256": "210a1b2fef65533c6b568f7e0e89b39bdfea4fbe7b122f4df492043caea80cae",
   "releaseNotes": "## [0.5.0] - 2026-09-22\n\n### Added\n\n- **Home-screen widget, rebuilt from scratch** — the next-prayer card returns as\na native Android widget (Glance via `home_widget`): a \"Next prayer\" highlight\nwith its clock time, an in-widget \"in 1h 24m 13s\" countdown, and all five\nprayer times (Fajr → Isha) in the app's sage look. It refreshes on app\nlaunch, at every prayer rollover, on settings changes and whenever the\nbackground reschedule runs, and tapping the card opens the app.",
-  "publishedAt": "2026-09-22T21:11:12.121992+00:00"
+  "publishedAt": "2026-09-23T16:40:22.545360+00:00"
 }
