@@ -51,6 +51,16 @@ abstract final class ToneCatalog {
       androidRawResource: 'adhan_adham_al_sharqawe',
     ),
     AdhanTone(
+      name: 'Hamza Al Majale',
+      assetPath: 'audio/Hamza Al Majale.mp3',
+      androidRawResource: 'adhan_hamza_al_majale',
+    ),
+    AdhanTone(
+      name: 'Mansur Al Zahrane',
+      assetPath: 'audio/Mansur Al Zahrane.mp3',
+      androidRawResource: 'adhan_mansur_al_zahrane',
+    ),
+    AdhanTone(
       name: silentName,
       assetPath: '',
       androidRawResource: '',

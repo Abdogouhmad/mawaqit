@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
-import 'package:mawaqit/ui/core/widgets/pulse_dot.dart';
+import 'package:mawaqit/shared/widgets/pulse_dot.dart';
 
 enum PrayerTileStatus { passed, active, upcoming }
 

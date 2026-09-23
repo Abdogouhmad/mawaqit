@@ -47,7 +47,11 @@ abstract final class BackgroundScheduler {
       final notifications = NotificationService.instance;
       await notifications.init();
       await notifications.scheduleDay(day, settings);
-      await PrayerWidgetService.sync(day);
+      await PrayerWidgetService.sync(
+        day,
+        settings,
+        locationShort: cached.displayName,
+      );
       return true;
     } catch (_) {
       return false;
@@ -66,7 +70,11 @@ abstract final class BackgroundScheduler {
       final notifications = NotificationService.instance;
       await notifications.init();
       await notifications.scheduleDay(day, settings);
-      await PrayerWidgetService.sync(day);
+      await PrayerWidgetService.sync(
+        day,
+        settings,
+        locationShort: cached.displayName,
+      );
       return true;
     } catch (_) {
       return false;

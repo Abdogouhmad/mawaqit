@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:mawaqit/core/theme/tokens.dart';
 
@@ -12,6 +13,7 @@ class SettingsRow extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onTap,
+    this.haptic = true,
   });
 
   final IconData icon;
@@ -20,16 +22,24 @@ class SettingsRow extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
 
+  /// Palm "selection click" haptic before [onTap] runs (standard settings UX).
+  final bool haptic;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final onTap = this.onTap;
 
+    void handleTap() {
+      if (haptic && onTap != null) HapticFeedback.selectionClick();
+      onTap?.call();
+    }
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: handleTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
           padding: const EdgeInsets.symmetric(

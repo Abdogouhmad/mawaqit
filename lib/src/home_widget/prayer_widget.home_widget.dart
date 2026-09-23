@@ -10,84 +10,49 @@ class PrayerWidgetHomeWidget {
   static const String _$paramPrefix = 'home_widget.PrayerWidget';
 
   static Future<void> saveData({
+    String? locationShort,
+    String? nextPrayerCountdown,
     String? nextPrayerName,
     String? nextPrayerTime,
-    String? nextPrayerCountdown,
-    String? fajrName,
-    String? fajrTime,
-    String? dhuhrName,
-    String? dhuhrTime,
-    String? asrName,
-    String? asrTime,
-    String? maghribName,
-    String? maghribTime,
-    String? ishaName,
-    String? ishaTime,
+    String? progressFilled,
+    String? progressRemaining,
   }) {
     return Future.wait([
+      if (locationShort != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.locationShort', locationShort),
+      if (nextPrayerCountdown != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', nextPrayerCountdown),
       if (nextPrayerName != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.nextPrayerName', nextPrayerName),
       if (nextPrayerTime != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.nextPrayerTime', nextPrayerTime),
-      if (nextPrayerCountdown != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', nextPrayerCountdown),
-      if (fajrName != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.fajrName', fajrName),
-      if (fajrTime != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.fajrTime', fajrTime),
-      if (dhuhrName != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.dhuhrName', dhuhrName),
-      if (dhuhrTime != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.dhuhrTime', dhuhrTime),
-      if (asrName != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.asrName', asrName),
-      if (asrTime != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.asrTime', asrTime),
-      if (maghribName != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.maghribName', maghribName),
-      if (maghribTime != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.maghribTime', maghribTime),
-      if (ishaName != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.ishaName', ishaName),
-      if (ishaTime != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.ishaTime', ishaTime),
+      if (progressFilled != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.progressFilled', progressFilled),
+      if (progressRemaining != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.progressRemaining', progressRemaining),
     ]);
   }
 
   static Future<void> deleteData({
+    bool locationShort = false,
+    bool nextPrayerCountdown = false,
     bool nextPrayerName = false,
     bool nextPrayerTime = false,
-    bool nextPrayerCountdown = false,
-    bool fajrName = false,
-    bool fajrTime = false,
-    bool dhuhrName = false,
-    bool dhuhrTime = false,
-    bool asrName = false,
-    bool asrTime = false,
-    bool maghribName = false,
-    bool maghribTime = false,
-    bool ishaName = false,
-    bool ishaTime = false,
+    bool progressFilled = false,
+    bool progressRemaining = false,
   }) {
     return Future.wait([
+      if (locationShort) HomeWidget.saveWidgetData('${_$paramPrefix}.locationShort', null),
+      if (nextPrayerCountdown) HomeWidget.saveWidgetData('${_$paramPrefix}.nextPrayerCountdown', null),
       if (nextPrayerName) HomeWidget.saveWidgetData('${_$paramPrefix}.nextPrayerName', null),
       if (nextPrayerTime) HomeWidget.saveWidgetData('${_$paramPrefix}.nextPrayerTime', null),
-      if (nextPrayerCountdown) HomeWidget.saveWidgetData('${_$paramPrefix}.nextPrayerCountdown', null),
-      if (fajrName) HomeWidget.saveWidgetData('${_$paramPrefix}.fajrName', null),
-      if (fajrTime) HomeWidget.saveWidgetData('${_$paramPrefix}.fajrTime', null),
-      if (dhuhrName) HomeWidget.saveWidgetData('${_$paramPrefix}.dhuhrName', null),
-      if (dhuhrTime) HomeWidget.saveWidgetData('${_$paramPrefix}.dhuhrTime', null),
-      if (asrName) HomeWidget.saveWidgetData('${_$paramPrefix}.asrName', null),
-      if (asrTime) HomeWidget.saveWidgetData('${_$paramPrefix}.asrTime', null),
-      if (maghribName) HomeWidget.saveWidgetData('${_$paramPrefix}.maghribName', null),
-      if (maghribTime) HomeWidget.saveWidgetData('${_$paramPrefix}.maghribTime', null),
-      if (ishaName) HomeWidget.saveWidgetData('${_$paramPrefix}.ishaName', null),
-      if (ishaTime) HomeWidget.saveWidgetData('${_$paramPrefix}.ishaTime', null),
+      if (progressFilled) HomeWidget.saveWidgetData('${_$paramPrefix}.progressFilled', null),
+      if (progressRemaining) HomeWidget.saveWidgetData('${_$paramPrefix}.progressRemaining', null),
     ]);
   }
 
-  static Future<({String? nextPrayerName, String? nextPrayerTime, String? nextPrayerCountdown, String? fajrName, String? fajrTime, String? dhuhrName, String? dhuhrTime, String? asrName, String? asrTime, String? maghribName, String? maghribTime, String? ishaName, String? ishaTime})> getData() async {
+  static Future<({String? locationShort, String? nextPrayerCountdown, String? nextPrayerName, String? nextPrayerTime, String? progressFilled, String? progressRemaining})> getData() async {
     return (
+      locationShort: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.locationShort', defaultValue: '—'),
+      nextPrayerCountdown: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', defaultValue: 'NEXT IN —'),
       nextPrayerName: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerName', defaultValue: '—'),
       nextPrayerTime: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerTime', defaultValue: '--:--'),
-      nextPrayerCountdown: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', defaultValue: ''),
-      fajrName: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.fajrName'),
-      fajrTime: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.fajrTime'),
-      dhuhrName: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.dhuhrName'),
-      dhuhrTime: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.dhuhrTime'),
-      asrName: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.asrName'),
-      asrTime: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.asrTime'),
-      maghribName: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.maghribName'),
-      maghribTime: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.maghribTime'),
-      ishaName: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.ishaName'),
-      ishaTime: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.ishaTime'),
+      progressFilled: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.progressFilled', defaultValue: '━━━━━━'),
+      progressRemaining: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.progressRemaining', defaultValue: '······'),
     );
   }
 

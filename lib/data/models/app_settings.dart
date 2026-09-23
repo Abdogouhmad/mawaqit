@@ -1,5 +1,7 @@
 import 'package:adhan_dart/adhan_dart.dart';
 
+import 'package:mawaqit/data/models/notification_kind.dart';
+
 enum AppThemeMode { system, light, dark }
 
 /// Where prayer times derive coordinates from.
@@ -17,6 +19,7 @@ class AppSettings {
     this.calculationMethod = CalculationMethod.muslimWorldLeague,
     this.madhab = Madhab.shafi,
     this.leadMinutes = 10,
+    this.prePrayerEnabled = true,
     this.adhanSoundEnabled = true,
     this.adhanTone = 'Adham Al Sharqawe',
     this.adhanDeviceToneUri,
@@ -32,6 +35,7 @@ class AppSettings {
   final CalculationMethod calculationMethod;
   final Madhab madhab;
   final int leadMinutes; // 0 = none
+  final bool prePrayerEnabled;
   final bool adhanSoundEnabled;
   final String adhanTone;
 
@@ -65,10 +69,30 @@ class AppSettings {
   /// Human-readable name of the currently selected pre-prayer sound.
   String get preAlertLabel => preAlertTone;
 
+  /// Kill switch for [NotificationKind]. Each kind persists independently.
+  bool notifEnabled(NotificationKind kind) => switch (kind) {
+        NotificationKind.prePrayer => prePrayerEnabled,
+        NotificationKind.adhan => adhanSoundEnabled,
+      };
+
+  /// Name of the tone currently selected for [NotificationKind].
+  String notifTone(NotificationKind kind) => switch (kind) {
+        NotificationKind.prePrayer => preAlertLabel,
+        NotificationKind.adhan => adhanLabel,
+      };
+
+  /// Flips the kill switch for [NotificationKind].
+  AppSettings withNotifEnabled(NotificationKind kind, bool enabled) =>
+      switch (kind) {
+        NotificationKind.prePrayer => copyWith(prePrayerEnabled: enabled),
+        NotificationKind.adhan => copyWith(adhanSoundEnabled: enabled),
+      };
+
   AppSettings copyWith({
     CalculationMethod? calculationMethod,
     Madhab? madhab,
     int? leadMinutes,
+    bool? prePrayerEnabled,
     bool? adhanSoundEnabled,
     String? adhanTone,
     String? adhanDeviceToneUri,
@@ -85,6 +109,7 @@ class AppSettings {
       calculationMethod: calculationMethod ?? this.calculationMethod,
       madhab: madhab ?? this.madhab,
       leadMinutes: leadMinutes ?? this.leadMinutes,
+      prePrayerEnabled: prePrayerEnabled ?? this.prePrayerEnabled,
       adhanSoundEnabled: adhanSoundEnabled ?? this.adhanSoundEnabled,
       adhanTone: adhanTone ?? this.adhanTone,
       adhanDeviceToneUri:

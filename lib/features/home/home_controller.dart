@@ -77,6 +77,11 @@ class HomeController extends AsyncNotifier<HomeState> {
   Timer? _ticker;
   DateTime? _computedFor;
 
+  /// Next-prayer time the live pre-prayer reminder already fired for — guards
+  /// the boundary test below so one reminder rings per occurrence, no matter
+  /// how many ticks pass while inside the lead window.
+  DateTime? _remindFiredFor;
+
   @override
   Future<HomeState> build() async {
     state = const AsyncLoading();
@@ -114,7 +119,7 @@ class HomeController extends AsyncNotifier<HomeState> {
       if (cached != null) {
         final day = _dayFor(cached.latitude, cached.longitude, settings, now);
         final home = _derive(cached, day, settings, now);
-        _apply(day, settings);
+        _apply(day, settings, locationShort: cached.displayName);
         unawaited(_refreshFromGps(settings, now, cached));
         return home;
       }
@@ -127,7 +132,7 @@ class HomeController extends AsyncNotifier<HomeState> {
 
       final day = _dayFor(location.latitude, location.longitude, settings, now);
       final home = _derive(location, day, settings, now);
-      _apply(day, settings);
+      _apply(day, settings, locationShort: location.displayName);
       return home;
     } catch (error) {
       final previous = state.hasValue ? state.value : null;
@@ -147,7 +152,9 @@ class HomeController extends AsyncNotifier<HomeState> {
     AppSettings settings,
     DateTime now,
   ) {
-    return ref.read(prayerTimesRepositoryProvider).forDate(
+    return ref
+        .read(prayerTimesRepositoryProvider)
+        .forDate(
           date: now,
           latitude: latitude,
           longitude: longitude,
@@ -157,14 +164,16 @@ class HomeController extends AsyncNotifier<HomeState> {
 
   /// Fires notification scheduling for [day] without blocking, and refreshes
   /// the Android home-screen widget with the same day's snapshot.
-  void _apply(PrayerDay day, AppSettings settings) {
+  void _apply(PrayerDay day, AppSettings settings, {String? locationShort}) {
     unawaited(
       ref
           .read(notificationServiceProvider)
           .scheduleDay(day, settings)
           .catchError((_) {}),
     );
-    unawaited(PrayerWidgetService.sync(day));
+    unawaited(
+      PrayerWidgetService.sync(day, settings, locationShort: locationShort),
+    );
   }
 
   /// Polls a fresh GPS fix in the background and, when the coordinates moved
@@ -183,7 +192,7 @@ class HomeController extends AsyncNotifier<HomeState> {
       // resolve() returns the cached fix when GPS is unavailable — no-op.
       final moved =
           (location.latitude - cached.latitude).abs() > 0.0005 ||
-              (location.longitude - cached.longitude).abs() > 0.0005;
+          (location.longitude - cached.longitude).abs() > 0.0005;
       if (!moved && location.displayName == cached.displayName) return;
 
       // Bail if settings changed under us (e.g. the user picked a city).
@@ -202,7 +211,7 @@ class HomeController extends AsyncNotifier<HomeState> {
         DateTime.now(),
       );
       final home = _derive(location, day, settings, DateTime.now());
-      _apply(day, settings);
+      _apply(day, settings, locationShort: location.displayName);
       _computedFor = home.now;
       state = AsyncData(home);
     } catch (_) {
@@ -282,9 +291,77 @@ class HomeController extends AsyncNotifier<HomeState> {
     if (nextChanged && derived.day != null) {
       // A prayer rolled over — refresh the widget's next-prayer highlight and
       // countdown so it never goes stale between app launches.
-      unawaited(PrayerWidgetService.sync(derived.day!));
+      unawaited(
+        PrayerWidgetService.sync(
+          derived.day!,
+          ref.read(settingsProvider).value ?? const AppSettings(),
+          locationShort: previous.locationName,
+        ),
+      );
     }
+
+    // A new prayer's adhan time just arrived while the app is open. Fire it
+    // directly so it rings + takes over the screen (the scheduled channel sound
+    // is unreliable here) instead of waiting for the background path.
+    if (previous.currentPrayer != null &&
+        derived.currentPrayer != null &&
+        previous.currentPrayer!.kind != derived.currentPrayer!.kind) {
+      _maybeFireAdhan(derived);
+    }
+
+    // The pre-prayer reminder's lead-time boundary just arrived while the app
+    // is open. Fire it directly too (direct chime, scheduled card cancelled)
+    // so the real reminder rings the selected tone instead of a frozen channel
+    // sound. The 60s freshness window mirrors the adhan guard: if the app was
+    // backgrounded across the boundary and resumed much later, the scheduled
+    // card already covered it and re-ringing would double up.
+    final settings = ref.read(settingsProvider).value ?? const AppSettings();
+    final next = derived.nextPrayer;
+    if (next != null && settings.prePrayerEnabled && settings.leadMinutes > 0) {
+      final boundary = next.time.subtract(
+        Duration(minutes: settings.leadMinutes),
+      );
+      final sinceBoundary = now.difference(boundary).inSeconds;
+      if (sinceBoundary >= 0 &&
+          sinceBoundary <= 60 &&
+          _remindFiredFor != next.time) {
+        _remindFiredFor = next.time;
+        unawaited(_maybeFireReminder(derived, settings));
+      }
+    }
+
     state = AsyncData(derived);
+  }
+
+  Future<void> _maybeFireReminder(HomeState home, AppSettings settings) async {
+    final day = home.day;
+    final next = home.nextPrayer;
+    if (day == null || next == null) return;
+    try {
+      await ref
+          .read(notificationServiceProvider)
+          .firePrayerReminder(day: day, prayer: next, settings: settings);
+    } catch (_) {
+      // The scheduled card still covers this occurrence — nothing to do.
+    }
+  }
+
+  Future<void> _maybeFireAdhan(HomeState home) async {
+    final settings = ref.read(settingsProvider).value;
+    final day = home.day;
+    final current = home.currentPrayer;
+    if (settings == null || day == null || current == null) return;
+    // Only fire when the rollover is fresh — if the app was backgrounded across
+    // a prayer time and resumed later, the scheduled alarm already handled it
+    // and re-ringing on resume would double up.
+    if (DateTime.now().difference(current.time).inSeconds > 45) return;
+    try {
+      await ref
+          .read(notificationServiceProvider)
+          .firePrayerAdhan(day: day, prayer: current, settings: settings);
+    } catch (_) {
+      // The scheduled alarm still covers the background case — nothing to do.
+    }
   }
 
   void _reload(HomeState previous) {
@@ -298,10 +375,9 @@ class HomeController extends AsyncNotifier<HomeState> {
         })
         .catchError((Object error) {
           if (ref.mounted) {
-            state = AsyncData(previous.copyWith(
-              now: DateTime.now(),
-              error: error.toString(),
-            ));
+            state = AsyncData(
+              previous.copyWith(now: DateTime.now(), error: error.toString()),
+            );
           }
         });
   }
@@ -310,5 +386,6 @@ class HomeController extends AsyncNotifier<HomeState> {
       a.year == b.year && a.month == b.month && a.day == b.day;
 }
 
-final homeControllerProvider =
-    AsyncNotifierProvider<HomeController, HomeState>(HomeController.new);
+final homeControllerProvider = AsyncNotifierProvider<HomeController, HomeState>(
+  HomeController.new,
+);

@@ -14,6 +14,7 @@ void main() {
     final settings = await repository.load();
     expect(settings.calculationMethod, CalculationMethod.muslimWorldLeague);
     expect(settings.leadMinutes, 10);
+    expect(settings.prePrayerEnabled, isTrue);
     expect(settings.adhanSoundEnabled, isTrue);
     expect(settings.themeMode, AppThemeMode.system);
     expect(settings.locationMode, LocationMode.autoGps);
@@ -24,6 +25,7 @@ void main() {
       calculationMethod: CalculationMethod.ummAlQura,
       madhab: Madhab.hanafi,
       leadMinutes: 5,
+      prePrayerEnabled: false,
       adhanSoundEnabled: false,
       adhanTone: 'Mellow Bell',
       themeMode: AppThemeMode.dark,
@@ -39,6 +41,7 @@ void main() {
     expect(loaded.calculationMethod, CalculationMethod.ummAlQura);
     expect(loaded.madhab, Madhab.hanafi);
     expect(loaded.leadMinutes, 5);
+    expect(loaded.prePrayerEnabled, isFalse);
     expect(loaded.adhanSoundEnabled, isFalse);
     expect(loaded.adhanTone, 'Mellow Bell');
     expect(loaded.themeMode, AppThemeMode.dark);

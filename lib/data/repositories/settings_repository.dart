@@ -28,6 +28,7 @@ class SettingsRepository {
         'calculationMethod': s.calculationMethod.name,
         'madhab': s.madhab.name,
         'leadMinutes': s.leadMinutes,
+        'prePrayerEnabled': s.prePrayerEnabled,
         'adhanSoundEnabled': s.adhanSoundEnabled,
         'adhanTone': s.adhanTone,
         'adhanDeviceToneUri': s.adhanDeviceToneUri,
@@ -51,6 +52,7 @@ class SettingsRepository {
         ),
         leadMinutes:
             (json['leadMinutes'] as num?)?.toInt() ?? AppSettings.leadOptions[1],
+        prePrayerEnabled: json['prePrayerEnabled'] as bool? ?? true,
         adhanSoundEnabled: json['adhanSoundEnabled'] as bool? ?? true,
         adhanTone: json['adhanTone'] as String? ?? 'Adham Al Sharqawe',
         adhanDeviceToneUri: json['adhanDeviceToneUri'] as String?,

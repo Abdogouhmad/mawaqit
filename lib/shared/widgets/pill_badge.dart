@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/theme/tokens.dart';
-import 'package:mawaqit/ui/core/widgets/pulse_dot.dart';
+import 'package:mawaqit/shared/widgets/pulse_dot.dart';
 
 /// Rounded status capsule with optional leading dot (design pill badges).
 class PillBadge extends StatelessWidget {

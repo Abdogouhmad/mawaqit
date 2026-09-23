@@ -11,6 +11,79 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **A refreshed Settings screen** — a friendlier header and a description under
+  each section ("Where prayer times are computed for", "Rings the adhan and
+  pre-prayer countdowns"…). Rows and cards are grouped and cleanly separated, so
+  Location, Calculation, Notifications, Appearance and About are quicker to scan.
+  Everything is still where you left it — it just reads better.
+
+### Changed
+
+- **Home-screen widget, compact and cleaner** — the 2×2 prayer card is now a
+  tidy snapshot: the next prayer with its clock time, a live countdown, and
+  the day-progress bar in the app's sage look. The old five-prayer timeline and
+  the "following prayer" row were dropped to give the progress bar room to read
+  at a glance.
+- **The real pre-prayer reminder rings like the test** — when the app is open
+  at reminder time, the countdown now plays the chime you selected directly
+  instead of depending on the system notification sound, and its scheduled card
+  is cancelled so nothing rings twice. With the app closed, the scheduled
+  per-tone card still rings on its own.
+- **Clearer notification messages** — the pre-prayer and adhan tray cards tell
+  you at a glance which prayer is coming and when, and what tone will play.
+
+### Fixed
+
+- **Test Adhan now takes over a locked screen** — pressing "Test Adhan" and
+  locking your phone wakes the alarm presenter over the lockscreen like a
+  native alarm, instead of just reopening the app.
+- **Test Pre-Prayer rings reliably** — the 3-second test plays the chosen chime
+  through the app directly, even on phones where notification-channel sounds
+  get stuck.
+
+## [0.6.0] - 2026-09-23
+
+### Added
+
+- **Two new adhan recitations** — **Hamza Al Majale** and **Mansur Al Zahrane**
+  join the Adhan Tone picker next to Adham Al Sharqawe, so you can choose which
+  voice makes the call.
+
+### Changed
+
+- **Every alert now has its own clear Settings section** — the notification
+  area is split into two tidy cards, one for **Pre-Prayer** and one for
+  **Adhan**. Each has the same simple controls, so whichever one you're looking
+  at, you already know the layout: a switch to turn it on or off, a tone
+  picker, and a 3-second test button.
+- **The Adhan Test button now shows the real alarm, not a card** — pressing it
+  fires the actual prayer-time experience: the chosen adhan rings through the
+  app itself (looping like an alarm, not a one-shot note) and a full-screen,
+  dark presenter takes over with the live clock. You can silence it with the
+  **Stop alarm** button on screen or with the phone's **volume buttons**, just
+  like a native alarm clock.
+- **Pre-Prayer got its own tone and test** — the countdown reminder rings with
+  the chime you pick for it, and its test button fires that exact reminder after
+  3 seconds, independent of the adhan settings.
+- **Each toggle and tone is remembered separately** — turning off the adhan no
+  longer touches the pre-prayer reminder, and each side keeps its own chosen
+  sound.
+
+### Fixed
+
+- **The real adhan now rings when the app is open** — previously the actual
+  prayer-time call could fall silent or never take over the screen if the app
+  was already on screen, because that path relied on the system notification
+  sound. The app now detects the prayer moment itself and plays the chosen
+  adhan directly, same as the reliable test button, with the full-screen
+  presenter over whatever you were looking at.
+- **A ringing adhan can always be stopped** — on-screen button and volume
+  buttons both work, so the alarm can't get stuck ringing.
+
 ## [0.5.0] - 2026-09-22
 
 ### Added
@@ -375,3 +448,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.4.5]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.4...v0.4.5
 [0.4.6]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.5...v0.4.6
 [0.5.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.6...v0.5.0
+[0.6.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.5.0...v0.6.0

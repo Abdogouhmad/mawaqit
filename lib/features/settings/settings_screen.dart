@@ -5,19 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:mawaqit/core/audio/tone_catalog.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
+import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
-import 'package:mawaqit/data/services/tone_preview_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
+import 'package:mawaqit/features/settings/widgets/notification_settings_section.dart';
 import 'package:mawaqit/features/settings/widgets/update_section.dart';
 import 'package:mawaqit/providers/providers.dart';
-import 'package:mawaqit/ui/core/widgets/app_card.dart';
-import 'package:mawaqit/ui/core/widgets/section_header.dart';
-import 'package:mawaqit/ui/core/widgets/segmented_control.dart';
-import 'package:mawaqit/ui/core/widgets/settings_row.dart';
-import 'package:mawaqit/features/home/home_controller.dart';
+import 'package:mawaqit/shared/widgets/app_card.dart';
+import 'package:mawaqit/shared/widgets/section_header.dart';
+import 'package:mawaqit/shared/widgets/segmented_control.dart';
+import 'package:mawaqit/shared/widgets/settings_group.dart';
+import 'package:mawaqit/shared/widgets/settings_row.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -35,8 +35,7 @@ class SettingsScreen extends ConsumerWidget {
             const _SettingsHeader(),
             Expanded(
               child: asyncSettings.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, _) => Center(child: Text(error.toString())),
                 data: (settings) => _SettingsBody(settings: settings),
               ),
@@ -59,25 +58,44 @@ class _SettingsHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
-        AppSpacing.xs,
-        AppSpacing.xxxl,
-        AppSpacing.xs,
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).maybePop(),
-            icon: const Icon(Icons.arrow_back),
-            color: scheme.onSurfaceVariant,
-            tooltip: 'Back',
-          ),
-          Text(
-            'Settings',
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
+          Material(
+            color: scheme.secondaryContainer.withValues(alpha: 0.6),
+            shape: const CircleBorder(),
+            child: IconButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              icon: const Icon(Icons.arrow_back),
+              color: scheme.onSecondaryContainer,
+              tooltip: 'Back',
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: AppSpacing.xl),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Settings',
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  'Prayer times, reminders & appearance',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
           TextButton(
             onPressed: () => Navigator.of(context).maybePop(),
             child: Text(
@@ -108,13 +126,17 @@ class _SettingsBody extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.huge,
-        AppSpacing.md,
+        AppSpacing.xs,
         AppSpacing.huge,
         AppSpacing.pageBottom,
       ),
       children: [
         // Location & timing
-        const SectionHeader(label: 'Location & Timing'),
+        const SectionHeader(
+          label: 'Location & Timing',
+          description: 'Where prayer times are computed for',
+          icon: Icons.near_me_outlined,
+        ),
         AppCard(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.xs,
@@ -125,258 +147,118 @@ class _SettingsBody extends ConsumerWidget {
             title: 'Current Location',
             subtitle: _locationSubtitle(settings),
             onTap: () => _openLocationSheet(context, ref, controller, settings),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.sm,
-              ),
-              decoration: BoxDecoration(
-                color: scheme.secondaryContainer.withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: AppSpacing.sm,
-                    height: AppSpacing.sm,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: scheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    settings.locationMode.label,
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.onSecondaryContainer,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            trailing: _StatusPill(label: settings.locationMode.label),
           ),
         ),
         const SizedBox(height: AppSpacing.mega),
 
         // Calculation
-        const SectionHeader(label: 'Calculation Conventions'),
-        AppCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: [
-              SettingsRow(
-                icon: Icons.calculate_outlined,
-                title: 'Calculation Method',
-                subtitle: settings.calculationMethod.displayName,
-                onTap: () => _pickCalculationMethod(
-                  context,
-                  controller,
-                  settings,
-                ),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  size: AppIconSize.xl,
-                ),
-              ),
-              Divider(
-                height: 1,
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
-              ),
-              SettingsRow(
-                icon: Icons.balance_outlined,
-                title: 'Juridical Method (Asr)',
-                subtitle: settings.madhab == Madhab.hanafi
-                    ? 'Hanafi'
-                    : "Standard (Shafi'i, Maliki, Hanbali)",
-                onTap: () => _pickMadhab(context, controller, settings),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  size: AppIconSize.xl,
-                ),
-              ),
-            ],
-          ),
+        const SectionHeader(
+          label: 'Calculation Conventions',
+          description: 'Method & Asr jurisprudence for the day',
+          icon: Icons.calculate_outlined,
+        ),
+        SettingsGroup(
+          children: [
+            SettingsRow(
+              icon: Icons.calculate_outlined,
+              title: 'Calculation Method',
+              subtitle: settings.calculationMethod.displayName,
+              onTap: () =>
+                  _pickCalculationMethod(context, controller, settings),
+              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+            ),
+            SettingsRow(
+              icon: Icons.balance_outlined,
+              title: 'Juridical Method (Asr)',
+              subtitle: settings.madhab == Madhab.hanafi
+                  ? 'Hanafi'
+                  : "Standard (Shafi'i, Maliki, Hanbali)",
+              onTap: () => _pickMadhab(context, controller, settings),
+              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+            ),
+          ],
         ),
         const SizedBox(height: AppSpacing.mega),
 
         // Notifications & audio
-        const SectionHeader(label: 'Notifications & Audio'),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Pre-Prayer Alert',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontSize: AppFontSize.lg,
-                    ),
-                  ),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 320),
-                    switchInCurve: Curves.easeOutBack,
-                    switchOutCurve: Curves.easeIn,
-                    transitionBuilder: (child, animation) => FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(
-                        scale: Tween<double>(begin: 0.85, end: 1).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeOutBack,
-                          ),
-                        ),
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.5),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      settings.leadMinutes == 0
-                          ? 'Off'
-                          : '${settings.leadMinutes} min before',
-                      key: ValueKey(settings.leadMinutes),
-                      style: textTheme.labelMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              SegmentedControl<int>(
-                value: settings.leadMinutes,
-                onChanged: (value) {
-                  HapticFeedback.selectionClick();
-                  controller.save(settings.copyWith(leadMinutes: value));
-                },
-                options: const [
-                  (0, 'None'),
-                  (5, '5 min'),
-                  (10, '10 min'),
-                  (15, '15 min'),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.huge),
-              Divider(
-                height: 1,
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              SettingsRow(
-                icon: Icons.volume_up_outlined,
-                title: 'Adhan Audio',
-                subtitle: 'Play audio at exact prayer entry',
-                onTap: () => controller.save(
-                  settings.copyWith(
-                    adhanSoundEnabled: !settings.adhanSoundEnabled,
-                  ),
-                ),
-                trailing: Switch(
-                  value: settings.adhanSoundEnabled,
-                  onChanged: (value) => controller.save(
-                    settings.copyWith(adhanSoundEnabled: value),
-                  ),
-                ),
-              ),
-              Divider(
-                height: 1,
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
-              ),
-              SettingsRow(
-                icon: Icons.music_note_outlined,
-                title: 'Adhan Tone',
-                subtitle: settings.adhanLabel,
-                onTap: () => _openToneSheet(context, controller, settings),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  size: AppIconSize.xl,
-                ),
-              ),
-              Divider(
-                height: 1,
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
-              ),
-              SettingsRow(
-                icon: Icons.notifications_active_outlined,
-                title: 'Pre-Prayer Tone',
-                subtitle: settings.preAlertLabel,
-                onTap: () =>
-                    _openToneSheet(context, controller, settings, isAdhan: false),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  size: AppIconSize.xl,
-                ),
-              ),
-              Divider(
-                height: 1,
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
-              ),
-              SettingsRow(
-                icon: Icons.campaign_outlined,
-                title: 'Test Notification',
-                subtitle: 'Fires the adhan alarm in 3 seconds',
-                onTap: () => _sendTestNotification(context, ref),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  size: AppIconSize.xl,
-                ),
-              ),
-              Divider(
-                height: 1,
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
-              ),
-              SettingsRow(
-                icon: Icons.verified_user_outlined,
-                title: 'Notification Permission',
-                subtitle: 'Re-ask for notifications & exact alarms',
-                onTap: () => _requestPermissions(context, ref),
-                trailing: const Icon(
-                  Icons.chevron_right,
-                  size: AppIconSize.xl,
-                ),
-              ),
-            ],
-          ),
+        const SectionHeader(
+          label: 'Notifications & Alerts',
+          description: 'Rings the adhan and pre-prayer countdowns',
+          icon: Icons.notifications_none,
+        ),
+        SettingsGroup(
+          children: [
+            NotificationSettingsSection(kind: NotificationKind.prePrayer),
+            NotificationSettingsSection(kind: NotificationKind.adhan),
+            SettingsRow(
+              icon: Icons.verified_user_outlined,
+              title: 'Notification Permission',
+              subtitle: 'Notifications, exact alarms & full-screen wake access',
+              onTap: () => _requestPermissions(context, ref),
+              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+            ),
+          ],
         ),
         const SizedBox(height: AppSpacing.mega),
 
         // Appearance
-        const SectionHeader(label: 'Appearance'),
-        AppCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        const SectionHeader(
+          label: 'Appearance',
+          description: 'Follow the phone or pick a fixed theme',
+          icon: Icons.palette_outlined,
+        ),
+        SettingsGroup(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xxxl,
+                AppSpacing.xxl,
+                AppSpacing.xxxl,
+                AppSpacing.md,
+              ),
+              child: Row(
                 children: [
-                  Text(
-                    'Theme',
-                    style: textTheme.titleMedium?.copyWith(
-                      fontSize: AppFontSize.lg,
-                    ),
-                  ),
-                  Text(
-                    'Automatic match',
-                    style: textTheme.labelMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
+                  _LeadingIcon(Icons.palette_outlined),
+                  const SizedBox(width: AppSpacing.xxl),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Theme',
+                          style: textTheme.titleMedium?.copyWith(
+                            fontSize: AppFontSize.lg,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xxs),
+                        Text(
+                          _themeLabel(settings.themeMode),
+                          style: textTheme.labelMedium?.copyWith(
+                            color: scheme.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.xl),
-              SegmentedControl<AppThemeMode>(
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xxxl,
+                0,
+                AppSpacing.xxxl,
+                AppSpacing.xxl,
+              ),
+              child: SegmentedControl<AppThemeMode>(
                 value: settings.themeMode,
-                onChanged: (value) => controller.save(
-                  settings.copyWith(themeMode: value),
-                ),
+                onChanged: (value) {
+                  HapticFeedback.selectionClick();
+                  controller.save(settings.copyWith(themeMode: value));
+                },
                 icons: const [
                   Icons.settings_brightness,
                   Icons.light_mode_outlined,
@@ -388,13 +270,13 @@ class _SettingsBody extends ConsumerWidget {
                   (AppThemeMode.dark, 'Dark'),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         const SizedBox(height: AppSpacing.tera),
 
         // About & OTA updates
-        const SectionHeader(label: 'About & Update'),
+        const SectionHeader(label: 'About & Update', icon: Icons.info_outline),
         const UpdateSection(),
         const SizedBox(height: AppSpacing.tera),
         _Footer(),
@@ -402,43 +284,7 @@ class _SettingsBody extends ConsumerWidget {
     );
   }
 
-  Future<void> _sendTestNotification(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final service = ref.read(notificationServiceProvider);
-    final homeState = ref.read(homeControllerProvider).value;
-    try {
-      await service.init();
-      final scheduled = await service.scheduleTestNotification(
-        settings: settings,
-        day: homeState?.day,
-      );
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            scheduled
-                ? 'Adhan alarm fired — check the tray and lockscreen.'
-                : 'Notifications are off — re-enable them via '
-                    '"Notification Permission" below.',
-          ),
-        ),
-      );
-    } catch (e, st) {
-      debugPrint('Test notification failed: $e\n$st');
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Test notification failed: $e\n$st'),
-        ),
-      );
-    }
-  }
-
-  Future<void> _requestPermissions(
-    BuildContext context,
-    WidgetRef ref,
-  ) async {
+  Future<void> _requestPermissions(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final service = ref.read(notificationServiceProvider);
     try {
@@ -449,7 +295,7 @@ class _SettingsBody extends ConsumerWidget {
             granted
                 ? 'Permissions OK — notifications enabled.'
                 : 'Permission denied — enable notifications in system '
-                    'settings, then tap again.',
+                      'settings, then tap again.',
           ),
         ),
       );
@@ -468,6 +314,12 @@ class _SettingsBody extends ConsumerWidget {
     }
     return 'Automatic (GPS)';
   }
+
+  String _themeLabel(AppThemeMode mode) => switch (mode) {
+    AppThemeMode.system => 'Follows the phone',
+    AppThemeMode.light => 'Light',
+    AppThemeMode.dark => 'Dark',
+  };
 
   void _openLocationSheet(
     BuildContext context,
@@ -531,31 +383,13 @@ class _SettingsBody extends ConsumerWidget {
       context,
       title: 'Juridical Method (Asr)',
       options: Madhab.values,
-      label: (m) => m == Madhab.hanafi
-          ? 'Hanafi'
-          : "Standard (Shafi'i, Maliki, Hanbali)",
+      label: (m) =>
+          m == Madhab.hanafi ? 'Hanafi' : "Standard (Shafi'i, Maliki, Hanbali)",
       current: settings.madhab,
     );
     if (selected != null) {
       await controller.save(settings.copyWith(madhab: selected));
     }
-  }
-
-  void _openToneSheet(
-    BuildContext context,
-    SettingsController controller,
-    AppSettings settings, {
-    bool isAdhan = true,
-  }) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _ToneSheet(
-        controller: controller,
-        initialSettings: settings,
-        isAdhan: isAdhan,
-      ),
-    );
   }
 
   Future<T?> _showOptionSheet<T>(
@@ -585,10 +419,7 @@ class _SettingsBody extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                  Text(title, style: Theme.of(context).textTheme.titleLarge),
                 ],
               ),
             ),
@@ -609,8 +440,7 @@ class _SettingsBody extends ConsumerWidget {
                           )
                         : null,
                     selected: isSelected,
-                    selectedTileColor:
-                        scheme.primary.withValues(alpha: 0.06),
+                    selectedTileColor: scheme.primary.withValues(alpha: 0.06),
                     onTap: () => Navigator.of(context).pop(option),
                   );
                 },
@@ -727,9 +557,8 @@ class _LocationSheetState extends State<_LocationSheet> {
             const SizedBox(height: AppSpacing.xxxl),
             SegmentedControl<LocationMode>(
               value: _draft.locationMode,
-              onChanged: (mode) => setState(
-                () => _draft = _draft.copyWith(locationMode: mode),
-              ),
+              onChanged: (mode) =>
+                  setState(() => _draft = _draft.copyWith(locationMode: mode)),
               options: const [
                 (LocationMode.autoGps, 'Auto (GPS)'),
                 (LocationMode.city, 'City'),
@@ -771,8 +600,9 @@ class _LocationSheetState extends State<_LocationSheet> {
                 const SizedBox(height: AppSpacing.lg),
                 Text(
                   'Searching…',
-                  style: textTheme.labelMedium
-                      ?.copyWith(color: scheme.onSurfaceVariant),
+                  style: textTheme.labelMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
               ] else if (!_searched &&
                   query.length < 3 &&
@@ -781,8 +611,9 @@ class _LocationSheetState extends State<_LocationSheet> {
                 const SizedBox(height: AppSpacing.lg),
                 Text(
                   'Type at least 3 characters to search.',
-                  style: textTheme.labelMedium
-                      ?.copyWith(color: scheme.onSurfaceVariant),
+                  style: textTheme.labelMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
               ],
               if (_results.isNotEmpty) ...[
@@ -802,8 +633,7 @@ class _LocationSheetState extends State<_LocationSheet> {
                         if (index > 0)
                           Divider(
                             height: 1,
-                            color: scheme.outlineVariant
-                                .withValues(alpha: 0.4),
+                            color: scheme.outlineVariant.withValues(alpha: 0.4),
                           ),
                         ListTile(
                           dense: true,
@@ -824,8 +654,9 @@ class _LocationSheetState extends State<_LocationSheet> {
                                 )
                               : null,
                           selected: _draft.cityName == result.name,
-                          selectedTileColor:
-                              scheme.primary.withValues(alpha: 0.06),
+                          selectedTileColor: scheme.primary.withValues(
+                            alpha: 0.06,
+                          ),
                           onTap: () => setState(
                             () => _draft = _draft.copyWith(
                               locationMode: LocationMode.city,
@@ -865,215 +696,58 @@ class _LocationSheetState extends State<_LocationSheet> {
   }
 }
 
-class _ToneSheet extends StatefulWidget {
-  const _ToneSheet({
-    required this.controller,
-    required this.initialSettings,
-    this.isAdhan = true,
-  });
+/// Leading icon circle reused by non-tappable group headers (matches
+/// `SettingsRow`'s own tile icon so rows stay visually aligned).
+class _LeadingIcon extends StatelessWidget {
+  const _LeadingIcon(this.icon);
 
-  final SettingsController controller;
-  final AppSettings initialSettings;
-
-  /// When true the sheet picks the adhan tone; otherwise the pre-prayer tone.
-  final bool isAdhan;
-
-  @override
-  State<_ToneSheet> createState() => _ToneSheetState();
-}
-
-class _ToneSheetState extends State<_ToneSheet> {
-  final TonePreviewService _preview = TonePreviewService();
-  String? _playing;
-
-  bool get _isAdhan => widget.isAdhan;
-
-  List<AdhanTone> get _tones =>
-      _isAdhan ? ToneCatalog.tones : ToneCatalog.preAlertTones;
-
-  @override
-  void initState() {
-    super.initState();
-    _preview.onComplete = () {
-      if (mounted) setState(() => _playing = null);
-    };
-  }
-
-  @override
-  void dispose() {
-    _preview.dispose();
-    super.dispose();
-  }
-
-  Future<void> _togglePreview(AdhanTone tone) async {
-    HapticFeedback.selectionClick();
-    final ok = await _preview.toggle(tone);
-    if (!mounted) return;
-    setState(() => _playing = ok ? _preview.playing : null);
-    if (!ok) _showUnavailable();
-  }
-
-  void _showUnavailable() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Preview unavailable on this device.')),
-    );
-  }
-
-  void _select(AppSettings updated) {
-    HapticFeedback.selectionClick();
-    widget.controller.save(updated);
-    Navigator.of(context).pop();
-  }
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final settings = widget.initialSettings;
-
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(
-          left: AppSpacing.huge,
-          right: AppSpacing.huge,
-          top: AppSpacing.md,
-          bottom: AppSpacing.giga,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              _isAdhan ? 'Adhan Tone' : 'Pre-Prayer Tone',
-              style: textTheme.titleLarge,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Tap the speaker to preview a sound before choosing.',
-              style: textTheme.labelMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xxxl),
-            _sectionLabel(context, 'Built-in tones'),
-            const SizedBox(height: AppSpacing.sm),
-            _card(
-              context,
-              [
-                for (final (index, tone) in _tones.indexed)
-                  _tile(
-                    context,
-                    first: index == 0,
-                    title: tone.name,
-                    subtitle: tone.silent
-                        ? 'No sound'
-                        : (_preview.isSupported
-                              ? 'Tap to preview'
-                              : 'Preview unavailable'),
-                    selected: _isAdhan
-                        ? !settings.usesDeviceTone &&
-                            settings.adhanTone == tone.name
-                        : settings.preAlertTone == tone.name,
-                    leading: tone.silent
-                        ? Icon(
-                            Icons.volume_off_outlined,
-                            color: scheme.onSurfaceVariant,
-                          )
-                        : _previewButton(
-                            context,
-                            enabled: _preview.isSupported,
-                            playing: _playing == tone.name,
-                            onPressed: () => _togglePreview(tone),
-                          ),
-                    onTap: () => _select(
-                      _isAdhan
-                          ? settings.withBundledTone(tone.name)
-                          : settings.withPreAlertTone(tone.name),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
+    return Container(
+      width: AppSpacing.control,
+      height: AppSpacing.control,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: scheme.secondaryContainer.withValues(alpha: 0.55),
+      ),
+      child: Icon(
+        icon,
+        size: AppIconSize.lg,
+        color: scheme.onSecondaryContainer,
       ),
     );
   }
+}
 
-  Widget _card(BuildContext context, List<Widget> children) {
+/// Quiet status pill (e.g. the active location mode) ending a settings row.
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: scheme.surfaceContainerLowest,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(
-          color: scheme.outlineVariant.withValues(alpha: 0.4),
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: scheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.4,
         ),
       ),
-      child: Column(children: children),
-    );
-  }
-
-  Widget _tile(
-    BuildContext context, {
-    required bool first,
-    required String title,
-    required String subtitle,
-    required bool selected,
-    required Widget leading,
-    required VoidCallback onTap,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return Column(
-      children: [
-        if (!first)
-          Divider(
-            height: 1,
-            color: scheme.outlineVariant.withValues(alpha: 0.4),
-          ),
-        ListTile(
-          title: Text(title),
-          subtitle: Text(subtitle),
-          leading: leading,
-          trailing: selected
-              ? Icon(
-                  Icons.check_circle,
-                  color: scheme.primary,
-                  size: AppIconSize.xl,
-                )
-              : null,
-          selected: selected,
-          selectedTileColor: scheme.primary.withValues(alpha: 0.06),
-          onTap: onTap,
-        ),
-      ],
-    );
-  }
-
-  Widget _previewButton(
-    BuildContext context, {
-    required bool enabled,
-    required bool playing,
-    required VoidCallback onPressed,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return IconButton(
-      tooltip: enabled ? 'Preview' : 'Preview unavailable',
-      icon: Icon(
-        playing ? Icons.stop_circle_outlined : Icons.play_circle_outline,
-        color: enabled
-            ? scheme.primary
-            : scheme.onSurfaceVariant.withValues(alpha: 0.4),
-      ),
-      onPressed: enabled ? onPressed : null,
-    );
-  }
-
-  Widget _sectionLabel(BuildContext context, String label) {
-    return Text(
-      label,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
     );
   }
 }
@@ -1085,30 +759,29 @@ class _Footer extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.lock_outline,
-              size: AppIconSize.xs,
-              color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              'Mawaqit • No accounts, no tracking.',
-              style: textTheme.labelSmall?.copyWith(
-                color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
-                letterSpacing: 0.2,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
         Text(
-          'Version ${AppInfo.version}',
+          '◷',
+          style: textTheme.headlineSmall?.copyWith(
+            color: scheme.primary.withValues(alpha: 0.45),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          'Mawaqit',
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          'Prayer times, without the noise.',
+          style: textTheme.labelMedium?.copyWith(
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          'v${AppInfo.version}  •  No accounts, no tracking',
           style: textTheme.labelSmall?.copyWith(
-            color: scheme.onSurfaceVariant.withValues(alpha: 0.4),
+            color: scheme.onSurfaceVariant.withValues(alpha: 0.55),
             letterSpacing: 0.2,
             fontWeight: FontWeight.w500,
           ),
