@@ -1,10 +1,10 @@
 {
-  "latestVersionName": "0.5.0",
-  "latestVersionCode": 500,
+  "latestVersionName": "0.6.0",
+  "latestVersionCode": 600,
   "minSupportedVersionCode": 3,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.5.0/mawaqit-v0.5.0-universal.apk",
-  "sha256": "210a1b2fef65533c6b568f7e0e89b39bdfea4fbe7b122f4df492043caea80cae",
-  "releaseNotes": "## [0.5.0] - 2026-09-22\n\n### Added\n\n- **Home-screen widget, rebuilt from scratch** — the next-prayer card returns as\na native Android widget (Glance via `home_widget`): a \"Next prayer\" highlight\nwith its clock time, an in-widget \"in 1h 24m 13s\" countdown, and all five\nprayer times (Fajr → Isha) in the app's sage look. It refreshes on app\nlaunch, at every prayer rollover, on settings changes and whenever the\nbackground reschedule runs, and tapping the card opens the app.",
-  "publishedAt": "2026-09-23T16:40:22.545360+00:00"
+  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.6.0/mawaqit-v0.6.0-universal.apk",
+  "sha256": "6bbc7bee862075c8b9775125d9cef2287daaae3e332935dc364cbfd2127c9340",
+  "releaseNotes": "## [0.6.0] - 2026-09-23\n\n### Added\n\n- **Two new adhan recitations** — **Hamza Al Majale** and **Mansur Al Zahrane**\njoin the Adhan Tone picker next to Adham Al Sharqawe, so you can choose which\nvoice makes the call.\n\n### Changed\n\n- **Every alert now has its own clear Settings section** — the notification\narea is split into two tidy cards, one for **Pre-Prayer** and one for\n**Adhan**. Each has the same simple controls, so whichever one you're looking\nat, you already know the layout: a switch to turn it on or off, a tone\npicker, and a 3-second test button.\n- **The Adhan Test button now shows the real alarm, not a card** — pressing it\nfires the actual prayer-time experience: the chosen adhan rings through the\napp itself (looping like an alarm, not a one-shot note) and a full-screen,\ndark presenter takes over with the live clock. You can silence it with the\n**Stop alarm** button on screen or with the phone's **volume buttons**, just\nlike a native alarm clock.\n- **Pre-Prayer got its own tone and test** — the countdown reminder rings with\nthe chime you pick for it, and its test button fires that exact reminder after\n3 seconds, independent of the adhan settings.\n- **Each toggle and tone is remembered separately** — turning off the adhan no\nlonger touches the pre-prayer reminder, and each side keeps its own chosen\nsound.\n\n### Fixed\n\n- **The real adhan now rings when the app is open** — previously the actual\nprayer-time call could fall silent or never take over the screen if the app\nwas already on screen, because that path relied on the system notification\nsound. The app now detects the prayer moment itself and plays the chosen\nadhan directly, same as the reliable test button, with the full-screen\npresenter over whatever you were looking at.\n- **A ringing adhan can always be stopped** — on-screen button and volume\nbuttons both work, so the alarm can't get stuck ringing.",
+  "publishedAt": "2026-09-23T19:38:00.679526+00:00"
 }
