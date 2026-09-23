@@ -11,10 +11,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.7.0] - 2026-09-23
 
 ### Added
 
+- **An on-device alarm clock for the adhan** — prayer-time calls now run on a
+  native Android alarm engine instead of inside the app: an exact system alarm
+  wakes a dedicated playback service that loops the tone you chose at alarm
+  volume, and a full-screen alarm screen wakes the display and takes over the
+  lockscreen. The adhan now rings even if Mawaqit was swiped away or
+  force-stopped — exactly like a built-in alarm clock.
 - **A refreshed Settings screen** — a friendlier header and a description under
   each section ("Where prayer times are computed for", "Rings the adhan and
   pre-prayer countdowns"…). Rows and cards are grouped and cleanly separated, so
@@ -38,6 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The adhan can never double-ring** — when the prayer moment arrives while
+  the app is open, the in-app hand-off and the timed system alarm share a single
+  audio owner: whichever fires first, only one call plays (previously the two
+  firing together could start the clip twice).
 - **Test Adhan now takes over a locked screen** — pressing "Test Adhan" and
   locking your phone wakes the alarm presenter over the lockscreen like a
   native alarm, instead of just reopening the app.
@@ -449,3 +459,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.4.6]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.5...v0.4.6
 [0.5.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.6...v0.5.0
 [0.6.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.5.0...v0.6.0
+[0.7.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.6.0...v0.7.0

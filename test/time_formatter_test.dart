@@ -5,7 +5,7 @@ void main() {
   group('TimeFormatter.countdown', () {
     test('composes hours and minutes', () {
       expect(TimeFormatter.countdown(const Duration(hours: 1, minutes: 24)),
-          '1h 24m');
+          '1h 24m 00s');
     });
 
     test('shows only minutes under an hour', () {
@@ -19,7 +19,7 @@ void main() {
 
     test('includes days when crossing midnight', () {
       expect(TimeFormatter.countdown(const Duration(days: 1, hours: 3)),
-          '1d 3h 0m');
+          '1d 3h 0m 00s');
     });
   });
 

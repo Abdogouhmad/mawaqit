@@ -81,6 +81,63 @@ class MainActivity : FlutterActivity() {
                         stopDeviceTonePreview()
                         result.success(true)
                     }
+                    "scheduleAdhan" -> {
+                        val id = call.argument<Number>("id")?.toInt() ?: -1
+                        val timestampMs = call.argument<Number>("timestampMs")?.toLong() ?: 0L
+                        val name = call.argument<String>("name") ?: "Prayer"
+                        val prayerId = call.argument<String>("prayerId") ?: ""
+                        val muted = call.argument<Boolean>("muted") ?: false
+                        val soundRaw = call.argument<String>("soundRaw") ?: ""
+                        val soundUri = call.argument<String>("soundUri") ?: ""
+                        if (id != -1) {
+                            AdhanScheduler.schedule(
+                                context = activity,
+                                id = id,
+                                atEpochMs = timestampMs,
+                                name = name,
+                                prayerId = prayerId,
+                                muted = muted,
+                                soundRaw = soundRaw,
+                                soundUri = soundUri,
+                            )
+                        }
+                        result.success(true)
+                    }
+                    "cancelAdhan" -> {
+                        val id = call.argument<Number>("id")?.toInt() ?: -1
+                        if (id >= 0) AdhanScheduler.cancel(activity, id)
+                        result.success(true)
+                    }
+                    "cancelAdhans" -> {
+                        AdhanScheduler.cancelAll(activity)
+                        result.success(true)
+                    }
+                    "stopAdhan" -> {
+                        AdhanScheduler.stopActive(activity)
+                        result.success(true)
+                    }
+                    "fireAdhanNow" -> {
+                        val id = call.argument<Number>("id")?.toInt() ?: -1
+                        val name = call.argument<String>("name") ?: "Prayer"
+                        val muted = call.argument<Boolean>("muted") ?: false
+                        val soundRaw = call.argument<String>("soundRaw") ?: ""
+                        val soundUri = call.argument<String>("soundUri") ?: ""
+                        if (id != -1) {
+                            AdhanScheduler.fireNow(
+                                activity,
+                                AdhanScheduler.Schedule(
+                                    id = id,
+                                    name = name,
+                                    prayerId = "",
+                                    muted = muted,
+                                    soundRaw = soundRaw,
+                                    soundUri = soundUri,
+                                    timestampMs = System.currentTimeMillis(),
+                                ),
+                            )
+                        }
+                        result.success(true)
+                    }
                     else -> result.notImplemented()
                 }
             }

@@ -15,6 +15,11 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Native Adhan alarm engine: the foreground service owns the Adhan clip
+         (media playback type on Android 14+) so it keeps ringing after the
+         Flutter process is killed. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"
@@ -55,6 +60,24 @@
             android:name=".MutePrayerReceiver"
             android:enabled="true"
             android:exported="false" />
+        <!-- Native Adhan alarm engine: exact-alarm broadcast fires the alarm
+             (foreground service + full-screen activity) even when the app is
+             killed. -->
+        <receiver
+            android:name=".AdhanAlarmReceiver"
+            android:enabled="true"
+            android:exported="false" />
+        <service
+            android:name=".AdhanPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
+        <activity
+            android:name=".AdhanAlarmActivity"
+            android:exported="false"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.Mawaqit.Alarm" />
         <!-- OTA update file provider (package installer handoff) -->
         <provider
             android:name=".OtaUpdateFileProvider"
