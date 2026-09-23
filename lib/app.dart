@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:mawaqit/core/app_navigator.dart';
+import 'package:mawaqit/core/navigation/app_navigator.dart';
 import 'package:mawaqit/core/constants.dart';
 import 'package:mawaqit/core/theme/app_theme.dart';
 import 'package:mawaqit/data/models/app_settings.dart';

@@ -5,7 +5,7 @@ import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/data/services/update_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
-import 'package:mawaqit/ui/core/widgets/app_card.dart';
+import 'package:mawaqit/shared/widgets/app_card.dart';
 
 /// Full-page OTA update center, reachable from the settings "Update" entry.
 ///

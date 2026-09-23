@@ -27,9 +27,12 @@ object PrayerScheduler {
     const val EXTRA_PRAYER_MS = "com.mawaqit.extra.PRAYER_MS"
     const val EXTRA_LEAD_MIN = "com.mawaqit.extra.LEAD_MIN"
 
-    // Base pre-prayer alert channel. Reminders are silent by design (the adhan
-    // is the app's only audible alert), so the concrete id always resolves to
-    // `pre_prayer_alert_v2_silent`.
+    // Base pre-prayer alert channel id. The concrete id is derived from the
+    // selected tone's raw resource (see channelIdFor), so each tone gets a
+    // freshly created, sound-correct channel — Android freezes a channel's
+    // sound at first creation, so reusing one id across tone changes would
+    // silently keep ringing the original tone. `_silent` covers the muted
+    // pre-prayer preference.
     const val CHANNEL_REMINDERS = "pre_prayer_alert_v2"
     const val PREFS = "mawaqit_reminders"
 
@@ -190,6 +193,15 @@ object PrayerScheduler {
     fun cancelAlarm(context: Context, id: Int) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         am.cancel(showPendingIntent(context, id))
+    }
+
+    /** Cancels one scheduled reminder: its alarm, its stored preferences and any
+     *  card already posted. Used by the app to take over a reminder live
+     *  (direct chime playback) without the native card also ringing. */
+    fun cancelOne(context: Context, id: Int) {
+        cancelAlarm(context, id)
+        removePref(context, id)
+        NotificationManagerCompat.from(context).cancel(id)
     }
 
     fun removePref(context: Context, id: Int) {

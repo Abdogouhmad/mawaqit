@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mawaqit/core/theme/app_theme.dart';
 import 'package:mawaqit/core/theme/colors.dart';
-import 'package:mawaqit/ui/core/widgets/pill_badge.dart';
-import 'package:mawaqit/ui/core/widgets/segmented_control.dart';
+import 'package:mawaqit/shared/widgets/pill_badge.dart';
+import 'package:mawaqit/shared/widgets/segmented_control.dart';
 
 void main() {
   group('Sage Emerald theme', () {

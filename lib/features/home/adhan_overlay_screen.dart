@@ -10,9 +10,10 @@ import 'package:mawaqit/data/services/notification_service.dart';
 /// Full-screen adhan presenter (Rakiz-style): raised when the adhan fires while
 /// the app is open, giving the call a room-consuming surface instead of a tray
 /// toast. The tone itself is started by [`NotificationService`] (audioplayers,
-/// alarm stream) — this screen only owns dismissal, which stops playback and
-/// clears the mirroring tray notification. The route cannot be swiped away;
-/// only the Stop control exits it.
+/// looping on the alarm stream) — this screen only owns dismissal, which stops
+/// playback and clears the mirroring tray notification. The route cannot be
+/// swiped away; it exits via the on-screen Stop control or the device
+/// volume/side buttons (native → service → [alarmDismissed]).
 class AdhanOverlayScreen extends StatefulWidget {
   const AdhanOverlayScreen({
     super.key,
@@ -33,6 +34,7 @@ class AdhanOverlayScreen extends StatefulWidget {
 class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
   DateTime _now = DateTime.now();
   Timer? _clock;
+  StreamSubscription<void>? _dismissSub;
   bool _stopping = false;
 
   @override
@@ -41,11 +43,17 @@ class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
     _clock = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() => _now = DateTime.now());
     });
+    // Close when the alarm is stopped externally — the volume/side buttons
+    // route through NotificationService and emit on [alarmDismissed].
+    _dismissSub = NotificationService.instance.alarmDismissed.listen((_) {
+      _stop();
+    });
   }
 
   @override
   void dispose() {
     _clock?.cancel();
+    _dismissSub?.cancel();
     super.dispose();
   }
 

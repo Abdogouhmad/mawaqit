@@ -4,7 +4,7 @@ import 'package:mawaqit/core/theme/app_theme.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
-import 'package:mawaqit/ui/core/widgets/pulse_dot.dart';
+import 'package:mawaqit/shared/widgets/pulse_dot.dart';
 
 /// Large focal countdown with temporal progress bar.
 class CountdownHero extends StatelessWidget {

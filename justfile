@@ -10,6 +10,10 @@ deps:
 run:
     flutter run
 
+# Clean the build output
+clean:
+    flutter clean
+
 # Run on the Linux desktop (no Android device/emulator needed)
 run-linux:
     flutter run -d linux
@@ -29,8 +33,12 @@ build-release:
 split:
     flutter build apk --split-per-abi
 
-# Signed release build (see ./build.sh --help): splits + universal APKs under dist/
-release:
+# Regenerate the home-widget Glance code (run after editing lib/src/home_widget/prayer_widget.dart)
+widget:
+    dart run home_widget_cli:home_widget generate -i lib/src/home_widget
+
+# Signed release build: regenerate the widget, then build.sh (split arm/arm64 + universal APKs, signed, under dist/)
+release: clean widget deps
     ./build.sh
 
 # Generate a release keystore and print the MAWAQIT_* secrets for GitHub
