@@ -2,6 +2,7 @@ package com.mawaqit.mawaqit
 
 import android.app.ActivityManager
 import android.app.AlarmManager
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -35,6 +36,7 @@ object AdhanScheduler {
     private const val KEY_NAME = "name"
     private const val KEY_PRAYER_ID = "prayer_id"
     private const val KEY_MUTED = "muted"
+    private const val KEY_IS_TEST = "is_test"
     private const val KEY_SOUND_RAW = "sound_raw"
     private const val KEY_SOUND_URI = "sound_uri"
     private const val KEY_TIMESTAMP = "timestamp_ms"
@@ -55,6 +57,8 @@ object AdhanScheduler {
         val soundRaw: String,
         val soundUri: String,
         val timestampMs: Long,
+        /** Debug test from Settings: always takes over the screen, even muted. */
+        val isTest: Boolean = false,
     )
 
     private fun prefs(context: Context) =
@@ -81,6 +85,28 @@ object AdhanScheduler {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
+    /**
+     * Full-screen intent used by the alarm card. Android launches its target
+     * itself (system-initiated), which is exempt from the background-activity
+     * start restrictions that ban a naked `startActivity()` from a receiver
+     * once the phone is locked or the app is killed — this is how the alarm
+     * reliably wakes the display and presents over the lockscreen.
+     */
+    fun alarmActivityPendingIntent(context: Context, id: Int, name: String): PendingIntent =
+        PendingIntent.getActivity(
+            context,
+            7300 + id,
+            Intent(context, AdhanAlarmActivity::class.java)
+                .setFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP,
+                )
+                .putExtra(EXTRA_ID, id)
+                .putExtra("name", name),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
     /** Schedules (or replaces) one adhan occurrence at [atEpochMs]. */
     fun schedule(
         context: Context,
@@ -91,6 +117,7 @@ object AdhanScheduler {
         muted: Boolean,
         soundRaw: String,
         soundUri: String,
+        isTest: Boolean = false,
     ) {
         prefs(context)
             .edit()
@@ -100,6 +127,7 @@ object AdhanScheduler {
                     .put(KEY_NAME, name)
                     .put(KEY_PRAYER_ID, prayerId)
                     .put(KEY_MUTED, muted)
+                    .put(KEY_IS_TEST, isTest)
                     .put(KEY_SOUND_RAW, soundRaw)
                     .put(KEY_SOUND_URI, soundUri)
                     .put(KEY_TIMESTAMP, atEpochMs)
@@ -107,7 +135,9 @@ object AdhanScheduler {
             )
             .apply()
 
-        val trigger = maxOf(atEpochMs, System.currentTimeMillis() + 60_000L)
+        // A near-past/now trigger (e.g. the 3-second debug test) must not be
+        // pushed a minute into the future — only never schedule into the past.
+        val trigger = maxOf(atEpochMs, System.currentTimeMillis())
         val am = alarmManager(context)
         val pi = pendingIntent(context, id)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms()) {
@@ -147,6 +177,7 @@ object AdhanScheduler {
             soundRaw = data.optString(KEY_SOUND_RAW, ""),
             soundUri = data.optString(KEY_SOUND_URI, ""),
             timestampMs = data.optLong(KEY_TIMESTAMP, 0L),
+            isTest = data.optBoolean(KEY_IS_TEST, false),
         )
     }
 
@@ -233,6 +264,7 @@ object AdhanScheduler {
     fun buildAlarmNotification(
         context: Context,
         schedule: Schedule,
+        mediaSessionToken: android.media.session.MediaSession.Token?,
     ): android.app.Notification {
         val stop = PendingIntent.getService(
             context,
@@ -242,7 +274,7 @@ object AdhanScheduler {
                 .putExtra(EXTRA_ID, schedule.id),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        return NotificationCompat.Builder(context, CHANNEL_ALARM)
+        val builder = NotificationCompat.Builder(context, CHANNEL_ALARM)
             .setSmallIcon(R.drawable.ic_stat_mawaqit)
             .setContentTitle("Adhan — ${schedule.name}")
             .setContentText("It is now time for the ${schedule.name} prayer")
@@ -253,12 +285,28 @@ object AdhanScheduler {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setVibrate(longArrayOf(0, 400, 200, 400, 200, 400))
+            .setFullScreenIntent(alarmActivityPendingIntent(context, schedule.id, schedule.name), true)
             .addAction(
                 R.drawable.ic_close,
                 "Stop",
                 stop,
             )
-            .build()
+        // Android 15+ mediaPlayback FGS enforcement accepts either an active
+        // media session OR a notification carrying the MediaStyle session
+        // token; some builds check only the token. Bind the live session to the
+        // card so every release passes — otherwise the process can crash the
+        // instant the alarm starts, killing the full-screen presenter before it
+        // renders. Intent is a framework-only MediaStyle: `NotificationCompat`
+        // refuses a framework style, so the freshly built card is re-wrapped
+        // through `Notification.Builder.recoverBuilder` (API 24+, guarded).
+        if (mediaSessionToken != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val replayed = Notification.Builder.recoverBuilder(context, builder.build())
+            replayed.setStyle(
+                Notification.MediaStyle().setMediaSession(mediaSessionToken),
+            )
+            return replayed.build()
+        }
+        return builder.build()
     }
 
     /** Silently posts the muted card for an occurrence (no audio, no takeover). */
@@ -290,8 +338,16 @@ object AdhanScheduler {
      * [AdhanPlaybackService] + full-screen [AdhanAlarmActivity]). Shared by the
      * alarm-armed [AdhanAlarmReceiver] and the Flutter "test adhan" / live-rollover
      * hand-off so both paths behave identically.
+     *
+     * A debug test ([Schedule.isTest]) always takes over the screen like a real
+     * alarm — even when muted, it posts the full-screen card and simply stays
+     * quiet — and it tears down any still-ringing alarm first, so re-tapping
+     * "Test" always rings instead of being swallowed by the single-audio guard.
      */
     fun fireNow(context: Context, schedule: Schedule) {
+        if (schedule.isTest) {
+            stopActive(context)
+        }
         // Single-audio guard: when the same occurrence is already ringing —
         // e.g. the AlarmManager fire raced the in-app rollover hand-off — the
         // earlier fire wins. Restarting here would double-ring the clip.
@@ -301,28 +357,68 @@ object AdhanScheduler {
         }
         remove(context, schedule.id)
 
-        if (schedule.muted) {
+        if (schedule.muted && !schedule.isTest) {
             postMutedCard(context, schedule)
             return
         }
 
-        markActive(context, schedule.id)
+        // A muted test demonstrates the full-screen alarm silently: drop any
+        // resolved sound so the service mounts the card without audio.
+        val effective = if (schedule.muted) {
+            schedule.copy(soundRaw = "", soundUri = "")
+        } else {
+            schedule
+        }
 
+        markActive(context, effective.id)
+        ensureChannels(context)
+
+        // 1) System full-screen-intent card FIRST. Notifying with an alarm
+        //    category + full-screen intent makes Android wake the display and
+        //    launch [AdhanAlarmActivity] over the lockscreen itself — a
+        //    system-initiated launch, so it is exempt from the background-
+        //    activity start restrictions that swallow a naked startActivity
+        //    from a receiver once the phone is locked / the app is killed.
+        //    The service below re-posts the same id with the media-session
+        //    style, replacing this card without re-alerting.
+        try {
+            NotificationManagerCompat.from(context)
+                .notify(effective.id, buildAlarmNotification(context, effective, null))
+        } catch (_: Exception) {
+            // POST_NOTIFICATIONS denied / OEM strictness — the audio service
+            // below still mounts the card through startForeground when it can.
+        }
+
+        // 2) The foreground service owns the audio. If its background start is
+        //    rejected on a strict OEM build, the card (and its full-screen
+        //    activity) above still takes over the screen — the call is simply
+        //    silent in that degraded case.
         val serviceIntent = Intent(context, AdhanPlaybackService::class.java)
-            .putExtra(EXTRA_ID, schedule.id)
-            .putExtra("name", schedule.name)
-            .putExtra("soundRaw", schedule.soundRaw)
-            .putExtra("soundUri", schedule.soundUri)
-        ContextCompat.startForegroundService(context, serviceIntent)
+            .putExtra(EXTRA_ID, effective.id)
+            .putExtra("name", effective.name)
+            .putExtra("soundRaw", effective.soundRaw)
+            .putExtra("soundUri", effective.soundUri)
+        try {
+            ContextCompat.startForegroundService(context, serviceIntent)
+        } catch (_: Exception) {
+            // Background FGS start denied — see comment above.
+        }
 
+        // 3) Foreground best-effort launch. When the app is on screen this is
+        //    the instant path (SINGLE_TOP dedupes with the FSI launch); when it
+        //    is not, the system FSI from step 1 already covers the takeover.
         val activityIntent = Intent(context, AdhanAlarmActivity::class.java)
             .setFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP,
             )
-            .putExtra(EXTRA_ID, schedule.id)
-            .putExtra("name", schedule.name)
-        context.startActivity(activityIntent)
+            .putExtra(EXTRA_ID, effective.id)
+            .putExtra("name", effective.name)
+        try {
+            context.startActivity(activityIntent)
+        } catch (_: Exception) {
+            // Background activity launch denied — the FSI above handles it.
+        }
     }
 }

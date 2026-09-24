@@ -32,17 +32,12 @@ class AdhanOverlayScreen extends StatefulWidget {
 }
 
 class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
-  DateTime _now = DateTime.now();
-  Timer? _clock;
   StreamSubscription<void>? _dismissSub;
   bool _stopping = false;
 
   @override
   void initState() {
     super.initState();
-    _clock = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _now = DateTime.now());
-    });
     // Close when the alarm is stopped externally — the volume/side buttons
     // route through NotificationService and emit on [alarmDismissed].
     _dismissSub = NotificationService.instance.alarmDismissed.listen((_) {
@@ -52,7 +47,6 @@ class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
 
   @override
   void dispose() {
-    _clock?.cancel();
     _dismissSub?.cancel();
     super.dispose();
   }
@@ -60,11 +54,13 @@ class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
   Future<void> _stop() async {
     if (_stopping) return;
     setState(() => _stopping = true);
-    await NotificationService.instance.stopAlarm(
-      notificationId: widget.notificationId,
-    );
-    if (!mounted) return;
-    Navigator.of(context).pop();
+    try {
+      await NotificationService.instance.stopAlarm(
+        notificationId: widget.notificationId,
+      );
+    } finally {
+      if (mounted) Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -98,16 +94,9 @@ class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
                 ),
               ),
               const SizedBox(height: AppSpacing.giga),
-              Text(
-                TimeFormatter.clock(_now),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: AppFontSize.displayLg,
-                  fontWeight: FontWeight.w200,
-                  letterSpacing: -1,
-                ),
-              ),
+              // Self-ticking so the route (and its Stop button) never rebuilds
+              // once a second — only this tiny clock does.
+              const _AlarmClock(),
               const SizedBox(height: AppSpacing.mega),
               Text(
                 'Adhan — prayer time',
@@ -155,6 +144,48 @@ class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Live clock for the alarm presenter — the only widget that rebuilds on the
+/// per-second ticker.
+class _AlarmClock extends StatefulWidget {
+  const _AlarmClock();
+
+  @override
+  State<_AlarmClock> createState() => _AlarmClockState();
+}
+
+class _AlarmClockState extends State<_AlarmClock> {
+  DateTime _now = DateTime.now();
+  Timer? _clock;
+
+  @override
+  void initState() {
+    super.initState();
+    _clock = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() => _now = DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _clock?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      TimeFormatter.clock(_now),
+      textAlign: TextAlign.center,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: AppFontSize.displayLg,
+        fontWeight: FontWeight.w200,
+        letterSpacing: -1,
       ),
     );
   }

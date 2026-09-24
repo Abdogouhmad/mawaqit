@@ -88,10 +88,7 @@ class _ToneSheetState extends State<ToneSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              '${_kind.label} Tone',
-              style: textTheme.titleLarge,
-            ),
+            Text('${_kind.label} Tone', style: textTheme.titleLarge),
             const SizedBox(height: AppSpacing.xs),
             Text(
               'Tap the speaker to preview a sound before choosing.',
@@ -102,39 +99,36 @@ class _ToneSheetState extends State<ToneSheet> {
             const SizedBox(height: AppSpacing.xxxl),
             _sectionLabel(context, 'Built-in tones'),
             const SizedBox(height: AppSpacing.sm),
-            _card(
-              context,
-              [
-                for (final (index, tone) in _tones.indexed)
-                  _tile(
-                    context,
-                    first: index == 0,
-                    title: tone.name,
-                    subtitle: tone.silent
-                        ? 'No sound'
-                        : (_preview.isSupported
+            _card(context, [
+              for (final (index, tone) in _tones.indexed)
+                _tile(
+                  context,
+                  first: index == 0,
+                  title: tone.name,
+                  subtitle: tone.silent
+                      ? 'No sound'
+                      : (_preview.isSupported
                             ? 'Tap to preview'
                             : 'Preview unavailable'),
-                    selected: _selected(settings, tone),
-                    leading: tone.silent
-                        ? Icon(
-                            Icons.volume_off_outlined,
-                            color: scheme.onSurfaceVariant,
-                          )
-                        : _previewButton(
-                            context,
-                            enabled: _preview.isSupported,
-                            playing: _playing == tone.name,
-                            onPressed: () => _togglePreview(tone),
-                          ),
-                    onTap: () => _select(
-                      _kind == NotificationKind.adhan
-                          ? settings.withBundledTone(tone.name)
-                          : settings.withPreAlertTone(tone.name),
-                    ),
+                  selected: _selected(settings, tone),
+                  leading: tone.silent
+                      ? Icon(
+                          Icons.volume_off_outlined,
+                          color: scheme.onSurfaceVariant,
+                        )
+                      : _previewButton(
+                          context,
+                          enabled: _preview.isSupported,
+                          playing: _playing == tone.name,
+                          onPressed: () => _togglePreview(tone),
+                        ),
+                  onTap: () => _select(
+                    _kind == NotificationKind.adhan
+                        ? settings.withBundledTone(tone.name)
+                        : settings.withPreAlertTone(tone.name),
                   ),
-              ],
-            ),
+                ),
+            ]),
           ],
         ),
       ),
@@ -154,9 +148,7 @@ class _ToneSheetState extends State<ToneSheet> {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(
-          color: scheme.outlineVariant.withValues(alpha: 0.4),
-        ),
+        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.4)),
       ),
       child: Column(children: children),
     );
@@ -220,9 +212,8 @@ class _ToneSheetState extends State<ToneSheet> {
   Widget _sectionLabel(BuildContext context, String label) {
     return Text(
       label,
-      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+      style: Theme.of(context).textTheme.titleSmall
+          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
     );
   }
 }

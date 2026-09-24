@@ -11,28 +11,32 @@ import 'package:mawaqit/data/services/notification_service.dart';
 
 /// Infrastructure providers. Feature controllers live beside their screens.
 
-final settingsRepositoryProvider =
-    Provider<SettingsRepository>((ref) => SettingsRepository());
+final settingsRepositoryProvider = Provider<SettingsRepository>(
+  (ref) => SettingsRepository(),
+);
 
-final locationRepositoryProvider =
-    Provider<LocationRepository>((ref) => LocationRepository());
+final locationRepositoryProvider = Provider<LocationRepository>(
+  (ref) => LocationRepository(),
+);
 
-final prayerTimesRepositoryProvider =
-    Provider<PrayerTimesRepository>((ref) => const PrayerTimesRepository());
+final prayerTimesRepositoryProvider = Provider<PrayerTimesRepository>(
+  (ref) => const PrayerTimesRepository(),
+);
 
 final notificationServiceProvider = Provider<NotificationService>(
   (ref) => NotificationService.instance,
 );
 
-final mutedPrayersStoreProvider =
-    Provider<MutedPrayersStore>((ref) => MutedPrayersStore());
+final mutedPrayersStoreProvider = Provider<MutedPrayersStore>(
+  (ref) => MutedPrayersStore(),
+);
 
 /// The set of muted occurrence ids (`2026-09-21_maghrib`), shared with the
 /// native lockscreen card via the same prefs file.
 final mutedPrayersProvider =
     AsyncNotifierProvider<MutedPrayersController, Set<String>>(
-  MutedPrayersController.new,
-);
+      MutedPrayersController.new,
+    );
 
 class MutedPrayersController extends AsyncNotifier<Set<String>> {
   @override
@@ -47,7 +51,7 @@ class MutedPrayersController extends AsyncNotifier<Set<String>> {
     state = AsyncData(next);
 
     // Re-schedule so today's adhan honours the fresh mute state at fire time.
-    final settings = await SettingsRepository().load();
+    final settings = await ref.read(settingsRepositoryProvider).load();
     unawaited(BackgroundScheduler.rescheduleNow(settings));
   }
 }

@@ -54,6 +54,7 @@ class HomeState {
     String? methodLabel,
     bool? isLoading,
     String? error,
+    bool clearError = false,
   }) {
     return HomeState(
       now: now ?? this.now,
@@ -66,7 +67,7 @@ class HomeState {
       progress: progress ?? this.progress,
       methodLabel: methodLabel ?? this.methodLabel,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: clearError ? null : (error ?? this.error),
     );
   }
 }
@@ -273,7 +274,7 @@ class HomeController extends AsyncNotifier<HomeState> {
           : next.time.difference(now),
       progress: progress,
       isLoading: false,
-      error: null,
+      clearError: true,
     );
   }
 

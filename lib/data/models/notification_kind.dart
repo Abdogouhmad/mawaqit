@@ -10,20 +10,13 @@ enum NotificationKind {
 
   /// Settings/tab label for this kind.
   String get label => switch (this) {
-        NotificationKind.prePrayer => 'Pre-Prayer',
-        NotificationKind.adhan => 'Adhan',
-      };
+    NotificationKind.prePrayer => 'Pre-Prayer',
+    NotificationKind.adhan => 'Adhan',
+  };
 
   /// Settings row subtitle when this kind is switched off.
   String get offHint => switch (this) {
-        NotificationKind.prePrayer =>
-          'No countdown reminders before prayers.',
-        NotificationKind.adhan => 'No adhan alarm at prayer entry.',
-      };
-
-  /// Test-trigger title suffix.
-  String get testTitle => switch (this) {
-        NotificationKind.prePrayer => 'Pre-Prayer reminder',
-        NotificationKind.adhan => 'Adhan alarm',
-      };
+    NotificationKind.prePrayer => 'No countdown reminders before prayers.',
+    NotificationKind.adhan => 'No adhan alarm at prayer entry.',
+  };
 }

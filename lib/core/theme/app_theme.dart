@@ -65,10 +65,10 @@ abstract final class AppTheme {
     final primary = scheme.primary;
 
     final baseText = ThemeData(brightness: brightness).textTheme.apply(
-          fontFamily: AppConstants.fontFamily,
-          bodyColor: scheme.onSurface,
-          displayColor: scheme.onSurface,
-        );
+      fontFamily: AppConstants.fontFamily,
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+    );
 
     final textTheme = baseText.copyWith(
       displayLarge: baseText.displayLarge?.copyWith(
@@ -157,9 +157,7 @@ abstract final class AppTheme {
         margin: EdgeInsets.zero,
       ),
       dividerTheme: DividerThemeData(
-        color: isLight
-            ? AppColors.hairlineLight
-            : AppColors.hairlineDark,
+        color: isLight ? AppColors.hairlineLight : AppColors.hairlineDark,
         thickness: 1,
         space: 1,
       ),
@@ -232,7 +230,9 @@ abstract final class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isLight ? AppColors.onSurfaceLight : AppColors.cardDark,
+        backgroundColor: isLight
+            ? AppColors.onSurfaceLight
+            : AppColors.cardDark,
         contentTextStyle: textTheme.bodyMedium?.copyWith(
           color: isLight ? Colors.white : AppColors.onSurfaceDark,
         ),
@@ -245,7 +245,7 @@ abstract final class AppTheme {
 
   /// Tabular figures for countdowns and prayer times to prevent jitter.
   static TextStyle numerals(TextStyle style) => style.copyWith(
-        fontFeatures: const [FontFeature.tabularFigures()],
-        fontVariations: const [FontVariation('wght', 300)],
-      );
+    fontFeatures: const [FontFeature.tabularFigures()],
+    fontVariations: const [FontVariation('wght', 300)],
+  );
 }

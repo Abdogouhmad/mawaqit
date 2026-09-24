@@ -21,12 +21,12 @@ enum PrayerKind {
   ];
 
   Prayer toAdhan() => switch (this) {
-        PrayerKind.fajr => Prayer.fajr,
-        PrayerKind.dhuhr => Prayer.dhuhr,
-        PrayerKind.asr => Prayer.asr,
-        PrayerKind.maghrib => Prayer.maghrib,
-        PrayerKind.isha => Prayer.isha,
-      };
+    PrayerKind.fajr => Prayer.fajr,
+    PrayerKind.dhuhr => Prayer.dhuhr,
+    PrayerKind.asr => Prayer.asr,
+    PrayerKind.maghrib => Prayer.maghrib,
+    PrayerKind.isha => Prayer.isha,
+  };
 }
 
 /// A single prayer entry within a day's schedule.
@@ -70,14 +70,5 @@ class PrayerDay {
       return p;
     }
     return null;
-  }
-
-  /// The prayer currently in progress (most recent one that already began).
-  PrayerTime? currentPrayer(DateTime now) {
-    PrayerTime? current;
-    for (final p in prayers) {
-      if (!p.time.isAfter(now)) current = p;
-    }
-    return current;
   }
 }

@@ -6,8 +6,8 @@ import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 void main() {
   const repo = PrayerTimesRepository();
 
-  PrayerDay dayFor(DateTime date, CalculationParameters parameters) => repo
-      .forDate(
+  PrayerDay dayFor(DateTime date, CalculationParameters parameters) =>
+      repo.forDate(
         date: date,
         latitude: 35.7750,
         longitude: -78.6336,
@@ -25,8 +25,12 @@ void main() {
 
     final t = day.prayers.map((p) => p.time).toList();
     for (var i = 0; i < t.length - 1; i++) {
-      expect(t[i].isBefore(t[i + 1]), isTrue,
-          reason: '${day.prayers[i].kind} must precede ${day.prayers[i + 1].kind}');
+      expect(
+        t[i].isBefore(t[i + 1]),
+        isTrue,
+        reason:
+            '${day.prayers[i].kind} must precede ${day.prayers[i + 1].kind}',
+      );
     }
     expect(day.sunrise.isAfter(day.prayers.first.time), isTrue);
     expect(day.sunset.isBefore(day.prayer(PrayerKind.isha)!.time), isTrue);
@@ -49,9 +53,7 @@ void main() {
   });
 
   test('short label exposes the calculation angle', () {
-    final label = PrayerTimesRepository.shortLabel(
-      CalculationMethod.ummAlQura,
-    );
+    final label = PrayerTimesRepository.shortLabel(CalculationMethod.ummAlQura);
     expect(label.toLowerCase(), contains('umm al-qura'));
     expect(label, contains('18.5°'));
   });

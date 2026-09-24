@@ -257,12 +257,29 @@ class NotificationSettingsSection extends ConsumerWidget {
     }
     try {
       await service.init();
-      await service.scheduleTestNotification(kind: kind, settings: settings);
+      final armed = await service.scheduleTestNotification(
+        kind: kind,
+        settings: settings,
+      );
+      if (!armed) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Notification access is off — allow notifications for Mawaqit '
+              'in system Settings, then tap again.',
+            ),
+          ),
+        );
+        return;
+      }
       messenger.showSnackBar(
         SnackBar(
           content: Text(
             kind == NotificationKind.adhan
-                ? 'Adhan alarm fires in 3 seconds — full-screen, over the lockscreen.'
+                ? service.canUseFullScreenIntents
+                      ? 'Adhan alarm fires in 3 seconds — full-screen, over the lockscreen.'
+                      : 'Adhan fires in 3 seconds (heads-up — full-screen '
+                            'access is off in system Settings).'
                 : 'Pre-prayer reminder fires in 3 seconds — ${settings.notifTone(kind)} will play.',
           ),
         ),

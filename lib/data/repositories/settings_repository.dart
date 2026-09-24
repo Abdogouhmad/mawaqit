@@ -25,49 +25,49 @@ class SettingsRepository {
   }
 
   Map<String, dynamic> _toJson(AppSettings s) => {
-        'calculationMethod': s.calculationMethod.name,
-        'madhab': s.madhab.name,
-        'leadMinutes': s.leadMinutes,
-        'prePrayerEnabled': s.prePrayerEnabled,
-        'adhanSoundEnabled': s.adhanSoundEnabled,
-        'adhanTone': s.adhanTone,
-        'adhanDeviceToneUri': s.adhanDeviceToneUri,
-        'adhanDeviceToneName': s.adhanDeviceToneName,
-        'preAlertTone': s.preAlertTone,
-        'themeMode': s.themeMode.name,
-        'locationMode': s.locationMode.name,
-        'cityName': s.cityName,
-        'cityLatitude': s.cityLatitude,
-        'cityLongitude': s.cityLongitude,
-      };
+    'calculationMethod': s.calculationMethod.name,
+    'madhab': s.madhab.name,
+    'leadMinutes': s.leadMinutes,
+    'prePrayerEnabled': s.prePrayerEnabled,
+    'adhanSoundEnabled': s.adhanSoundEnabled,
+    'adhanTone': s.adhanTone,
+    'adhanDeviceToneUri': s.adhanDeviceToneUri,
+    'adhanDeviceToneName': s.adhanDeviceToneName,
+    'preAlertTone': s.preAlertTone,
+    'themeMode': s.themeMode.name,
+    'locationMode': s.locationMode.name,
+    'cityName': s.cityName,
+    'cityLatitude': s.cityLatitude,
+    'cityLongitude': s.cityLongitude,
+  };
 
   AppSettings _fromJson(Map<String, dynamic> json) => AppSettings(
-        calculationMethod: CalculationMethod.values.firstWhere(
-          (e) => e.name == json['calculationMethod'],
-          orElse: () => CalculationMethod.muslimWorldLeague,
-        ),
-        madhab: Madhab.values.firstWhere(
-          (e) => e.name == json['madhab'],
-          orElse: () => Madhab.shafi,
-        ),
-        leadMinutes:
-            (json['leadMinutes'] as num?)?.toInt() ?? AppSettings.leadOptions[1],
-        prePrayerEnabled: json['prePrayerEnabled'] as bool? ?? true,
-        adhanSoundEnabled: json['adhanSoundEnabled'] as bool? ?? true,
-        adhanTone: json['adhanTone'] as String? ?? 'Adham Al Sharqawe',
-        adhanDeviceToneUri: json['adhanDeviceToneUri'] as String?,
-        adhanDeviceToneName: json['adhanDeviceToneName'] as String?,
-        preAlertTone: json['preAlertTone'] as String? ?? 'Silent',
-        themeMode: AppThemeMode.values.firstWhere(
-          (e) => e.name == json['themeMode'],
-          orElse: () => AppThemeMode.system,
-        ),
-        locationMode: LocationMode.values.firstWhere(
-          (e) => e.name == json['locationMode'],
-          orElse: () => LocationMode.autoGps,
-        ),
-        cityName: json['cityName'] as String?,
-        cityLatitude: (json['cityLatitude'] as num?)?.toDouble(),
-        cityLongitude: (json['cityLongitude'] as num?)?.toDouble(),
-      );
+    calculationMethod: CalculationMethod.values.firstWhere(
+      (e) => e.name == json['calculationMethod'],
+      orElse: () => CalculationMethod.muslimWorldLeague,
+    ),
+    madhab: Madhab.values.firstWhere(
+      (e) => e.name == json['madhab'],
+      orElse: () => Madhab.shafi,
+    ),
+    leadMinutes:
+        (json['leadMinutes'] as num?)?.toInt() ?? AppSettings().leadMinutes,
+    prePrayerEnabled: json['prePrayerEnabled'] as bool? ?? true,
+    adhanSoundEnabled: json['adhanSoundEnabled'] as bool? ?? true,
+    adhanTone: json['adhanTone'] as String? ?? 'Adham Al Sharqawe',
+    adhanDeviceToneUri: json['adhanDeviceToneUri'] as String?,
+    adhanDeviceToneName: json['adhanDeviceToneName'] as String?,
+    preAlertTone: json['preAlertTone'] as String? ?? 'Silent',
+    themeMode: AppThemeMode.values.firstWhere(
+      (e) => e.name == json['themeMode'],
+      orElse: () => AppThemeMode.system,
+    ),
+    locationMode: LocationMode.values.firstWhere(
+      (e) => e.name == json['locationMode'],
+      orElse: () => LocationMode.autoGps,
+    ),
+    cityName: json['cityName'] as String?,
+    cityLatitude: (json['cityLatitude'] as num?)?.toDouble(),
+    cityLongitude: (json['cityLongitude'] as num?)?.toDouble(),
+  );
 }

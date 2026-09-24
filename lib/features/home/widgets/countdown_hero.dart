@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/theme/app_theme.dart';
+import 'package:mawaqit/core/theme/colors.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
@@ -36,7 +37,7 @@ class CountdownHero extends StatelessWidget {
     final subtitle = currentPrayer == null
         ? 'The day begins with ${next.kind.displayName}'
         : '${currentPrayer!.kind.displayName} ended '
-            '${TimeFormatter.clock(currentPrayer!.time)}';
+              '${TimeFormatter.clock(currentPrayer!.time)}';
 
     final startTime = currentPrayer?.time;
     final endTime = next.time;
@@ -51,22 +52,18 @@ class CountdownHero extends StatelessWidget {
           decoration: BoxDecoration(
             color: isLight
                 ? scheme.surfaceContainer
-                : const Color(0xFF3E9B76).withValues(alpha: 0.12),
+                : AppColors.primaryDark.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(AppRadius.pill),
             border: isLight
                 ? null
                 : Border.all(
-                    color: const Color(0xFF3E9B76).withValues(alpha: 0.25),
+                    color: AppColors.primaryDark.withValues(alpha: 0.25),
                   ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              PulseDot(
-                color: scheme.primary,
-                size: 7,
-                glow: true,
-              ),
+              PulseDot(color: scheme.primary, size: 7, glow: true),
               const SizedBox(width: AppSpacing.md),
               Text(
                 'NEXT PRAYER',
@@ -84,9 +81,7 @@ class CountdownHero extends StatelessWidget {
           child: Text.rich(
             TextSpan(
               style: AppTheme.numerals(
-                textTheme.displayMedium!.copyWith(
-                  color: scheme.onSurface,
-                ),
+                textTheme.displayMedium!.copyWith(color: scheme.onSurface),
               ),
               children: [
                 TextSpan(text: '${next.kind.displayName} in '),

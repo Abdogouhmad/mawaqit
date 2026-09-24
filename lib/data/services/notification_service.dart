@@ -214,6 +214,7 @@ class NotificationService {
   bool _initialized = false;
   bool _exactAlarmGranted = false;
   bool _notificationsGranted = false;
+  bool _fullScreenGranted = false;
 
   static bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
   static bool get _isLinux => defaultTargetPlatform == TargetPlatform.linux;
@@ -267,12 +268,24 @@ class NotificationService {
     _notificationsGranted =
         await android?.requestNotificationsPermission() ?? false;
     _exactAlarmGranted = await android?.requestExactAlarmsPermission() ?? false;
-    await android?.requestFullScreenIntentPermission();
+    _fullScreenGranted =
+        await android?.requestFullScreenIntentPermission() ?? true;
+    if (!_fullScreenGranted) {
+      debugPrint(
+        'Full-screen intent access was denied — the lockscreen adhan alarm '
+        'falls back to a heads-up card until it is granted in Settings.',
+      );
+    }
     return hasNotificationPermission;
   }
 
   bool get canUseExactAlarms => _isAndroid && _exactAlarmGranted;
   bool get hasNotificationPermission => !_isAndroid || _notificationsGranted;
+
+  /// Android 14+: whether notification full-screen intents may launch the alarm
+  /// presenter over the lockscreen. False on older Androids only if the user
+  /// explicitly revokes the access.
+  bool get canUseFullScreenIntents => !_isAndroid || _fullScreenGranted;
 
   /// (Re)schedules all notifications for [day]. Always cancels what was left
   /// over from a previous run first so stale entries can never double-fire.
@@ -313,9 +326,12 @@ class NotificationService {
   /// switch.
   ///
   /// **Adhan** — behaves exactly like the real prayer-entry alarm:
-  /// - on Android it goes through the native alarm engine (foreground-service
-  ///   audio + full-screen activity), so the test exercises the exact production
-  ///   path instead of a parallel Flutter one;
+  /// - on Android it is handed to the native exact-alarm engine *immediately*
+  ///   (AlarmManager → foreground-service audio + full-screen activity), so it
+  ///   rings and takes over the lockscreen even when the app is frozen or
+  ///   killed within the 3-second window — a Dart `Timer` cannot be trusted to
+  ///   fire on a backgrounded phone, which made the old test feel dead right
+  ///   when it mattered (tap, lock, expect an alarm);
   /// - on desktop the selected tone plays **directly** through audioplayers on
   ///   the alarm stream (looping, so it rings until dismissed) and the
   ///   full-screen presenter is pushed over the app;
@@ -324,19 +340,33 @@ class NotificationService {
   ///
   /// **Pre-Prayer** — plays the selected pre-prayer chime directly (alarm
   /// stream) and posts the countdown card silently on its own channel; no
-  /// full-screen takeover.
+  /// full-screen takeover. Runs on a short Dart timer because nothing about it
+  /// needs to survive a backgrounded process.
   ///
   /// Notifications, exact-alarm and Android 14+ full-screen access are re-asked
   /// first, because a first-launch denial would otherwise leave the test dead.
+  /// Returns false when notification access is missing so the caller can say so
+  /// instead of pretending the test was armed.
   Future<bool> scheduleTestNotification({
     NotificationKind kind = NotificationKind.adhan,
     AppSettings? settings,
-    PrayerDay? day,
   }) async {
     final currentSettings = settings ?? const AppSettings();
     if (_isAndroid) {
       final granted = await ensurePermissions();
-      if (!granted) return false;
+      if (!granted) {
+        return false;
+      }
+    }
+
+    // Android adhans (audible AND silent) are handed to the native exact-alarm
+    // engine right now. The broadcast receiver fires with exact-alarm
+    // privileges and is exempt from background-start restrictions, so the
+    // full-screen alarm + audio happen even if the app is backgrounded — or
+    // killed — before the 3-second window elapses.
+    if (_isAndroid && kind == NotificationKind.adhan) {
+      await _scheduleNativeTestAdhan(currentSettings);
+      return true;
     }
 
     Future<void> onTimer() async {
@@ -345,7 +375,7 @@ class NotificationService {
           case NotificationKind.prePrayer:
             await _firePrePrayerTest(currentSettings);
           case NotificationKind.adhan:
-            await _fireAdhanTest(currentSettings, day);
+            await _fireAdhanTest(currentSettings);
         }
       } catch (e, st) {
         debugPrint('Test notification post failed: $e\n$st');
@@ -394,7 +424,7 @@ class NotificationService {
     );
   }
 
-  Future<void> _fireAdhanTest(AppSettings settings, PrayerDay? day) async {
+  Future<void> _fireAdhanTest(AppSettings settings) async {
     // A disabled adhan sound still tests the full-screen alarm silently.
     final muted = !settings.adhanSoundEnabled;
     final tone = ToneCatalog.byName(settings.adhanTone);
@@ -404,28 +434,9 @@ class NotificationService {
         : 'Rings at prayer entry and takes over the lockscreen like an alarm · '
               'Adhan: ${tone.silent ? 'Silent' : tone.name}';
 
-    // Android: fire through the native alarm engine so the test exercises the
-    // exact production path (foreground-service audio + full-screen activity)
-    // instead of a parallel Flutter one.
-    if (_isAndroid) {
-      if (muted) {
-        await _plugin.show(
-          id: _testNotificationId,
-          title: title,
-          body: body,
-          notificationDetails: _detailsFor(
-            NotificationType.adhan,
-            settings: settings,
-            muted: true,
-          ),
-          payload: _testAdhanPayload,
-        );
-        return;
-      }
-      await _fireNativeAdhanNow(_testNotificationId, _testAdhanLabel, settings);
-      return;
-    }
-
+    // Android tests are armed natively at tap time (see
+    // `scheduleTestNotification`) and never reach this timer path — this is
+    // the desktop stand-in.
     if (muted) {
       await _plugin.show(
         id: _testNotificationId,
@@ -952,20 +963,88 @@ class NotificationService {
     }
   }
 
-  /// Fires the native alarm immediately (used by the debug trigger and the
-  /// live rollover hand-off while the app is open). The selected sound is
-  /// resolved here in Dart and passed down as the engine's only audio input.
+  /// Arms the debug adhan as a real exact alarm three seconds out — audible or
+  /// silent, both take over the screen like a real alarm.
+  ///
+  /// Every Android test goes through the native engine (never a low-importance
+  /// Flutter card, which the system will not show full-screen): the receiver
+  /// runs with exact-alarm privileges, exempt from the background-start
+  /// restrictions that would swallow a foreground-service + activity start
+  /// from a backgrounded app. The selected sound is resolved in Dart and
+  /// persisted as the engine's only audio input.
+  ///
+  /// A stale scheduled test is cleared first so every tap re-arms cleanly, and
+  /// when exact alarms are unavailable (or the schedule call fails) the alarm
+  /// fires immediately after the window instead of silently never ringing.
+  Future<void> _scheduleNativeTestAdhan(AppSettings settings) async {
+    try {
+      await _channel.invokeMethod('cancelAdhan', {'id': _testNotificationId});
+    } catch (_) {}
+    final sound = _androidAdhanSound(settings);
+    final args = <String, dynamic>{
+      'id': _testNotificationId,
+      'timestampMs': DateTime.now()
+          .add(const Duration(seconds: 3))
+          .millisecondsSinceEpoch,
+      'name': _testAdhanLabel,
+      'prayerId': '',
+      'muted': !settings.adhanSoundEnabled,
+      'isTest': true,
+      'soundRaw': sound.raw,
+      'soundUri': sound.uri,
+    };
+    // Without exact-alarm access `AlarmManager` degrades to an inexact timer
+    // that can sit unscheduled for many minutes — the test would look dead.
+    // Wait out the window in-app, then fire the native alarm directly: it
+    // still rings and fills the screen while the app is around.
+    if (!_exactAlarmGranted) {
+      _timers.remove(_testNotificationId)?.cancel();
+      _timers[_testNotificationId] = Timer(const Duration(seconds: 3), () async {
+        try {
+          await _fireNativeAdhanNow(
+            _testNotificationId,
+            _testAdhanLabel,
+            settings,
+            isTest: true,
+          );
+        } catch (e, st) {
+          debugPrint('Native adhan test fire failed: $e\n$st');
+        }
+        _timers.remove(_testNotificationId);
+      });
+      return;
+    }
+    try {
+      await _channel.invokeMethod('scheduleAdhan', args);
+    } catch (e) {
+      debugPrint('Native adhan test schedule failed: $e');
+      await _fireNativeAdhanNow(
+        _testNotificationId,
+        _testAdhanLabel,
+        settings,
+        isTest: true,
+      );
+    }
+  }
+
+  /// Fires the native alarm immediately (used by the live rollover hand-off
+  /// while the app is open — the foreground `fireAdhanNow` path — and as the
+  /// fallback for the debug test when exact alarms are unavailable). The
+  /// selected sound is resolved here in Dart and passed down as the engine's
+  /// only audio input.
   Future<void> _fireNativeAdhanNow(
     int id,
     String name,
-    AppSettings settings,
-  ) async {
+    AppSettings settings, {
+    bool isTest = false,
+  }) async {
     final sound = _androidAdhanSound(settings);
     try {
       await _channel.invokeMethod('fireAdhanNow', {
         'id': id,
         'name': name,
-        'muted': false,
+        'muted': !settings.adhanSoundEnabled,
+        'isTest': isTest,
         'soundRaw': sound.raw,
         'soundUri': sound.uri,
       });
@@ -1236,11 +1315,13 @@ class NotificationService {
     } catch (_) {}
   }
 
-  /// Cancels every pending Flutter alert for the days around today so a stale
-  /// recompute can never leave a double-firing notification behind.
+  /// Cancels every pending Flutter alert for today and its neighbours so a
+  /// stale recompute can never leave a double-firing notification behind.
+  /// Only today is ever scheduled, so a ±1-day window covers every id that
+  /// can exist.
   Future<void> _cancelFlutterDayRange() async {
     final today = DateTime.now();
-    for (var offset = -7; offset <= 7; offset++) {
+    for (var offset = -1; offset <= 1; offset++) {
       final day = today.add(Duration(days: offset));
       for (var i = 0; i < PrayerKind.five.length; i++) {
         await _plugin.cancel(id: _adhanId(day, i));

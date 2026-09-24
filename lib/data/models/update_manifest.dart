@@ -30,8 +30,6 @@ class UpdateManifest {
   /// SHA-256 of that exact APK, verified before anything is installed.
   final String? sha256;
 
-  final DateTime? publishedAt;
-
   const UpdateManifest({
     required this.latestVersionCode,
     required this.latestVersionName,
@@ -40,7 +38,6 @@ class UpdateManifest {
     this.releaseNotes = '',
     required this.apkUrl,
     this.sha256,
-    this.publishedAt,
   });
 
   factory UpdateManifest.fromJson(Map<String, dynamic> json) {
@@ -52,7 +49,6 @@ class UpdateManifest {
       releaseNotes: json['releaseNotes'] as String? ?? '',
       apkUrl: json['apkUrl'] as String? ?? '',
       sha256: json['sha256'] as String?,
-      publishedAt: DateTime.tryParse(json['publishedAt'] as String? ?? ''),
     );
   }
 

@@ -77,7 +77,10 @@ void main() {
 
     expect(loaded.usesDeviceTone, isTrue);
     expect(loaded.adhanLabel, 'Over the Horizon');
-    expect(loaded.adhanDeviceToneUri, 'content://media/internal/audio/media/42');
+    expect(
+      loaded.adhanDeviceToneUri,
+      'content://media/internal/audio/media/42',
+    );
 
     final bundled = loaded.withBundledTone('Zen Bow');
     expect(bundled.usesDeviceTone, isFalse);

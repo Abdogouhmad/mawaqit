@@ -74,6 +74,15 @@ android {
             // reused locally). Falls back to the debug key when no keystore is
             // present so `flutter run --release` still works on a fresh clone.
             signingConfig = signingConfigs.getByName("release")
+            // R8 + resource shrinking keep the APK lean: unused Dart/Java code
+            // and unreferenced resources are stripped. Entry points are pinned
+            // in proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
     buildFeatures {

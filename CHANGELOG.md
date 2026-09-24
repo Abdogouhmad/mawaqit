@@ -11,6 +11,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2026-09-24
+
+New since v0.7.0.
+
+### Changed
+
+- **A simpler home-screen widget** — the prayer card now shows just what
+  matters: the location, the next prayer with a big easy-to-read time, and the
+  countdown on a solid green pill. No progress bar, no clutter.
+- **Alarm sounds now ship with the app** — the adhan and chime audio the alarm
+  needs is included in the install. Unused bundled libraries and a leftover
+  sound file were removed, and release builds now strip unused code and
+  resources to keep the download as lean as possible.
+
+### Fixed
+
+- **The "Test Adhan" button always rings the real alarm** — full-screen like a
+  prayer-time alarm, even when the adhan sound is off (then silently), even
+  with the phone locked, even tapped twice in a row, and without depending on
+  exact-alarm permission.
+- **The adhan takes over a locked screen** — the lockscreen path now goes
+  through a system alarm notification, so the call wakes the display and shows
+  over the lockscreen whether the app is open, closed, or swiped away.
+- **Stopping the adhan mid-load no longer crashes** — and a leftover unused
+  test-reminder call was removed from the Android side.
+
 ## [0.7.0] - 2026-09-23
 
 ### Added
@@ -48,6 +74,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the app is open, the in-app hand-off and the timed system alarm share a single
   audio owner: whichever fires first, only one call plays (previously the two
   firing together could start the clip twice).
+- **Test Adhan broke on Android 15+ and lock-screened phones** — the audible
+  test is now armed through the exact-alarm engine (same path as a real prayer)
+  instead of firing straight from the app, so it rings and takes over the
+  full screen even when the phone is locked. The playback service also runs an
+  active media session, without which Android 15+ refuses the alarm foreground
+  service and kills the whole call, and the alarm card can vibrate again.
 - **Test Adhan now takes over a locked screen** — pressing "Test Adhan" and
   locking your phone wakes the alarm presenter over the lockscreen like a
   native alarm, instead of just reopening the app.
@@ -460,3 +492,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.5.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.4.6...v0.5.0
 [0.6.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.5.0...v0.6.0
 [0.7.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.6.0...v0.7.0
+[0.8.2]: https://github.com/Abdogouhmad/mawaqit/compare/v0.7.0...v0.8.2

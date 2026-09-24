@@ -31,10 +31,9 @@ class AppCard extends StatelessWidget {
     final effectiveShadow = ambient
         ? [
             BoxShadow(
-              color: (isLight
-                      ? const Color(0xFF2E7D5B)
-                      : const Color(0xFF3E9B76))
-                  .withValues(alpha: isLight ? 0.05 : 0.12),
+              color:
+                  (isLight ? const Color(0xFF2E7D5B) : const Color(0xFF3E9B76))
+                      .withValues(alpha: isLight ? 0.05 : 0.12),
               blurRadius: AppSpacing.giga,
               offset: const Offset(0, AppSpacing.md),
             ),
@@ -45,10 +44,9 @@ class AppCard extends StatelessWidget {
       color: color ?? scheme.surfaceContainerLowest,
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(
-        color: borderColor ??
-            (isLight
-                ? const Color(0x0A000000)
-                : const Color(0x0FFFFFFF)),
+        color:
+            borderColor ??
+            (isLight ? const Color(0x0A000000) : const Color(0x0FFFFFFF)),
       ),
       boxShadow: effectiveShadow,
     );

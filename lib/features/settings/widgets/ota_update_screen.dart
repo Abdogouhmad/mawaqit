@@ -30,7 +30,8 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
       final notifier = ref.read(updateProvider.notifier);
       final snapshot = ref.read(updateProvider);
       notifier.hydrate();
-      if (snapshot.status == UpdateStatus.idle && snapshot.checkResult == null) {
+      if (snapshot.status == UpdateStatus.idle &&
+          snapshot.checkResult == null) {
         notifier.checkForUpdates();
       }
     });
@@ -47,9 +48,8 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
         centerTitle: true,
         title: Text(
           'Software Update',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+          style: Theme.of(context).textTheme.titleLarge
+              ?.copyWith(fontWeight: FontWeight.w700),
         ),
       ),
       body: SafeArea(
@@ -234,11 +234,7 @@ class _Pill extends StatelessWidget {
   final Color color;
   final IconData icon;
 
-  const _Pill({
-    required this.label,
-    required this.color,
-    required this.icon,
-  });
+  const _Pill({required this.label, required this.color, required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -258,10 +254,8 @@ class _Pill extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
           Text(
             label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
+            style: Theme.of(context).textTheme.labelLarge
+                ?.copyWith(color: color, fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -298,7 +292,9 @@ class _CheckingCard extends StatelessWidget {
             minHeight: 4,
             borderRadius: BorderRadius.circular(AppRadius.pill),
             color: Theme.of(context).colorScheme.primary,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            backgroundColor: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest,
           ),
         ],
       ),
@@ -416,17 +412,16 @@ class _InfoRow extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
           Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(color: scheme.onSurfaceVariant),
           ),
           const Spacer(),
           Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: highlight ? scheme.primary : scheme.onSurface,
-                ),
+              fontWeight: FontWeight.w700,
+              color: highlight ? scheme.primary : scheme.onSurface,
+            ),
           ),
         ],
       ),
@@ -460,9 +455,9 @@ class _ChangelogCard extends StatelessWidget {
           Text(
             'No release notes available for this release.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontStyle: FontStyle.italic,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontStyle: FontStyle.italic,
+            ),
           )
         else
           for (var i = 0; i < lines.length; i++) _row(context, lines[i], i),
@@ -494,9 +489,8 @@ class _ChangelogCard extends StatelessWidget {
             Expanded(
               child: Text(
                 heading.group(1)!,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+                style: Theme.of(context).textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w800),
               ),
             ),
           ],
@@ -603,16 +597,15 @@ class _DownloadCard extends StatelessWidget {
           children: [
             Text(
               'Downloading…',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: scheme.onSurfaceVariant),
             ),
             Text(
               '$percent%',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: scheme.primary,
-                  ),
+                fontWeight: FontWeight.w700,
+                color: scheme.primary,
+              ),
             ),
           ],
         ),
@@ -646,9 +639,8 @@ class _ReadyCard extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         Text(
           'The update is verified and ready to install.',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: scheme.onSurfaceVariant),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.huge),
@@ -740,9 +732,8 @@ class _InlineError extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: scheme.onErrorContainer,
-                  ),
+              style: Theme.of(context).textTheme.bodyMedium
+                  ?.copyWith(color: scheme.onErrorContainer),
             ),
           ),
           TextButton(onPressed: onRetry, child: const Text('Retry')),
@@ -786,9 +777,8 @@ class _Card extends StatelessWidget {
               const SizedBox(width: AppSpacing.md),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),

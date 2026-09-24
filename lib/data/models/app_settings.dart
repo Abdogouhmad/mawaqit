@@ -55,8 +55,7 @@ class AppSettings {
 
   static const List<int> leadOptions = [0, 5, 10, 15];
 
-  bool get hasCityCoordinates =>
-      cityLatitude != null && cityLongitude != null;
+  bool get hasCityCoordinates => cityLatitude != null && cityLongitude != null;
 
   /// Whether a device sound overrides the bundled tone.
   bool get usesDeviceTone =>
@@ -71,15 +70,15 @@ class AppSettings {
 
   /// Kill switch for [NotificationKind]. Each kind persists independently.
   bool notifEnabled(NotificationKind kind) => switch (kind) {
-        NotificationKind.prePrayer => prePrayerEnabled,
-        NotificationKind.adhan => adhanSoundEnabled,
-      };
+    NotificationKind.prePrayer => prePrayerEnabled,
+    NotificationKind.adhan => adhanSoundEnabled,
+  };
 
   /// Name of the tone currently selected for [NotificationKind].
   String notifTone(NotificationKind kind) => switch (kind) {
-        NotificationKind.prePrayer => preAlertLabel,
-        NotificationKind.adhan => adhanLabel,
-      };
+    NotificationKind.prePrayer => preAlertLabel,
+    NotificationKind.adhan => adhanLabel,
+  };
 
   /// Flips the kill switch for [NotificationKind].
   AppSettings withNotifEnabled(NotificationKind kind, bool enabled) =>
@@ -112,10 +111,12 @@ class AppSettings {
       prePrayerEnabled: prePrayerEnabled ?? this.prePrayerEnabled,
       adhanSoundEnabled: adhanSoundEnabled ?? this.adhanSoundEnabled,
       adhanTone: adhanTone ?? this.adhanTone,
-      adhanDeviceToneUri:
-          clearDeviceTone ? null : (adhanDeviceToneUri ?? this.adhanDeviceToneUri),
-      adhanDeviceToneName:
-          clearDeviceTone ? null : (adhanDeviceToneName ?? this.adhanDeviceToneName),
+      adhanDeviceToneUri: clearDeviceTone
+          ? null
+          : (adhanDeviceToneUri ?? this.adhanDeviceToneUri),
+      adhanDeviceToneName: clearDeviceTone
+          ? null
+          : (adhanDeviceToneName ?? this.adhanDeviceToneName),
       preAlertTone: preAlertTone ?? this.preAlertTone,
       themeMode: themeMode ?? this.themeMode,
       locationMode: locationMode ?? this.locationMode,
@@ -144,42 +145,39 @@ class AppSettings {
     return null;
   }
 
-  CalculationParameters get parameters =>
-      switch (calculationMethod) {
-        CalculationMethod.muslimWorldLeague =>
-          CalculationMethodParameters.muslimWorldLeague()
-            ..madhab = madhab,
-        CalculationMethod.northAmerica =>
-          CalculationMethodParameters.northAmerica()..madhab = madhab,
-        CalculationMethod.ummAlQura =>
-          CalculationMethodParameters.ummAlQura()..madhab = madhab,
-        CalculationMethod.egyptian =>
-          CalculationMethodParameters.egyptian()..madhab = madhab,
-        CalculationMethod.karachi =>
-          CalculationMethodParameters.karachi()..madhab = madhab,
-        CalculationMethod.tehran =>
-          CalculationMethodParameters.tehran()..madhab = madhab,
-        CalculationMethod.jafari =>
-          CalculationMethodParameters.jafari()..madhab = madhab,
-        CalculationMethod.france => CalculationMethodParameters.france()
-          ..madhab = madhab,
-        CalculationMethod.turkiye =>
-          CalculationMethodParameters.turkiye()..madhab = madhab,
-        CalculationMethod.morocco =>
-          CalculationMethodParameters.morocco()..madhab = madhab,
-        CalculationMethod.russia =>
-          CalculationMethodParameters.russia()..madhab = madhab,
-        CalculationMethod.gulfRegion =>
-          CalculationMethodParameters.gulfRegion()..madhab = madhab,
-        CalculationMethod.kuwait => CalculationMethodParameters.kuwait()
-          ..madhab = madhab,
-        CalculationMethod.qatar => CalculationMethodParameters.qatar()
-          ..madhab = madhab,
-        CalculationMethod.singapore =>
-          CalculationMethodParameters.singapore()..madhab = madhab,
-        CalculationMethod.indonesian =>
-          CalculationMethodParameters.indonesian()..madhab = madhab,
-        _ => CalculationMethodParameters.muslimWorldLeague()
-          ..madhab = madhab,
-      };
+  CalculationParameters get parameters => switch (calculationMethod) {
+    CalculationMethod.muslimWorldLeague =>
+      CalculationMethodParameters.muslimWorldLeague()..madhab = madhab,
+    CalculationMethod.northAmerica =>
+      CalculationMethodParameters.northAmerica()..madhab = madhab,
+    CalculationMethod.ummAlQura =>
+      CalculationMethodParameters.ummAlQura()..madhab = madhab,
+    CalculationMethod.egyptian =>
+      CalculationMethodParameters.egyptian()..madhab = madhab,
+    CalculationMethod.karachi =>
+      CalculationMethodParameters.karachi()..madhab = madhab,
+    CalculationMethod.tehran =>
+      CalculationMethodParameters.tehran()..madhab = madhab,
+    CalculationMethod.jafari =>
+      CalculationMethodParameters.jafari()..madhab = madhab,
+    CalculationMethod.france =>
+      CalculationMethodParameters.france()..madhab = madhab,
+    CalculationMethod.turkiye =>
+      CalculationMethodParameters.turkiye()..madhab = madhab,
+    CalculationMethod.morocco =>
+      CalculationMethodParameters.morocco()..madhab = madhab,
+    CalculationMethod.russia =>
+      CalculationMethodParameters.russia()..madhab = madhab,
+    CalculationMethod.gulfRegion =>
+      CalculationMethodParameters.gulfRegion()..madhab = madhab,
+    CalculationMethod.kuwait =>
+      CalculationMethodParameters.kuwait()..madhab = madhab,
+    CalculationMethod.qatar =>
+      CalculationMethodParameters.qatar()..madhab = madhab,
+    CalculationMethod.singapore =>
+      CalculationMethodParameters.singapore()..madhab = madhab,
+    CalculationMethod.indonesian =>
+      CalculationMethodParameters.indonesian()..madhab = madhab,
+    _ => CalculationMethodParameters.muslimWorldLeague()..madhab = madhab,
+  };
 }

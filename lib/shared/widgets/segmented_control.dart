@@ -53,7 +53,9 @@ class SegmentedControl<T> extends StatelessWidget {
               AnimatedPositioned(
                 duration: _duration,
                 curve: _curve,
-                left: selectedIndex < 0 ? -segmentWidth : selectedIndex * segmentWidth,
+                left: selectedIndex < 0
+                    ? -segmentWidth
+                    : selectedIndex * segmentWidth,
                 top: 0,
                 bottom: 0,
                 width: segmentWidth,
@@ -110,9 +112,9 @@ class SegmentedControl<T> extends StatelessWidget {
               duration: _duration,
               curve: _curve,
               style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                    color: foreground,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                  ),
+                color: foreground,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              ),
               child: Text(label),
             ),
           ],

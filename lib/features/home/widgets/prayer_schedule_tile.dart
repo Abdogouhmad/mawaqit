@@ -41,13 +41,13 @@ class PrayerScheduleTile extends StatelessWidget {
     final nameColor = active
         ? scheme.onSurface
         : passed
-            ? scheme.onSurfaceVariant.withValues(alpha: 0.7)
-            : scheme.onSurface;
+        ? scheme.onSurfaceVariant.withValues(alpha: 0.7)
+        : scheme.onSurface;
     final timeColor = active
         ? scheme.onSurface
         : passed
-            ? scheme.onSurfaceVariant.withValues(alpha: 0.7)
-            : scheme.onSurfaceVariant;
+        ? scheme.onSurfaceVariant.withValues(alpha: 0.7)
+        : scheme.onSurfaceVariant;
 
     final Color background;
     final Color border;
@@ -66,18 +66,12 @@ class PrayerScheduleTile extends StatelessWidget {
         ),
       ];
     } else if (passed) {
-      background = isLight
-          ? const Color(0xFFF4F4F1)
-          : const Color(0xFF181918);
-      border = isLight
-          ? const Color(0x0A000000)
-          : const Color(0x0FFFFFFF);
+      background = isLight ? const Color(0xFFF4F4F1) : const Color(0xFF181918);
+      border = isLight ? const Color(0x0A000000) : const Color(0x0FFFFFFF);
       shadow = null;
     } else {
       background = scheme.surfaceContainerLowest;
-      border = isLight
-          ? const Color(0x0A000000)
-          : const Color(0x0FFFFFFF);
+      border = isLight ? const Color(0x0A000000) : const Color(0x0FFFFFFF);
       shadow = null;
     }
 
@@ -175,8 +169,9 @@ class PrayerScheduleTile extends StatelessWidget {
                     vertical: AppSpacing.xs,
                   ),
                   decoration: BoxDecoration(
-                    color: scheme.tertiaryContainer
-                        .withValues(alpha: isLight ? 0.6 : 0.35),
+                    color: scheme.tertiaryContainer.withValues(
+                      alpha: isLight ? 0.6 : 0.35,
+                    ),
                     borderRadius: BorderRadius.circular(AppRadius.pill),
                   ),
                   child: Row(
@@ -213,14 +208,14 @@ class PrayerScheduleTile extends StatelessWidget {
                     passed
                         ? Icons.notifications_off_outlined
                         : active
-                            ? Icons.notifications_active
-                            : Icons.notifications_none,
+                        ? Icons.notifications_active
+                        : Icons.notifications_none,
                     size: AppIconSize.md,
                     color: active
                         ? scheme.primary
                         : passed
-                            ? scheme.onSurfaceVariant.withValues(alpha: 0.5)
-                            : scheme.onSurfaceVariant,
+                        ? scheme.onSurfaceVariant.withValues(alpha: 0.5)
+                        : scheme.onSurfaceVariant,
                   ),
                 ),
               ),

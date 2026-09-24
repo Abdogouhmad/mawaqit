@@ -7,7 +7,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 /// from the semver version, `version` and `buildNumber` can never drift apart.
 class AppInfo {
   static late String _version;
-  static late String _appname;
   static late int _buildNumber;
 
   static bool _initialized = false;
@@ -18,7 +17,6 @@ class AppInfo {
 
     final pkg = await PackageInfo.fromPlatform();
     _version = pkg.version;
-    _appname = pkg.appName;
     _buildNumber = int.tryParse(pkg.buildNumber) ?? 0;
     _initialized = true;
   }
@@ -27,11 +25,6 @@ class AppInfo {
   static String get version {
     _ensureInitialized();
     return _version;
-  }
-
-  static String get appname {
-    _ensureInitialized();
-    return _appname;
   }
 
   /// Android `versionCode` as parsed from `PackageInfo.buildNumber`.

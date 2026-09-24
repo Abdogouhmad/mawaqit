@@ -140,15 +140,17 @@ abstract final class ToneCatalog {
     ),
   ];
 
-  static const AdhanTone fallback = AdhanTone(
-    name: 'Adham Al Sharqawe',
-    assetPath: 'audio/Adham Al Sharqawe.mp3',
-    androidRawResource: 'adhan_adham_al_sharqawe',
-  );
+  /// Every built-in tone a persisted setting may name (adhan + pre-prayer).
+  /// Precomputed as a const so `byName` never reallocates the spread on a hot
+  /// scheduling path.
+  static const List<AdhanTone> all = [...tones, ...preAlertTones];
+
+  /// Default tone when a stale/invalid name is persisted: the first adhan.
+  static AdhanTone get fallback => tones.first;
 
   /// Resolves a persisted tone name to its definition (never null).
   static AdhanTone byName(String name) {
-    for (final tone in [...tones, ...preAlertTones]) {
+    for (final tone in all) {
       if (tone.name == name) return tone;
     }
     return fallback;

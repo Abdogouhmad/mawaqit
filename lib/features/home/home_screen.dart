@@ -179,11 +179,14 @@ class _HomeBody extends ConsumerWidget {
               prayer: prayer,
               status: _statusFor(prayer, now, next),
               countdownLabel: _countdownFor(prayer, next, state),
-              muted: mutedIds
-                  .contains(NotificationService.prayerIdFor(day.date, prayer.kind)),
+              muted: mutedIds.contains(
+                NotificationService.prayerIdFor(day.date, prayer.kind),
+              ),
               onToggleMute: () => ref
                   .read(mutedPrayersProvider.notifier)
-                  .toggle(NotificationService.prayerIdFor(day.date, prayer.kind)),
+                  .toggle(
+                    NotificationService.prayerIdFor(day.date, prayer.kind),
+                  ),
             ),
           ),
         const SizedBox(height: AppSpacing.xl),
@@ -257,11 +260,7 @@ class _HomeBody extends ConsumerWidget {
     return PrayerTileStatus.passed;
   }
 
-  String? _countdownFor(
-    PrayerTime prayer,
-    PrayerTime? next,
-    HomeState state,
-  ) {
+  String? _countdownFor(PrayerTime prayer, PrayerTime? next, HomeState state) {
     if (next == null) return null;
     if (next.kind == prayer.kind && next.time == prayer.time) {
       return 'In ${TimeFormatter.countdown(state.nextIn)}';

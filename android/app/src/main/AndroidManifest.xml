@@ -2,6 +2,9 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Alarm-card vibration (the native alarm notification buzzes even if the
+         media volume is off — the Adhan clip itself plays on the alarm stream). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Adhan must break through the lock screen when the device is asleep:
          the full-screen intent wakes the display and shows the adhan card over
          the lockscreen, and the wake lock keeps playback alive while the

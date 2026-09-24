@@ -11,48 +11,38 @@ class PrayerWidgetHomeWidget {
 
   static Future<void> saveData({
     String? locationShort,
-    String? nextPrayerCountdown,
     String? nextPrayerName,
     String? nextPrayerTime,
-    String? progressFilled,
-    String? progressRemaining,
+    String? nextPrayerCountdown,
   }) {
     return Future.wait([
       if (locationShort != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.locationShort', locationShort),
-      if (nextPrayerCountdown != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', nextPrayerCountdown),
       if (nextPrayerName != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.nextPrayerName', nextPrayerName),
       if (nextPrayerTime != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.nextPrayerTime', nextPrayerTime),
-      if (progressFilled != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.progressFilled', progressFilled),
-      if (progressRemaining != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.progressRemaining', progressRemaining),
+      if (nextPrayerCountdown != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', nextPrayerCountdown),
     ]);
   }
 
   static Future<void> deleteData({
     bool locationShort = false,
-    bool nextPrayerCountdown = false,
     bool nextPrayerName = false,
     bool nextPrayerTime = false,
-    bool progressFilled = false,
-    bool progressRemaining = false,
+    bool nextPrayerCountdown = false,
   }) {
     return Future.wait([
       if (locationShort) HomeWidget.saveWidgetData('${_$paramPrefix}.locationShort', null),
-      if (nextPrayerCountdown) HomeWidget.saveWidgetData('${_$paramPrefix}.nextPrayerCountdown', null),
       if (nextPrayerName) HomeWidget.saveWidgetData('${_$paramPrefix}.nextPrayerName', null),
       if (nextPrayerTime) HomeWidget.saveWidgetData('${_$paramPrefix}.nextPrayerTime', null),
-      if (progressFilled) HomeWidget.saveWidgetData('${_$paramPrefix}.progressFilled', null),
-      if (progressRemaining) HomeWidget.saveWidgetData('${_$paramPrefix}.progressRemaining', null),
+      if (nextPrayerCountdown) HomeWidget.saveWidgetData('${_$paramPrefix}.nextPrayerCountdown', null),
     ]);
   }
 
-  static Future<({String? locationShort, String? nextPrayerCountdown, String? nextPrayerName, String? nextPrayerTime, String? progressFilled, String? progressRemaining})> getData() async {
+  static Future<({String? locationShort, String? nextPrayerName, String? nextPrayerTime, String? nextPrayerCountdown})> getData() async {
     return (
       locationShort: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.locationShort', defaultValue: '—'),
-      nextPrayerCountdown: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', defaultValue: 'NEXT IN —'),
       nextPrayerName: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerName', defaultValue: '—'),
       nextPrayerTime: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerTime', defaultValue: '--:--'),
-      progressFilled: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.progressFilled', defaultValue: '━━━━━━'),
-      progressRemaining: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.progressRemaining', defaultValue: '······'),
+      nextPrayerCountdown: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', defaultValue: 'NEXT IN —'),
     );
   }
 

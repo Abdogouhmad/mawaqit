@@ -9,8 +9,7 @@ import 'package:mawaqit/providers/providers.dart';
 /// Owns persisted [AppSettings] and applies changes app-wide.
 class SettingsController extends AsyncNotifier<AppSettings> {
   @override
-  Future<AppSettings> build() =>
-      ref.read(settingsRepositoryProvider).load();
+  Future<AppSettings> build() => ref.read(settingsRepositoryProvider).load();
 
   Future<void> save(AppSettings next) async {
     state = AsyncData(next);
@@ -22,7 +21,6 @@ class SettingsController extends AsyncNotifier<AppSettings> {
   }
 }
 
-final settingsProvider =
-    AsyncNotifierProvider<SettingsController, AppSettings>(
+final settingsProvider = AsyncNotifierProvider<SettingsController, AppSettings>(
   SettingsController.new,
 );

@@ -21,6 +21,7 @@ import es.antonborri.home_widget.HomeWidgetPlugin
 import androidx.glance.layout.Column
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.text.TextStyle
@@ -51,7 +52,7 @@ class PrayerWidgetHomeWidget : GlanceAppWidget() {
     val hwPreviewData =
         PrayerWidgetData.fromPreferences(HomeWidgetPlugin.getData(context))
     return listOf(
-      "b4a11f2c",
+      "fcad9a66",
       hwLocales.joinToString(","),
       hwPreviewData.toString(),
     ).joinToString("|")
@@ -65,29 +66,17 @@ class PrayerWidgetHomeWidget : GlanceAppWidget() {
             Box(modifier = GlanceModifier.background(GlanceTheme.colors.widgetBackground).padding(16.dp).fillMaxSize().clickable(onClick = actionStartActivity<MainActivity>()), contentAlignment = Alignment.Center) {
                 Column(modifier = GlanceModifier.fillMaxSize().padding(start = 14.0.dp, top = 14.0.dp, end = 14.0.dp, bottom = 14.0.dp), horizontalAlignment = Alignment.Start) {
                     Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(text = "◷", style = TextStyle(color = ColorProvider(day = Color(0xFF2E7D5B), night = Color(0xFF2E7D5B)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
-                            Text(text = " Waqt", style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 12.sp, fontWeight = FontWeight.Bold))
-                        }
+                        Text(text = "MAWAQIT", style = TextStyle(color = ColorProvider(day = Color(0xFF2E7D5B), night = Color(0xFF2E7D5B)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
                         Spacer(modifier = GlanceModifier.defaultWeight())
                         Text(text = widgetData.locationShort ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Normal))
                     }
                     Spacer(modifier = GlanceModifier.defaultWeight())
-                    Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(horizontalAlignment = Alignment.Start) {
                         Text(text = widgetData.nextPrayerName ?: "", style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 22.sp, fontWeight = FontWeight.Bold))
-                        Spacer(modifier = GlanceModifier.defaultWeight())
-                        Text(text = widgetData.nextPrayerTime ?: "", style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 12.sp, fontWeight = FontWeight.Bold))
+                        Text(text = widgetData.nextPrayerTime ?: "", style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Medium))
                     }
                     Spacer(modifier = GlanceModifier.defaultWeight())
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "●", style = TextStyle(color = ColorProvider(day = Color(0xFF2E7D5B), night = Color(0xFF2E7D5B)), fontSize = 12.sp, fontWeight = FontWeight.Normal))
-                        Text(text = widgetData.nextPrayerCountdown ?: "", style = TextStyle(color = ColorProvider(day = Color(0xFF2E7D5B), night = Color(0xFF2E7D5B)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
-                    }
-                    Spacer(modifier = GlanceModifier.defaultWeight())
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = widgetData.progressFilled ?: "", style = TextStyle(color = ColorProvider(day = Color(0xFF2E7D5B), night = Color(0xFF2E7D5B)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
-                        Text(text = widgetData.progressRemaining ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Normal))
-                    }
+                    Text(modifier = GlanceModifier.background(ColorProvider(day = Color(0xFF2E7D5B), night = Color(0xFF2E7D5B))).padding(start = 12.0.dp, top = 6.0.dp, end = 12.0.dp, bottom = 6.0.dp), text = widgetData.nextPrayerCountdown ?: "", style = TextStyle(color = ColorProvider(day = Color(0xFFFFFFFF), night = Color(0xFFFFFFFF)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
                 }
             }
     }
@@ -97,11 +86,9 @@ class PrayerWidgetHomeWidget : GlanceAppWidget() {
 
 data class PrayerWidgetData(
     val locationShort: String? = null,
-    val nextPrayerCountdown: String? = null,
     val nextPrayerName: String? = null,
     val nextPrayerTime: String? = null,
-    val progressFilled: String? = null,
-    val progressRemaining: String? = null,
+    val nextPrayerCountdown: String? = null,
 ) {
     companion object {
         private const val PREFERENCES_PREFIX = "home_widget.PrayerWidget"
@@ -109,11 +96,9 @@ data class PrayerWidgetData(
         fun fromPreferences(prefs: android.content.SharedPreferences): PrayerWidgetData {
             return PrayerWidgetData(
                 locationShort = prefs.getString("${PREFERENCES_PREFIX}.locationShort", "—"),
-                nextPrayerCountdown = prefs.getString("${PREFERENCES_PREFIX}.nextPrayerCountdown", "NEXT IN —"),
                 nextPrayerName = prefs.getString("${PREFERENCES_PREFIX}.nextPrayerName", "—"),
                 nextPrayerTime = prefs.getString("${PREFERENCES_PREFIX}.nextPrayerTime", "--:--"),
-                progressFilled = prefs.getString("${PREFERENCES_PREFIX}.progressFilled", "━━━━━━"),
-                progressRemaining = prefs.getString("${PREFERENCES_PREFIX}.progressRemaining", "······"),
+                nextPrayerCountdown = prefs.getString("${PREFERENCES_PREFIX}.nextPrayerCountdown", "NEXT IN —"),
             )
         }
     }

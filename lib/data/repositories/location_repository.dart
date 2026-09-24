@@ -59,10 +59,7 @@ class LocationRepository {
     return _searchViaNominatim(queryText, limit);
   }
 
-  Future<List<CitySearchResult>> _searchNative(
-    String query,
-    int limit,
-  ) async {
+  Future<List<CitySearchResult>> _searchNative(String query, int limit) async {
     try {
       final locations = await Geocoding().locationFromAddress(query);
       final results = <CitySearchResult>[];

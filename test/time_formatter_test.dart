@@ -4,13 +4,14 @@ import 'package:mawaqit/core/utils/time_formatter.dart';
 void main() {
   group('TimeFormatter.countdown', () {
     test('composes hours and minutes', () {
-      expect(TimeFormatter.countdown(const Duration(hours: 1, minutes: 24)),
-          '1h 24m 00s');
+      expect(
+        TimeFormatter.countdown(const Duration(hours: 1, minutes: 24)),
+        '1h 24m 00s',
+      );
     });
 
     test('shows only minutes under an hour', () {
-      expect(TimeFormatter.countdown(const Duration(minutes: 42)),
-          '42m 00s');
+      expect(TimeFormatter.countdown(const Duration(minutes: 42)), '42m 00s');
     });
 
     test('shows seconds under a minute', () {
@@ -18,8 +19,10 @@ void main() {
     });
 
     test('includes days when crossing midnight', () {
-      expect(TimeFormatter.countdown(const Duration(days: 1, hours: 3)),
-          '1d 3h 0m 00s');
+      expect(
+        TimeFormatter.countdown(const Duration(days: 1, hours: 3)),
+        '1d 3h 0m 00s',
+      );
     });
   });
 
@@ -32,8 +35,10 @@ void main() {
 
   group('TimeFormatter.dayLength', () {
     test('formats duration as hours and minutes', () {
-      expect(TimeFormatter.dayLength(const Duration(hours: 11, minutes: 14)),
-          '11h 14m');
+      expect(
+        TimeFormatter.dayLength(const Duration(hours: 11, minutes: 14)),
+        '11h 14m',
+      );
     });
   });
 }

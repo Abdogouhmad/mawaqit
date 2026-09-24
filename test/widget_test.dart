@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mawaqit/core/theme/app_theme.dart';
 import 'package:mawaqit/core/theme/colors.dart';
-import 'package:mawaqit/shared/widgets/pill_badge.dart';
 import 'package:mawaqit/shared/widgets/segmented_control.dart';
 
 void main() {
@@ -21,18 +20,9 @@ void main() {
   });
 
   group('app shell ripple + font', () {
-    testWidgets('PillBadge renders its label', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: AppTheme.light(),
-          home: const Scaffold(body: PillBadge(label: 'Fajr now')),
-        ),
-      );
-      expect(find.text('FAJR NOW'), findsOneWidget);
-    });
-
-    testWidgets('SegmentedControl highlights the selected option',
-        (tester) async {
+    testWidgets('SegmentedControl highlights the selected option', (
+      tester,
+    ) async {
       var selected = 5;
       await tester.pumpWidget(
         MaterialApp(

@@ -21,6 +21,10 @@ const String kGitHubRepo = 'Abdogouhmad/mawaqit';
 const String kUpdateManifestUrl =
     'https://raw.githubusercontent.com/$kGitHubRepo/main/update_manifest.json';
 
+/// Background checks must never hang the UI on a dead connection — fail fast
+/// and treat it like "check again later".
+const Duration kManifestFetchTimeout = Duration(seconds: 10);
+
 /// Result of comparing the installed version against the latest manifest.
 enum UpdateCheckResult {
   /// The app is already up to date.
@@ -44,13 +48,15 @@ class UpdateService {
   /// callers can treat a failed background check as "check again later".
   Future<UpdateManifest?> fetchManifest() async {
     try {
-      final response = await http.get(
-        Uri.parse(kUpdateManifestUrl),
-        headers: const {
-          'Accept': 'application/json',
-          'User-Agent': 'Mawaqit-Updater',
-        },
-      );
+      final response = await http
+          .get(
+            Uri.parse(kUpdateManifestUrl),
+            headers: const {
+              'Accept': 'application/json',
+              'User-Agent': 'Mawaqit-Updater',
+            },
+          )
+          .timeout(kManifestFetchTimeout);
       if (response.statusCode != 200) return null;
       final decoded = json.decode(response.body);
       if (decoded is! Map<String, dynamic>) return null;
@@ -86,9 +92,7 @@ class UpdateService {
   /// from the manifest against the downloaded bytes **before** anything is
   /// installed (it surfaces `OtaStatus.CHECKSUM_ERROR` on a mismatch), and
   /// hands off to Android's system `PackageInstaller`.
-  Stream<OtaEvent> downloadAndInstall({
-    required UpdateManifest manifest,
-  }) {
+  Stream<OtaEvent> downloadAndInstall({required UpdateManifest manifest}) {
     return OtaUpdate().execute(
       manifest.apkUrl,
       destinationFilename: 'mawaqit-update.apk',

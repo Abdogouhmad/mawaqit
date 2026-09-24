@@ -2,7 +2,7 @@ name: mawaqit
 description: "Mawaqit — a calm, focused prayer-times app with adhan reminders."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.7.0
+version: 0.8.2
 
 environment:
   sdk: ^3.13.4
@@ -31,9 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  # Cupertino icons were unused (Material icons only) — removed for APK weight.
   flutter_riverpod: ^3.4.3
   adhan_dart: ^2.0.1
   geolocator: ^14.0.3
@@ -42,8 +40,7 @@ dependencies:
   flutter_local_notifications_linux: ^8.0.1
   workmanager: ^0.10.10
   shared_preferences: ^2.5.5
-  hive: ^2.2.3
-  hive_flutter: ^1.1.0
+  # hive/hive_flutter were unused (all persistence is via shared_preferences).
   intl: ^0.20.3
   hijri: ^3.0.1
   timezone: ^0.11.1
@@ -73,7 +70,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -83,22 +79,10 @@ flutter:
     - assets/audio/
 
   fonts:
+    # Single variable-font file — one entry is enough (weight axis is inside).
     - family: Manrope
       fonts:
         - asset: assets/fonts/Manrope-Variable.ttf
-          weight: 200
-        - asset: assets/fonts/Manrope-Variable.ttf
-          weight: 300
-        - asset: assets/fonts/Manrope-Variable.ttf
-          weight: 400
-        - asset: assets/fonts/Manrope-Variable.ttf
-          weight: 500
-        - asset: assets/fonts/Manrope-Variable.ttf
-          weight: 600
-        - asset: assets/fonts/Manrope-Variable.ttf
-          weight: 700
-        - asset: assets/fonts/Manrope-Variable.ttf
-          weight: 800
 
   # To add assets to your application, add an assets section, like this:
   # assets:

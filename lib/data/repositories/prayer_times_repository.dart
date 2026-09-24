@@ -1,6 +1,5 @@
 import 'package:adhan_dart/adhan_dart.dart';
 
-import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 
 /// Wraps the offline `adhan_dart` calculation engine and maps results to
@@ -32,7 +31,9 @@ class PrayerTimesRepository {
 
   static String shortLabel(CalculationMethod method) {
     final angle = _angles[method];
-    return angle == null ? method.displayName : '${method.displayName} ($angle)';
+    return angle == null
+        ? method.displayName
+        : '${method.displayName} ($angle)';
   }
 
   PrayerDay forDate({
@@ -60,8 +61,4 @@ class PrayerTimesRepository {
       methodName: shortLabel(parameters.method),
     );
   }
-
-  /// Convenience label with the calculation angle, used on home screen.
-  String methodLabelWithTime(CalculationMethod method) =>
-      TimeFormatter.methodLabelWithAngle(method.displayName, _angles[method]);
 }

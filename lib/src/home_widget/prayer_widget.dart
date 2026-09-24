@@ -23,10 +23,10 @@ import 'package:home_widget_generator/home_widget_generator.dart';
     updatePeriodMillis: 1800000,
   ),
 
-  // Compact 2×2 card: header, big next prayer, countdown and a day-progress
-  // bar. The following-prayer and five-dot timeline rows were dropped so the
-  // layout keeps generous breathing room at the 2×2 footprint (the full
-  // timeline already lives in the home screen).
+  // Modern, minimal 2×2 card (no progress bar): a quiet brand + location
+  // header, the next prayer as the hero (big name, large time beneath it)
+  // and the countdown as a solid sage pill. Four data fields, three rows —
+  // everything readable at a glance, nothing competing with the countdown.
   widget: HWFill(
     child: HWPadding(
       padding: HWEdgeInsets.all(14),
@@ -37,33 +37,20 @@ import 'package:home_widget_generator/home_widget_generator.dart';
 
         children: [
           // ─────────────────────────────────────────
-          // HEADER: brand mark + location
+          // HEADER: brand + location
           // ─────────────────────────────────────────
 
           HWRow(
             mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
 
             children: [
-              HWRow(
-                children: [
-                  HWText.fixed(
-                    '◷',
-                    style: HWRoleTextStyle(
-                      role: HWTextStyleRole.caption,
-                      color: HWColor.fixed(0xFF2E7D5B),
-                      fontWeight: HWFontWeight.bold,
-                    ),
-                  ),
-
-                  HWText.fixed(
-                    ' Waqt',
-                    style: HWRoleTextStyle(
-                      role: HWTextStyleRole.caption,
-                      fontWeight: HWFontWeight.bold,
-                      color: HWDefaultColor(HWColorRole.contentPrimary),
-                    ),
-                  ),
-                ],
+              HWText.fixed(
+                'MAWAQIT',
+                style: HWRoleTextStyle(
+                  role: HWTextStyleRole.caption,
+                  color: HWColor.fixed(0xFF2E7D5B),
+                  fontWeight: HWFontWeight.bold,
+                ),
               ),
 
               HWText(
@@ -77,10 +64,10 @@ import 'package:home_widget_generator/home_widget_generator.dart';
           ),
 
           // ─────────────────────────────────────────
-          // NEXT PRAYER NAME + TIME
+          // HERO: next prayer name + large time
           // ─────────────────────────────────────────
-          HWRow(
-            mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
+          HWColumn(
+            crossAxisAlignment: HWCrossAxisAlignment.start,
 
             children: [
               HWText(
@@ -95,8 +82,7 @@ import 'package:home_widget_generator/home_widget_generator.dart';
               HWText(
                 HWString('nextPrayerTime', defaultValue: '--:--'),
                 style: HWRoleTextStyle(
-                  role: HWTextStyleRole.caption,
-                  fontWeight: HWFontWeight.bold,
+                  role: HWTextStyleRole.headline,
                   color: HWDefaultColor(HWColorRole.contentPrimary),
                 ),
               ),
@@ -104,56 +90,23 @@ import 'package:home_widget_generator/home_widget_generator.dart';
           ),
 
           // ─────────────────────────────────────────
-          // COUNTDOWN UNTIL THE NEXT PRAYER
+          // COUNTDOWN: solid sage pill
           // ─────────────────────────────────────────
-          HWRow(
-            children: [
-              HWText.fixed(
-                '●',
-                style: HWRoleTextStyle(
-                  role: HWTextStyleRole.caption,
-                  color: HWColor.fixed(0xFF2E7D5B),
-                ),
-              ),
+          HWColoredBox(
+            color: HWColor.fixed(0xFF2E7D5B),
 
-              HWText(
+            child: HWPadding(
+              padding: HWEdgeInsets.symmetric(vertical: 6, horizontal: 12),
+
+              child: HWText(
                 HWString('nextPrayerCountdown', defaultValue: 'NEXT IN —'),
                 style: HWRoleTextStyle(
                   role: HWTextStyleRole.caption,
-                  color: HWColor.fixed(0xFF2E7D5B),
+                  color: HWColor.fixed(0xFFFFFFFF),
                   fontWeight: HWFontWeight.bold,
                 ),
               ),
-            ],
-          ),
-
-          // ─────────────────────────────────────────
-          // DAY-PROGRESS BAR
-          //
-          // We send the filled/remaining portions from Dart because the
-          // generator DSL doesn't need to know the actual prayer times.
-          // Filled reads as a solid track, remaining as a dotted rail so the
-          // progress is legible at a glance.
-          // ─────────────────────────────────────────
-          HWRow(
-            children: [
-              HWText(
-                HWString('progressFilled', defaultValue: '━━━━━━'),
-                style: HWRoleTextStyle(
-                  role: HWTextStyleRole.caption,
-                  fontWeight: HWFontWeight.bold,
-                  color: HWColor.fixed(0xFF2E7D5B),
-                ),
-              ),
-
-              HWText(
-                HWString('progressRemaining', defaultValue: '······'),
-                style: HWRoleTextStyle(
-                  role: HWTextStyleRole.caption,
-                  color: HWDefaultColor(HWColorRole.contentSecondary),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),

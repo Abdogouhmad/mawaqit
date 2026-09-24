@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.MediaPlayer
+import android.media.session.MediaSession
 import android.os.Build
 import android.os.IBinder
 
@@ -18,10 +19,35 @@ import android.os.IBinder
 class AdhanPlaybackService : Service() {
 
     private var player: MediaPlayer? = null
+    private var mediaSession: MediaSession? = null
 
     override fun onCreate() {
         super.onCreate()
         AdhanScheduler.ensureChannels(this)
+        ensureMediaSession()
+    }
+
+    /**
+     * Android 15+ requires an active `MediaSession` to run a foreground
+     * service of type `mediaPlayback` (the app targets SDK 36); without one
+     * the system throws `MediaPlaybackServiceWithoutMediaSessionException` and
+     * the whole process dies — no adhan, no full-screen alarm. A framework
+     * session is enough to satisfy the check; playback stays on [MediaPlayer].
+     */
+    private fun ensureMediaSession() {
+        if (mediaSession != null) return
+        mediaSession = MediaSession(this, "mawaqit-adhan").apply {
+            setCallback(object : MediaSession.Callback() {})
+            setActive(true)
+        }
+    }
+
+    private fun releaseMediaSession() {
+        mediaSession?.apply {
+            setActive(false)
+            release()
+        }
+        mediaSession = null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -56,9 +82,22 @@ class AdhanPlaybackService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun startForegroundCompat(id: Int, schedule: AdhanScheduler.Schedule) {
-        val notification = AdhanScheduler.buildAlarmNotification(this, schedule)
+        val notification = AdhanScheduler.buildAlarmNotification(
+            this,
+            schedule,
+            mediaSession?.sessionToken,
+        )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            // The typed overload can be rejected on the platform for reasons
+            // that vary by release (media-session enforcement, OEM strictness).
+            // Never let that crash the process: the full-screen alarm and the
+            // ringing adhan must survive it, so fall back to the plain overload
+            // (still a real foreground service, just without the declared type).
+            try {
+                startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            } catch (e: Exception) {
+                startForeground(id, notification)
+            }
         } else {
             startForeground(id, notification)
         }
@@ -66,10 +105,9 @@ class AdhanPlaybackService : Service() {
 
     private fun startPlayback(schedule: AdhanScheduler.Schedule) {
         player?.release()
-        val uri = AdhanScheduler.soundUri(this, schedule) ?: run {
-            stopSelf()
-            return
-        }
+        // No resolvable audio (silent tone / missing device URI): the alarm is
+        // already up — full-screen presenter + vibrating card — just stay quiet.
+        val uri = AdhanScheduler.soundUri(this, schedule) ?: return
         try {
             val mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(AdhanScheduler.alarmAudioAttributes())
@@ -89,6 +127,7 @@ class AdhanPlaybackService : Service() {
     }
 
     override fun onDestroy() {
+        releaseMediaSession()
         player?.release()
         player = null
         super.onDestroy()
@@ -96,7 +135,12 @@ class AdhanPlaybackService : Service() {
 
     /** Stops playback and tears down the alarm (also clears the activity via broadcast). */
     fun stopAdhan() {
-        player?.stop()
+        try {
+            player?.stop()
+        } catch (_: Exception) {
+            // `stop()` before `prepareAsync` completes throws IllegalStateException;
+            // the player is released in onDestroy either way.
+        }
         player = null
         AdhanScheduler.stopActive(this)
         stopSelf()

@@ -39,30 +39,6 @@ class MainActivity : FlutterActivity() {
                         PrayerScheduler.schedule(activity, reminders, sunriseMs, fajrMs, sunsetMs, channelSound)
                         result.success(true)
                     }
-                    "showTestReminder" -> {
-                        val id = call.argument<Number>("id")?.toInt() ?: 1_999_999
-                        val name = call.argument<String>("name") ?: "Maghrib"
-                        val prayerId = call.argument<String>("prayerId") ?: "test_maghrib"
-                        val leadMinutes = call.argument<Number>("leadMinutes")?.toInt() ?: 10
-                        val prayerMs = call.argument<Number>("prayerTimestampMs")?.toLong() ?: 0L
-                        val sunriseMs = call.argument<Number>("sunriseMs")?.toLong() ?: 0L
-                        val fajrMs = call.argument<Number>("fajrMs")?.toLong() ?: 0L
-                        val sunsetMs = call.argument<Number>("sunsetMs")?.toLong() ?: 0L
-                        val channelSound = call.argument<String>("channelSound") ?: "silent"
-                        PrayerScheduler.showTestReminder(
-                            context = activity,
-                            id = id,
-                            name = name,
-                            prayerId = prayerId,
-                            leadMinutes = leadMinutes,
-                            prayerMs = prayerMs,
-                            sunriseMs = sunriseMs,
-                            fajrMs = fajrMs,
-                            sunsetMs = sunsetMs,
-                            channelSound = channelSound,
-                        )
-                        result.success(true)
-                    }
                     "cancelReminders" -> {
                         PrayerScheduler.cancelAll(activity)
                         result.success(true)
@@ -89,6 +65,7 @@ class MainActivity : FlutterActivity() {
                         val muted = call.argument<Boolean>("muted") ?: false
                         val soundRaw = call.argument<String>("soundRaw") ?: ""
                         val soundUri = call.argument<String>("soundUri") ?: ""
+                        val isTest = call.argument<Boolean>("isTest") ?: false
                         if (id != -1) {
                             AdhanScheduler.schedule(
                                 context = activity,
@@ -99,6 +76,7 @@ class MainActivity : FlutterActivity() {
                                 muted = muted,
                                 soundRaw = soundRaw,
                                 soundUri = soundUri,
+                                isTest = isTest,
                             )
                         }
                         result.success(true)
@@ -122,6 +100,7 @@ class MainActivity : FlutterActivity() {
                         val muted = call.argument<Boolean>("muted") ?: false
                         val soundRaw = call.argument<String>("soundRaw") ?: ""
                         val soundUri = call.argument<String>("soundUri") ?: ""
+                        val isTest = call.argument<Boolean>("isTest") ?: false
                         if (id != -1) {
                             AdhanScheduler.fireNow(
                                 activity,
@@ -133,6 +112,7 @@ class MainActivity : FlutterActivity() {
                                     soundRaw = soundRaw,
                                     soundUri = soundUri,
                                     timestampMs = System.currentTimeMillis(),
+                                    isTest = isTest,
                                 ),
                             )
                         }

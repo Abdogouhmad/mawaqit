@@ -7,12 +7,20 @@ import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_store.dart';
 import 'package:mawaqit/providers/providers.dart';
 
-final updateServiceProvider =
-    Provider<UpdateService>((ref) => const UpdateService());
+final updateServiceProvider = Provider<UpdateService>(
+  (ref) => const UpdateService(),
+);
 
 final updateStoreProvider = Provider<UpdateStore>((ref) => UpdateStore());
 
-enum UpdateStatus { idle, checking, available, downloading, readyToInstall, error }
+enum UpdateStatus {
+  idle,
+  checking,
+  available,
+  downloading,
+  readyToInstall,
+  error,
+}
 
 /// Failure kinds surfaced while [UpdateStatus.error]. The provider stores a
 /// code (never a user-facing string — the UI maps it to copy).
@@ -77,8 +85,9 @@ class UpdateState {
 }
 
 /// The single OTA update notifier driving the whole flow.
-final updateProvider =
-    NotifierProvider<UpdateNotifier, UpdateState>(UpdateNotifier.new);
+final updateProvider = NotifierProvider<UpdateNotifier, UpdateState>(
+  UpdateNotifier.new,
+);
 
 /// The `DateTime` of the last update check — `null` when never checked.
 final lastUpdateCheckProvider =
@@ -135,16 +144,17 @@ class UpdateNotifier extends Notifier<UpdateState> {
 
     final manifest = await ref.read(updateServiceProvider).fetchManifest();
 
-    final outcome = ref.read(updateServiceProvider).check(
-      manifest: manifest,
-      currentVersionCode: AppInfo.buildNumber,
-    );
+    final outcome = ref
+        .read(updateServiceProvider)
+        .check(manifest: manifest, currentVersionCode: AppInfo.buildNumber);
 
     if (outcome == UpdateCheckResult.checkFailed) {
       // A failed check is still a check: persist the timestamp + "failed"
       // result so the user can tell "check failed" from "never checked".
       await ref.read(lastUpdateCheckProvider.notifier).markChecked();
-      await ref.read(lastUpdateCheckResultProvider.notifier).markResult(outcome);
+      await ref
+          .read(lastUpdateCheckResultProvider.notifier)
+          .markResult(outcome);
       state = state.copyWith(
         status: UpdateStatus.idle,
         checkResult: outcome,
@@ -234,7 +244,10 @@ class UpdateNotifier extends Notifier<UpdateState> {
           final progress = double.tryParse(event.value ?? '') ?? 0;
           state = state.copyWith(progress: (progress / 100).clamp(0, 1));
         case OtaStatus.INSTALLING:
-          state = state.copyWith(status: UpdateStatus.readyToInstall, progress: 1);
+          state = state.copyWith(
+            status: UpdateStatus.readyToInstall,
+            progress: 1,
+          );
         case OtaStatus.INSTALLATION_DONE:
           state = state.copyWith(
             status: UpdateStatus.idle,

@@ -72,8 +72,9 @@ class TonePreviewService {
   Future<List<DeviceTone>> listDeviceTones() async {
     if (!_isAndroid) return const [];
     try {
-      final rows = await _deviceChannel
-          .invokeListMethod<Map<dynamic, dynamic>>('listDeviceTones');
+      final rows = await _deviceChannel.invokeListMethod<Map<dynamic, dynamic>>(
+        'listDeviceTones',
+      );
       if (rows == null) return const [];
       return [
         for (final row in rows)
@@ -95,9 +96,7 @@ class TonePreviewService {
     if (!_isAndroid) return false;
     await stop();
     try {
-      await _deviceChannel.invokeMethod('previewDeviceTone', {
-        'uri': tone.uri,
-      });
+      await _deviceChannel.invokeMethod('previewDeviceTone', {'uri': tone.uri});
       _playing = tone.name;
       return true;
     } catch (_) {
@@ -203,11 +202,12 @@ class TonePreviewService {
     final ext = _fileExtension(tone.assetPath); // e.g. ".wav" or ".mp3"
     // Sanitise the resource name for use as a filename (spaces → underscores).
     final safeName = tone.androidRawResource.replaceAll(RegExp(r'[^\w]'), '_');
-    final file = File(
-      '${Directory.systemTemp.path}/mawaqit_$safeName$ext',
-    );
+    final file = File('${Directory.systemTemp.path}/mawaqit_$safeName$ext');
     final data = await rootBundle.load('assets/${tone.assetPath}');
-    final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    final bytes = data.buffer.asUint8List(
+      data.offsetInBytes,
+      data.lengthInBytes,
+    );
     if (!file.existsSync() || file.lengthSync() != bytes.length) {
       await file.writeAsBytes(bytes, flush: true);
     }
@@ -227,7 +227,8 @@ class TonePreviewService {
     for (final candidate in candidates) {
       try {
         final result = Process.runSync('which', [candidate]);
-        if (result.exitCode == 0 && (result.stdout as String).trim().isNotEmpty) {
+        if (result.exitCode == 0 &&
+            (result.stdout as String).trim().isNotEmpty) {
           return candidate;
         }
       } catch (_) {}

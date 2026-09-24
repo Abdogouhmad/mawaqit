@@ -7,22 +7,14 @@ import 'package:mawaqit/src/home_widget/prayer_widget.home_widget.dart';
 
 /// Pushes the current prayer day to the Android home-screen widget.
 ///
-/// The widget is a static snapshot rendered by generated Glance code — a compact
-/// 2×2 card showing the next prayer, a countdown and a day-progress bar. All
-/// values are pre-formatted in Dart (the widget data API stores scalars only),
-/// and the snapshot is refreshed at every prayer rollover + app launch rather
-/// than on every tick, to keep battery usage flat.
+/// The widget is a static snapshot rendered by generated Glance code — a
+/// compact 2×2 card showing the location, the next prayer, its time and the
+/// countdown until it. All values are pre-formatted in Dart (the widget data
+/// API stores scalars only), and the snapshot is refreshed at every prayer
+/// rollover + app launch rather than on every tick, to keep battery flat.
 abstract final class PrayerWidgetService {
   static bool get _isAndroid =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
-
-  /// Length of the day-progress bar, matched to the widget's
-  /// `progressFilled` / `progressRemaining` defaults. Filled is rendered as a
-  /// solid track (`━`), remaining as a dotted rail (`·`) so progress reads at
-  /// a glance on the compact widget.
-  static const int _barLength = 12;
-  static const String _barFilled = '━';
-  static const String _barRemaining = '·';
 
   /// Sends [day]'s snapshot to the widget and asks the launcher to re-render.
   ///
@@ -47,24 +39,11 @@ abstract final class PrayerWidgetService {
           ? Duration.zero
           : next.time.difference(now);
 
-      // Day progress Fajr → next-day Fajr, rendered as a segmented bar where
-      // the filled portion is a solid track and the rest a dotted rail.
-      final fajr = day.prayer(PrayerKind.fajr)?.time ?? day.date;
-      final window = day.nextDayFajr.difference(fajr);
-      final ratio = window <= Duration.zero
-          ? 0.0
-          : (now.difference(fajr).inMilliseconds / window.inMilliseconds)
-                .clamp(0.0, 1.0)
-                .toDouble();
-      final filled = (ratio * _barLength).round();
-
       await PrayerWidgetHomeWidget.saveData(
         locationShort: _shorten(locationShort ?? settings.cityName),
         nextPrayerName: next.kind.displayName,
         nextPrayerTime: TimeFormatter.clock(next.time),
         nextPrayerCountdown: 'in ${TimeFormatter.longCountdown(nextIn)}',
-        progressFilled: _barFilled * filled,
-        progressRemaining: _barRemaining * (_barLength - filled),
       );
       await PrayerWidgetHomeWidget.updateWidget();
     } catch (_) {
