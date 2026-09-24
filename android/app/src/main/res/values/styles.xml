@@ -16,10 +16,14 @@
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
 
-    <!-- Full-screen Adhan alarm (AdhanAlarmActivity): dark, no title bar, and
-         laid out edge-to-edge so it presents cleanly over the lockscreen. -->
+    <!-- Full-screen Adhan alarm (AdhanAlarmActivity): edge-to-edge over the
+         lockscreen with a transparent system bar so the gradient runs wall
+         to wall behind the clock. -->
     <style name="Theme.Mawaqit.Alarm" parent="@android:style/Theme.Black.NoTitleBar.Fullscreen">
-        <item name="android:windowBackground">@color/alarm_background</item>
+        <item name="android:windowBackground">@drawable/bg_alarm_gradient</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 </resources>

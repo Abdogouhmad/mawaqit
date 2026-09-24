@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:mawaqit/core/theme/colors.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
+import 'package:mawaqit/shared/widgets/app_pill.dart';
 import 'package:mawaqit/shared/widgets/pulse_dot.dart';
 
 enum PrayerTileStatus { passed, active, upcoming }
@@ -66,12 +68,14 @@ class PrayerScheduleTile extends StatelessWidget {
         ),
       ];
     } else if (passed) {
-      background = isLight ? const Color(0xFFF4F4F1) : const Color(0xFF181918);
-      border = isLight ? const Color(0x0A000000) : const Color(0x0FFFFFFF);
+      background = isLight
+          ? AppColors.tileInactiveLight
+          : AppColors.cardDark;
+      border = isLight ? AppColors.hairlineOverlayLight : AppColors.hairlineOverlayDark;
       shadow = null;
     } else {
       background = scheme.surfaceContainerLowest;
-      border = isLight ? const Color(0x0A000000) : const Color(0x0FFFFFFF);
+      border = isLight ? AppColors.hairlineOverlayLight : AppColors.hairlineOverlayDark;
       shadow = null;
     }
 
@@ -117,33 +121,12 @@ class PrayerScheduleTile extends StatelessWidget {
             ),
           ),
           if (active && countdownLabel != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg,
-                vertical: AppSpacing.xs,
-              ),
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.notifications_active,
-                    size: AppIconSize.sm,
-                    color: scheme.primary,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    countdownLabel!,
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.primary,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                ],
-              ),
+            AppPill(
+              label: countdownLabel!,
+              icon: Icons.notifications_active,
+              dense: true,
+              backgroundColor: scheme.surfaceContainerLowest,
+              foregroundColor: scheme.primary,
             ),
             const SizedBox(width: AppSpacing.lg),
           ],
@@ -159,40 +142,16 @@ class PrayerScheduleTile extends StatelessWidget {
           if (muted)
             Tooltip(
               message: 'Tap to unmute adhan',
-              child: InkWell(
+              child: AppPill(
                 key: const Key('mute-toggle'),
+                label: 'Muted',
+                icon: Icons.volume_off,
+                dense: true,
                 onTap: onToggleMute == null ? null : _handleToggle,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: AppSpacing.xs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: scheme.tertiaryContainer.withValues(
-                      alpha: isLight ? 0.6 : 0.35,
-                    ),
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.volume_off,
-                        size: AppIconSize.sm,
-                        color: scheme.onTertiaryContainer,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Muted',
-                        style: textTheme.labelSmall?.copyWith(
-                          color: scheme.onTertiaryContainer,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                    ],
-                  ),
+                backgroundColor: scheme.tertiaryContainer.withValues(
+                  alpha: isLight ? 0.6 : 0.35,
                 ),
+                foregroundColor: scheme.onTertiaryContainer,
               ),
             )
           else

@@ -11,6 +11,50 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.3] - 2026-09-24
+
+New since v0.8.2.
+
+### Added
+
+- **A day-progress row on the home-screen widget** — five dots (Fajr → Isha)
+  under the next-prayer hero mark which prayers are done, which is playing and
+  what's still to come, so the whole day reads at a glance.
+
+### Changed
+
+- **The home-screen widget is now a framed card** — a soft rounded border and
+  a theme-aware canvas (light and dark) replace the flat tile, the next-prayer
+  hero (name, big countdown, clock time) sits up top, and the new dot row
+  finishes the card. Colors come from the shared app palette.
+- **The lockscreen alarm got a visual refresh** — a dark gradient backdrop, an
+  "ADHAN" eyebrow above the prayer name, the full date line under the live
+  clock, and a clearer hint: "Tap Stop or press either volume key to silence
+  the call". The in-app adhan overlay was restyled to match it.
+- **Every screen now uses one shared UI kit** — buttons, pills, text styles,
+  icon badges, option sheets, info rows and cards were pulled into small shared
+  widgets (with the palette centralized in the theme), so Home, Settings and
+  the Update screen render with the same consistent shapes, spacing and fonts
+  in both light and dark mode.
+- **"Test Adhan" is always armed as a real alarm** — even without exact-alarm
+  access the test now schedules through the native engine (degrading to an
+  still-firing allow-while-idle alarm) instead of only ringing while the app
+  stays open; the in-app timer is now just a last resort when no native channel
+  exists.
+
+### Fixed
+
+- **The adhan can no longer fire with missing data after a swipe-away** — the
+  schedule snapshot is embedded directly in the alarm intent (and written
+  synchronously), so the receiver still has everything it needs even if the
+  process was killed before the async prefs write landed.
+- **Full-screen-intent denials are now visible** — on Android 14+ the app logs
+  when `USE_FULL_SCREEN_INTENT` is denied, so a degraded heads-up (instead of a
+  lockscreen takeover) is no longer silent.
+- **Recompute cancellation is concurrent** — the stale-notification sweep now
+  cancels yesterday/today/tomorrow in parallel, removing the ordering
+  dependency and speeding up every reschedule.
+
 ## [0.8.2] - 2026-09-24
 
 New since v0.7.0.
@@ -493,3 +537,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.6.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.5.0...v0.6.0
 [0.7.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.6.0...v0.7.0
 [0.8.2]: https://github.com/Abdogouhmad/mawaqit/compare/v0.7.0...v0.8.2
+[0.8.3]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.2...v0.8.3

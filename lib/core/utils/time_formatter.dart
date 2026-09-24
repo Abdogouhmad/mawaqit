@@ -24,6 +24,9 @@ abstract final class TimeFormatter {
 
   static String clock(DateTime t) => _time.format(t);
 
+  /// Capitalised "Monday, September 22" — the alarm presenter's date line.
+  static String dateTitle(DateTime d) => _date.format(d);
+
   static String gregorian(DateTime d) => _date.format(d).toLowerCase();
 
   static String hijri(DateTime d) {

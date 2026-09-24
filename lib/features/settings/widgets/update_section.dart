@@ -5,6 +5,7 @@ import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
 import 'package:mawaqit/features/settings/widgets/ota_update_screen.dart';
+import 'package:mawaqit/shared/widgets/app_pill.dart';
 import 'package:mawaqit/shared/widgets/settings_group.dart';
 import 'package:mawaqit/shared/widgets/settings_row.dart';
 
@@ -31,33 +32,11 @@ class UpdateSection extends ConsumerWidget {
             MaterialPageRoute<void>(builder: (_) => const OtaUpdateScreen()),
           ),
           trailing: shouldHighlight
-              ? Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                    vertical: AppSpacing.sm,
-                  ),
-                  decoration: BoxDecoration(
-                    color: scheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.system_update_rounded,
-                        size: AppIconSize.sm,
-                        color: scheme.primary,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        'Update available',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
+              ? AppPill(
+                  label: 'Update available',
+                  icon: Icons.system_update_rounded,
+                  dense: true,
+                  color: scheme.primary,
                 )
               : const Icon(Icons.chevron_right, size: AppIconSize.xl),
         ),

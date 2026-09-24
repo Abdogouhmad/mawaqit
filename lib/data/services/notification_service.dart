@@ -453,7 +453,7 @@ class NotificationService {
     }
     await playAdhanNow(settings);
     showAdhanOverlay(
-      title: 'Adhan — $_testAdhanLabel',
+      title: _testAdhanLabel,
       notificationId: _testNotificationId,
     );
     await _plugin.show(
@@ -523,7 +523,7 @@ class NotificationService {
     } catch (_) {}
 
     await playAdhanNow(settings);
-    showAdhanOverlay(title: title, notificationId: id);
+    showAdhanOverlay(title: prayer.kind.displayName, notificationId: id);
     await _plugin.show(
       id: id,
       title: title,
@@ -777,7 +777,8 @@ class NotificationService {
     final label = prayer.isEmpty
         ? 'Prayer'
         : prayer[0].toUpperCase() + prayer.substring(1);
-    showAdhanOverlay(title: 'Adhan — $label', notificationId: notificationId);
+    // The presenter's eyebrow already says "ADHAN" — pass the bare name.
+    showAdhanOverlay(title: label, notificationId: notificationId);
   }
 
   /// Resolves the selected tone to an audioplayers [`Source`], or null when
@@ -973,9 +974,13 @@ class NotificationService {
   /// from a backgrounded app. The selected sound is resolved in Dart and
   /// persisted as the engine's only audio input.
   ///
-  /// A stale scheduled test is cleared first so every tap re-arms cleanly, and
-  /// when exact alarms are unavailable (or the schedule call fails) the alarm
-  /// fires immediately after the window instead of silently never ringing.
+  /// The alarm is ALWAYS armed natively — even without exact-alarm access,
+  /// where AlarmManager degrades to `setAndAllowWhileIdle` and still fires
+  /// after the app is swiped from recents. A Dart `Timer` cannot: it dies with
+  /// the process, which is exactly when the test used to go silent. The timer
+  /// below only covers a channel that is missing entirely (desktop/dev).
+  ///
+  /// A stale scheduled test is cleared first so every tap re-arms cleanly.
   Future<void> _scheduleNativeTestAdhan(AppSettings settings) async {
     try {
       await _channel.invokeMethod('cancelAdhan', {'id': _testNotificationId});
@@ -993,11 +998,12 @@ class NotificationService {
       'soundRaw': sound.raw,
       'soundUri': sound.uri,
     };
-    // Without exact-alarm access `AlarmManager` degrades to an inexact timer
-    // that can sit unscheduled for many minutes — the test would look dead.
-    // Wait out the window in-app, then fire the native alarm directly: it
-    // still rings and fills the screen while the app is around.
-    if (!_exactAlarmGranted) {
+    try {
+      await _channel.invokeMethod('scheduleAdhan', args);
+    } catch (e) {
+      debugPrint('Native adhan test schedule failed: $e');
+      // Native engine unavailable — best-effort in-app fire. Only valid while
+      // this process lives; there is no host to schedule against otherwise.
       _timers.remove(_testNotificationId)?.cancel();
       _timers[_testNotificationId] = Timer(const Duration(seconds: 3), () async {
         try {
@@ -1012,26 +1018,14 @@ class NotificationService {
         }
         _timers.remove(_testNotificationId);
       });
-      return;
-    }
-    try {
-      await _channel.invokeMethod('scheduleAdhan', args);
-    } catch (e) {
-      debugPrint('Native adhan test schedule failed: $e');
-      await _fireNativeAdhanNow(
-        _testNotificationId,
-        _testAdhanLabel,
-        settings,
-        isTest: true,
-      );
     }
   }
 
   /// Fires the native alarm immediately (used by the live rollover hand-off
   /// while the app is open — the foreground `fireAdhanNow` path — and as the
-  /// fallback for the debug test when exact alarms are unavailable). The
-  /// selected sound is resolved here in Dart and passed down as the engine's
-  /// only audio input.
+  /// fallback for the debug test when the native channel itself is missing).
+  /// The selected sound is resolved here in Dart and passed down as the
+  /// engine's only audio input.
   Future<void> _fireNativeAdhanNow(
     int id,
     String name,
@@ -1299,7 +1293,7 @@ class NotificationService {
       _alarmRinging = false;
       await _setAlarmActive(false);
     }
-    _timers.values.toList().forEach((timer) => timer.cancel());
+    _timers.forEach((_, timer) => timer.cancel());
     _timers.clear();
 
     if (!_isAndroid) return;
@@ -1318,17 +1312,19 @@ class NotificationService {
   /// Cancels every pending Flutter alert for today and its neighbours so a
   /// stale recompute can never leave a double-firing notification behind.
   /// Only today is ever scheduled, so a ±1-day window covers every id that
-  /// can exist.
+  /// can exist. All cancels run concurrently — the plugin round-trip dominates
+  /// and there is no ordering dependency between ids.
   Future<void> _cancelFlutterDayRange() async {
     final today = DateTime.now();
-    for (var offset = -1; offset <= 1; offset++) {
-      final day = today.add(Duration(days: offset));
-      for (var i = 0; i < PrayerKind.five.length; i++) {
-        await _plugin.cancel(id: _adhanId(day, i));
-        await _plugin.cancel(id: _reminderId(day, i));
-      }
-    }
-    await _plugin.cancel(id: _testNotificationId);
+    final cancels = <Future<void>>[
+      for (var offset = -1; offset <= 1; offset++)
+        for (var i = 0; i < PrayerKind.five.length; i++) ...[
+          _plugin.cancel(id: _adhanId(today.add(Duration(days: offset)), i)),
+          _plugin.cancel(id: _reminderId(today.add(Duration(days: offset)), i)),
+        ],
+      _plugin.cancel(id: _testNotificationId),
+    ];
+    await Future.wait(cancels);
   }
 
   static int _idFor(DateTime date, int prayerIndex, int bucket) {

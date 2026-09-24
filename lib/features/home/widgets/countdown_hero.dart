@@ -5,6 +5,7 @@ import 'package:mawaqit/core/theme/colors.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
+import 'package:mawaqit/shared/widgets/app_pill.dart';
 import 'package:mawaqit/shared/widgets/pulse_dot.dart';
 
 /// Large focal countdown with temporal progress bar.
@@ -44,36 +45,17 @@ class CountdownHero extends StatelessWidget {
 
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            color: isLight
-                ? scheme.surfaceContainer
-                : AppColors.primaryDark.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-            border: isLight
-                ? null
-                : Border.all(
-                    color: AppColors.primaryDark.withValues(alpha: 0.25),
-                  ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              PulseDot(color: scheme.primary, size: 7, glow: true),
-              const SizedBox(width: AppSpacing.md),
-              Text(
-                'NEXT PRAYER',
-                style: textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurface,
-                  letterSpacing: 1.6,
-                ),
-              ),
-            ],
-          ),
+        AppPill(
+          label: 'NEXT PRAYER',
+          leading: PulseDot(color: scheme.primary, size: 7, glow: true),
+          foregroundColor: scheme.onSurface,
+          backgroundColor: isLight
+              ? scheme.surfaceContainer
+              : AppColors.primaryDark.withValues(alpha: 0.12),
+          borderColor: isLight
+              ? null
+              : AppColors.primaryDark.withValues(alpha: 0.25),
+          letterSpacing: 1.6,
         ),
         const SizedBox(height: AppSpacing.jumbo),
         FittedBox(
@@ -109,23 +91,12 @@ class CountdownHero extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.md),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.xxs,
-              ),
-              decoration: BoxDecoration(
-                color: scheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(AppRadius.chip),
-              ),
-              child: Text(
-                subtitle,
-                style: textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  letterSpacing: 0.3,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+            AppPill(
+              label: subtitle,
+              dense: true,
+              backgroundColor: scheme.surfaceContainer,
+              foregroundColor: scheme.onSurfaceVariant,
+              letterSpacing: 0.3,
             ),
           ],
         ),
@@ -153,9 +124,7 @@ class CountdownHero extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    startTime == null
-                        ? 'Start'
-                        : TimeFormatter.clock(startTime),
+                    startTime == null ? 'Start' : TimeFormatter.clock(startTime),
                     style: textTheme.labelSmall?.copyWith(
                       color: scheme.onSurfaceVariant,
                       letterSpacing: 0.4,

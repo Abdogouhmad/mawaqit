@@ -14,17 +14,17 @@ abstract final class AppTheme {
     onPrimaryContainer: AppColors.deepInk,
     secondary: AppColors.secondary,
     onSecondary: Colors.white,
-    secondaryContainer: Color(0xFFD6E5DB),
-    onSecondaryContainer: Color(0xFF1D5039),
+    secondaryContainer: AppColors.secondaryContainerLight,
+    onSecondaryContainer: AppColors.onSecondaryContainerLight,
     tertiary: AppColors.tertiary,
     onTertiary: Colors.white,
     surface: AppColors.canvasLight,
     onSurface: AppColors.onSurfaceLight,
     surfaceContainerLowest: AppColors.cardLight,
     surfaceContainerLow: AppColors.containerLight,
-    surfaceContainer: Color(0xFFEEEEEB),
-    surfaceContainerHigh: Color(0xFFE8E8E5),
-    surfaceContainerHighest: Color(0xFFE2E3E0),
+    surfaceContainer: AppColors.surfaceContainerLight,
+    surfaceContainerHigh: AppColors.surfaceContainerHighLight,
+    surfaceContainerHighest: AppColors.surfaceContainerHighestLight,
     onSurfaceVariant: AppColors.onSurfaceMutedLight,
     outline: AppColors.onSurfaceMutedLight,
     outlineVariant: AppColors.hairlineLight,
@@ -34,25 +34,25 @@ abstract final class AppTheme {
   static const ColorScheme _darkScheme = ColorScheme.dark(
     primary: AppColors.primaryDark,
     onPrimary: Colors.white,
-    primaryContainer: Color(0xFF1E4A38),
-    onPrimaryContainer: Color(0xFFC9F5DD),
-    secondary: AppColors.tertiary,
-    onSecondary: Color(0xFF22302A),
-    secondaryContainer: Color(0xFF38503F),
-    onSecondaryContainer: Color(0xFFC9E2CF),
-    tertiary: Color(0xFFA9BFB0),
-    onTertiary: Color(0xFF213027),
+    primaryContainer: AppColors.primaryContainerDark,
+    onPrimaryContainer: AppColors.onPrimaryContainerDark,
+    secondary: AppColors.tertiaryDark,
+    onSecondary: AppColors.onSecondaryDark,
+    secondaryContainer: AppColors.secondaryContainerDark,
+    onSecondaryContainer: AppColors.onSecondaryContainerDark,
+    tertiary: AppColors.tertiaryDark,
+    onTertiary: AppColors.onTertiaryDark,
     surface: AppColors.canvasDark,
     onSurface: AppColors.onSurfaceDark,
     surfaceContainerLowest: AppColors.cardDark,
     surfaceContainerLow: AppColors.sunkenDark,
-    surfaceContainer: Color(0xFF1B1C1B),
-    surfaceContainerHigh: Color(0xFF1F211F),
-    surfaceContainerHighest: Color(0xFF232524),
+    surfaceContainer: AppColors.surfaceContainerDark,
+    surfaceContainerHigh: AppColors.surfaceContainerHighDark,
+    surfaceContainerHighest: AppColors.surfaceContainerHighestDark,
     onSurfaceVariant: AppColors.onSurfaceMutedDark,
     outline: AppColors.onSurfaceMutedDark,
     outlineVariant: AppColors.hairlineDark,
-    error: Color(0xFFFFB4AB),
+    error: AppColors.errorDark,
   );
 
   static ThemeData light() => _build(_lightScheme, Brightness.light);
@@ -148,6 +148,80 @@ abstract final class AppTheme {
     );
 
     return base.copyWith(
+      appBarTheme: AppBarThemeData(
+        backgroundColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: false,
+        titleTextStyle: textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.2,
+        ),
+        iconTheme: IconThemeData(color: scheme.onSurfaceVariant),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: scheme.onSurfaceVariant,
+          shape: const CircleBorder(),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: scheme.surfaceContainerHigh,
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
+        labelStyle: textTheme.bodyMedium?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xxxl,
+          vertical: AppSpacing.jumbo,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderSide: const BorderSide(color: Colors.transparent),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderSide: const BorderSide(color: Colors.transparent),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderSide: BorderSide(color: primary, width: 2),
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        iconColor: scheme.onSurfaceVariant,
+        textColor: scheme.onSurface,
+        selectedColor: primary,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: primary,
+        linearTrackColor: scheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: scheme.inverseSurface,
+          borderRadius: BorderRadius.circular(AppRadius.mini),
+        ),
+        textStyle: textTheme.labelMedium?.copyWith(
+          color: scheme.onInverseSurface,
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        showCheckmark: false,
+        backgroundColor: scheme.surfaceContainerHigh,
+        side: BorderSide(color: scheme.outlineVariant),
+        labelStyle: textTheme.labelMedium,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.chip),
+        ),
+      ),
       cardTheme: CardThemeData(
         color: cardColor,
         elevation: 0,

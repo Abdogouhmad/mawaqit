@@ -29,12 +29,16 @@ import java.util.Locale
 class AdhanAlarmActivity : Activity() {
 
     private lateinit var clockView: TextView
+    private lateinit var dateView: TextView
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val timeFormat = SimpleDateFormat("h:mm:ss a", Locale.US)
+    private val timeFormat = SimpleDateFormat("h:mm:ss a", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
 
     private val stopClock = object : Runnable {
         override fun run() {
-            clockView.text = timeFormat.format(Date())
+            val now = Date()
+            clockView.text = timeFormat.format(now)
+            dateView.text = dateFormat.format(now)
             mainHandler.postDelayed(this, 1000L)
         }
     }
@@ -56,9 +60,12 @@ class AdhanAlarmActivity : Activity() {
 
         setContentView(R.layout.activity_adhan_alarm)
 
+        // The eyebrow above the title already says "ADHAN"; the title itself is
+        // just the occurrence name ("Maghrib", "Test").
         val name = intent?.getStringExtra("name") ?: "Prayer"
-        findViewById<TextView>(R.id.alarm_title).text = "Adhan — $name"
+        findViewById<TextView>(R.id.alarm_title).text = name
         clockView = findViewById(R.id.alarm_clock)
+        dateView = findViewById(R.id.alarm_date)
 
         findViewById<Button>(R.id.alarm_stop).setOnClickListener { stopAdhan() }
         val filter = IntentFilter(AdhanScheduler.ACTION_STOP)

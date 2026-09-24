@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:mawaqit/core/theme/colors.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 
 /// Pill-shaped segmented control (design "None/5/10/15", "System/Light/Dark").
@@ -27,21 +28,16 @@ class SegmentedControl<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLight = Theme.of(context).brightness == Brightness.light;
-    final trackColor = isLight
-        ? const Color(0xFFEEEEEB)
-        : const Color(0xFF1B1C1B);
+    final scheme = Theme.of(context).colorScheme;
     final selectedIndex = options.indexWhere((option) => option.$1 == value);
     const padding = AppSpacing.xs;
 
     return Container(
       padding: const EdgeInsets.all(padding),
       decoration: BoxDecoration(
-        color: trackColor,
+        color: scheme.surfaceContainer,
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(
-          color: isLight ? const Color(0xFFE7E7E0) : const Color(0xFF252725),
-        ),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -130,17 +126,17 @@ class _HighlightPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(AppRadius.mini),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x1A000000),
-            blurRadius: 4,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
+decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerLowest,
+          borderRadius: BorderRadius.circular(AppRadius.mini),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadowSoft,
+              blurRadius: 4,
+              offset: Offset(0, 1),
+            ),
+          ],
+        ),
     );
   }
 }

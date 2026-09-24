@@ -5,7 +5,11 @@ import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/data/services/update_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
+import 'package:mawaqit/shared/widgets/app_button.dart';
 import 'package:mawaqit/shared/widgets/app_card.dart';
+import 'package:mawaqit/shared/widgets/app_pill.dart';
+import 'package:mawaqit/shared/widgets/icon_badge.dart';
+import 'package:mawaqit/shared/widgets/info_row.dart';
 
 /// Full-page OTA update center, reachable from the settings "Update" entry.
 ///
@@ -159,24 +163,24 @@ class _StatusHeader extends StatelessWidget {
         : scheme.onSecondaryContainer;
 
     final pill = checking
-        ? _Pill(
+        ? AppPill(
             label: 'Checking…',
             color: scheme.primary,
             icon: Icons.sync_rounded,
           )
         : failed
-        ? _Pill(
+        ? AppPill(
             label: 'Check failed',
             color: scheme.error,
             icon: Icons.error_outline_rounded,
           )
         : update
-        ? _Pill(
+        ? AppPill(
             label: 'New update available',
             color: scheme.primary,
             icon: Icons.system_update_alt_rounded,
           )
-        : _Pill(
+        : AppPill(
             label: 'You are up to date',
             color: scheme.primary,
             icon: Icons.check_circle_outline_rounded,
@@ -225,40 +229,6 @@ class _StatusHeader extends StatelessWidget {
         const SizedBox(height: AppSpacing.huge),
         pill,
       ],
-    );
-  }
-}
-
-class _Pill extends StatelessWidget {
-  final String label;
-  final Color color;
-  final IconData icon;
-
-  const _Pill({required this.label, required this.color, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.giga,
-        vertical: AppSpacing.md,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: AppIconSize.lg, color: color),
-          const SizedBox(width: AppSpacing.md),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelLarge
-                ?.copyWith(color: color, fontWeight: FontWeight.w700),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -342,32 +312,32 @@ class _VersionCard extends ConsumerWidget {
       title: 'Version details',
       icon: Icons.smartphone_rounded,
       children: [
-        _InfoRow(
+        InfoRow(
           icon: Icons.layers_rounded,
           label: 'Current version',
           value: 'v$current',
         ),
         _divider(context),
-        _InfoRow(
+        InfoRow(
           icon: Icons.new_releases_outlined,
           label: 'Latest version',
           value: latest == null ? 'Unknown' : 'v$latest',
           highlight: state.hasUpdate,
         ),
         _divider(context),
-        const _InfoRow(
+        const InfoRow(
           icon: Icons.insert_drive_file_outlined,
           label: 'Install type',
           value: 'Universal APK',
         ),
         _divider(context),
-        _InfoRow(
+        InfoRow(
           icon: Icons.schedule_rounded,
           label: 'Last checked',
           value: _formatChecked(lastChecked),
         ),
         _divider(context),
-        _InfoRow(
+        InfoRow(
           icon: Icons.rule_rounded,
           label: 'Last result',
           value: _resultLabel(lastResult),
@@ -384,50 +354,6 @@ Widget _divider(BuildContext context) => Divider(
   height: 1,
   color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.6),
 );
-
-class _InfoRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final bool highlight;
-
-  const _InfoRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.highlight = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xxl,
-        vertical: AppSpacing.md,
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 24, color: scheme.onSurfaceVariant),
-          const SizedBox(width: AppSpacing.md),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium
-                ?.copyWith(color: scheme.onSurfaceVariant),
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: highlight ? scheme.primary : scheme.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 /// "What's new" card rendering the CHANGELOG section shipped in the manifest.
 class _ChangelogCard extends StatelessWidget {
@@ -644,23 +570,10 @@ class _ReadyCard extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.huge),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(0, AppSpacing.control),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.giga,
-              vertical: AppSpacing.xxl,
-            ),
-          ),
+        AppButton(
+          label: 'Install now',
+          icon: Icons.download_done_rounded,
           onPressed: onChangePressed,
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.download_done_rounded, size: AppIconSize.xl),
-              SizedBox(width: AppSpacing.md),
-              Text('Install now'),
-            ],
-          ),
         ),
       ],
     );
@@ -685,24 +598,19 @@ class _Actions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (canUpdate) {
-      return FilledButton.icon(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(0, AppSpacing.control),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.giga,
-            vertical: AppSpacing.xxl,
-          ),
-        ),
-        icon: const Icon(Icons.download_rounded, size: AppIconSize.xl),
-        label: const Text('Update now'),
+      return AppButton(
+        label: 'Update now',
+        icon: Icons.download_rounded,
         onPressed: onDownload,
       );
     }
 
     return Center(
-      child: OutlinedButton.icon(
-        icon: const Icon(Icons.refresh_rounded, size: AppIconSize.lg),
-        label: Text(failed ? 'Try again' : 'Check for updates'),
+      child: AppButton(
+        label: failed ? 'Try again' : 'Check for updates',
+        icon: Icons.refresh_rounded,
+        variant: AppButtonVariant.outlined,
+        expanded: false,
         onPressed: onCheck,
       ),
     );
@@ -757,7 +665,6 @@ class _Card extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.xxxl),
       child: Column(
@@ -765,14 +672,11 @@ class _Card extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: scheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: Icon(icon, size: 24, color: scheme.onSecondaryContainer),
+              IconBadge(
+                icon: icon,
+                square: true,
+                size: 40,
+                iconSize: AppIconSize.xl,
               ),
               const SizedBox(width: AppSpacing.md),
               Text(

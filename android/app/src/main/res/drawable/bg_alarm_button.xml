@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_pressed="true">
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#40FFFFFF">
+    <item android:id="@android:id/mask">
         <shape android:shape="rectangle">
-            <solid android:color="@color/alarm_button_pressed" />
-            <corners android:radius="24dp" />
+            <solid android:color="#FFFFFFFF" />
+            <corners android:radius="28dp" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/alarm_button" />
-            <corners android:radius="24dp" />
+            <gradient
+                android:angle="0"
+                android:startColor="@color/alarm_button"
+                android:endColor="@color/alarm_button_end" />
+            <corners android:radius="28dp" />
         </shape>
     </item>
-</selector>
+</ripple>

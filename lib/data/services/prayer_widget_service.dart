@@ -35,9 +35,8 @@ abstract final class PrayerWidgetService {
       PrayerTime next =
           day.currentOrNextPrayer(now) ??
           PrayerTime(kind: PrayerKind.fajr, time: day.nextDayFajr);
-      final nextIn = next.time.difference(now).isNegative
-          ? Duration.zero
-          : next.time.difference(now);
+      final remaining = next.time.difference(now);
+      final nextIn = remaining.isNegative ? Duration.zero : remaining;
 
       await PrayerWidgetHomeWidget.saveData(
         locationShort: _shorten(locationShort ?? settings.cityName),
