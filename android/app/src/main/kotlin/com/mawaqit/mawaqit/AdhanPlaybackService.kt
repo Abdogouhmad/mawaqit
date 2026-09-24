@@ -34,9 +34,9 @@ class AdhanPlaybackService : Service() {
             return START_NOT_STICKY
         }
 
-        val name = intent.getStringExtra("name") ?: "Prayer"
-        val raw = intent.getStringExtra("soundRaw").orEmpty()
-        val uri = intent.getStringExtra("soundUri").orEmpty()
+        val name = intent?.getStringExtra("name") ?: "Prayer"
+        val raw = intent?.getStringExtra("soundRaw").orEmpty()
+        val uri = intent?.getStringExtra("soundUri").orEmpty()
         val schedule = AdhanScheduler.Schedule(
             id = id,
             name = name,
