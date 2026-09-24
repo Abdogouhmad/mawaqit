@@ -13,7 +13,11 @@ import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/widgets/notification_settings_section.dart';
 import 'package:mawaqit/features/settings/widgets/update_section.dart';
 import 'package:mawaqit/providers/providers.dart';
+import 'package:mawaqit/shared/widgets/app_button.dart';
 import 'package:mawaqit/shared/widgets/app_card.dart';
+import 'package:mawaqit/shared/widgets/app_pill.dart';
+import 'package:mawaqit/shared/widgets/icon_badge.dart';
+import 'package:mawaqit/shared/widgets/option_sheet.dart';
 import 'package:mawaqit/shared/widgets/section_header.dart';
 import 'package:mawaqit/shared/widgets/segmented_control.dart';
 import 'package:mawaqit/shared/widgets/settings_group.dart';
@@ -64,16 +68,16 @@ class _SettingsHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Material(
-            color: scheme.secondaryContainer.withValues(alpha: 0.6),
-            shape: const CircleBorder(),
-            child: IconButton(
-              onPressed: () => Navigator.of(context).maybePop(),
-              icon: const Icon(Icons.arrow_back),
-              color: scheme.onSecondaryContainer,
-              tooltip: 'Back',
+Material(
+              color: scheme.secondaryContainer.withValues(alpha: 0.6),
+              shape: const CircleBorder(),
+              child: IconButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                icon: const Icon(Icons.arrow_back),
+                color: scheme.onSecondaryContainer,
+                tooltip: 'Back',
+              ),
             ),
-          ),
           const SizedBox(width: AppSpacing.xl),
           Expanded(
             child: Column(
@@ -147,7 +151,10 @@ class _SettingsBody extends ConsumerWidget {
             title: 'Current Location',
             subtitle: _locationSubtitle(settings),
             onTap: () => _openLocationSheet(context, ref, controller, settings),
-            trailing: _StatusPill(label: settings.locationMode.label),
+            trailing: AppPill(
+              label: settings.locationMode.label,
+              dense: true,
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.mega),
@@ -217,10 +224,10 @@ class _SettingsBody extends ConsumerWidget {
                 AppSpacing.xxxl,
                 AppSpacing.md,
               ),
-              child: Row(
-                children: [
-                  _LeadingIcon(Icons.palette_outlined),
-                  const SizedBox(width: AppSpacing.xxl),
+child: Row(
+                  children: [
+                    const IconBadge(icon: Icons.palette_outlined),
+                    const SizedBox(width: AppSpacing.xxl),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,8 +369,8 @@ class _SettingsBody extends ConsumerWidget {
       CalculationMethod.tehran,
       CalculationMethod.jafari,
     ];
-    final selected = await _showOptionSheet<CalculationMethod>(
-      context,
+    final selected = await showOptionSheet<CalculationMethod>(
+      context: context,
       title: 'Calculation Method',
       options: methods,
       label: (m) => m.displayName,
@@ -379,8 +386,8 @@ class _SettingsBody extends ConsumerWidget {
     SettingsController controller,
     AppSettings settings,
   ) async {
-    final selected = await _showOptionSheet<Madhab>(
-      context,
+    final selected = await showOptionSheet<Madhab>(
+      context: context,
       title: 'Juridical Method (Asr)',
       options: Madhab.values,
       label: (m) =>
@@ -390,67 +397,6 @@ class _SettingsBody extends ConsumerWidget {
     if (selected != null) {
       await controller.save(settings.copyWith(madhab: selected));
     }
-  }
-
-  Future<T?> _showOptionSheet<T>(
-    BuildContext context, {
-    required String title,
-    required List<T> options,
-    required String Function(T) label,
-    required T current,
-  }) {
-    final scheme = Theme.of(context).colorScheme;
-    return showModalBottomSheet<T>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => ConstrainedBox(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.7,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.giga,
-                AppSpacing.xs,
-                AppSpacing.giga,
-                AppSpacing.xl,
-              ),
-              child: Row(
-                children: [
-                  Text(title, style: Theme.of(context).textTheme.titleLarge),
-                ],
-              ),
-            ),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: options.length,
-                itemBuilder: (context, index) {
-                  final option = options[index];
-                  final isSelected = option == current;
-                  return ListTile(
-                    title: Text(label(option)),
-                    trailing: isSelected
-                        ? Icon(
-                            Icons.check,
-                            size: AppIconSize.xl,
-                            color: scheme.primary,
-                          )
-                        : null,
-                    selected: isSelected,
-                    selectedTileColor: scheme.primary.withValues(alpha: 0.06),
-                    onTap: () => Navigator.of(context).pop(option),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -618,15 +564,11 @@ class _LocationSheetState extends State<_LocationSheet> {
               ],
               if (_results.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.xl),
-                Material(
-                  color: scheme.surfaceContainerLowest,
-                  clipBehavior: Clip.antiAlias,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    side: BorderSide(
-                      color: scheme.outlineVariant.withValues(alpha: 0.4),
-                    ),
-                  ),
+                AppCard(
+                  padding: EdgeInsets.zero,
+                  radius: AppRadius.md,
+                  borderColor: scheme.outlineVariant.withValues(alpha: 0.4),
+                  ambient: false,
                   child: Column(
                     children: [
                       for (final (index, result) in _results.indexed) ...[
@@ -680,72 +622,17 @@ class _LocationSheetState extends State<_LocationSheet> {
               ],
             ],
             const SizedBox(height: AppSpacing.huge),
-            FilledButton(
+            AppButton(
+              label: 'Save location',
+              icon: Icons.check_rounded,
               onPressed: canSave
                   ? () {
                       widget.controller.save(_draft);
                       Navigator.of(context).pop();
                     }
                   : null,
-              child: const Text('Save location'),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Leading icon circle reused by non-tappable group headers (matches
-/// `SettingsRow`'s own tile icon so rows stay visually aligned).
-class _LeadingIcon extends StatelessWidget {
-  const _LeadingIcon(this.icon);
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      width: AppSpacing.control,
-      height: AppSpacing.control,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: scheme.secondaryContainer.withValues(alpha: 0.55),
-      ),
-      child: Icon(
-        icon,
-        size: AppIconSize.lg,
-        color: scheme.onSecondaryContainer,
-      ),
-    );
-  }
-}
-
-/// Quiet status pill (e.g. the active location mode) ending a settings row.
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-      ),
-      child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: scheme.onSurfaceVariant,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.4,
         ),
       ),
     );

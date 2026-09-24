@@ -8,6 +8,7 @@ import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/shared/widgets/app_card.dart';
+import 'package:mawaqit/shared/widgets/app_text.dart';
 import 'package:mawaqit/shared/widgets/pulse_dot.dart';
 import 'package:mawaqit/shared/widgets/section_header.dart';
 import 'package:mawaqit/features/home/home_controller.dart';
@@ -195,12 +196,11 @@ class _HomeBody extends ConsumerWidget {
         Row(
           children: [
             Expanded(
-              child: Text(
-                'CALCULATION: ${state.methodLabel.toUpperCase()}',
-                style: textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
-                  letterSpacing: 0.8,
-                ),
+              child: AppText.eyebrow(
+                context,
+                state.methodLabel,
+                tracking: 0.8,
+                color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
               ),
             ),
             Icon(
@@ -209,14 +209,13 @@ class _HomeBody extends ConsumerWidget {
               color: scheme.primary,
             ),
             const SizedBox(width: AppSpacing.sm),
-            Text(
+            AppText.eyebrow(
+              context,
               sunsetIn.isNegative
-                  ? 'SUNSET ${TimeFormatter.clock(sunset).toUpperCase()}'
-                  : 'SUNSET IN ${TimeFormatter.longCountdown(sunsetIn).toUpperCase()}',
-              style: textTheme.labelSmall?.copyWith(
-                color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
-                letterSpacing: 0.8,
-              ),
+                  ? 'Sunset ${TimeFormatter.clock(sunset)}'
+                  : 'Sunset in ${TimeFormatter.longCountdown(sunsetIn)}',
+              tracking: 0.8,
+              color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
             ),
           ],
         ),

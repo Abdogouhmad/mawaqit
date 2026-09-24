@@ -8,6 +8,7 @@ import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/features/settings/widgets/tone_sheet.dart';
 import 'package:mawaqit/providers/providers.dart';
+import 'package:mawaqit/shared/widgets/icon_badge.dart';
 import 'package:mawaqit/shared/widgets/segmented_control.dart';
 import 'package:mawaqit/shared/widgets/settings_row.dart';
 
@@ -56,19 +57,7 @@ class NotificationSettingsSection extends ConsumerWidget {
           ),
           child: Row(
             children: [
-              Container(
-                width: AppSpacing.control,
-                height: AppSpacing.control,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: scheme.secondaryContainer.withValues(alpha: 0.55),
-                ),
-                child: Icon(
-                  icon,
-                  size: AppIconSize.lg,
-                  color: scheme.onSecondaryContainer,
-                ),
-              ),
+              IconBadge(icon: icon),
               const SizedBox(width: AppSpacing.xxl),
               Expanded(
                 child: Column(

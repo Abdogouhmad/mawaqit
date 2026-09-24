@@ -17,7 +17,15 @@ class AdhanAlarmReceiver : BroadcastReceiver() {
         val id = intent.getIntExtra(AdhanScheduler.EXTRA_ID, -1)
         if (id == -1) return
 
-        val schedule = AdhanScheduler.load(context, id) ?: return
+        // Prefs first (normal path); the alarm intent carries the same
+        // snapshot so a fire still works when the process was swiped away
+        // before the prefs write reached disk.
+        val schedule = AdhanScheduler.load(context, id)
+            ?: AdhanScheduler.fromJson(
+                id,
+                intent.getStringExtra(AdhanScheduler.EXTRA_SCHEDULE),
+            )
+            ?: return
         AdhanScheduler.fireNow(context, schedule)
     }
 }

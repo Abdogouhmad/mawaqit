@@ -59,4 +59,5 @@ abstract final class AppIconSize {
   static const double lg = 19;
   static const double xl = 20;
   static const double xxl = 21;
+  static const double display = 56;
 }

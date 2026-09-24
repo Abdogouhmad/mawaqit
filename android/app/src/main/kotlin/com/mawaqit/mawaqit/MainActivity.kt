@@ -151,7 +151,7 @@ class MainActivity : FlutterActivity() {
         super.onDestroy()
     }
 
-    /// Collects notification, alarm and ringtone sounds already on the device.
+    /** Collects notification, alarm and ringtone sounds already on the device. */
     private fun listDeviceTones(): List<Map<String, String>> {
         val tones = LinkedHashMap<String, String>()
         val types = listOf(

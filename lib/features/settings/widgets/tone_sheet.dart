@@ -7,6 +7,7 @@ import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/services/tone_preview_service.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
+import 'package:mawaqit/shared/widgets/app_card.dart';
 
 /// Bottom-sheet tone picker shared by the Pre-Prayer and Adhan notification
 /// settings. Parameterized by [kind] so both sections reuse the exact same
@@ -143,13 +144,11 @@ class _ToneSheetState extends State<ToneSheet> {
 
   Widget _card(BuildContext context, List<Widget> children) {
     final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: scheme.surfaceContainerLowest,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.4)),
-      ),
+    return AppCard(
+      padding: EdgeInsets.zero,
+      radius: AppRadius.md,
+      borderColor: scheme.outlineVariant.withValues(alpha: 0.4),
+      ambient: false,
       child: Column(children: children),
     );
   }

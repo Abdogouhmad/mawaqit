@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -31,6 +32,14 @@ object AdhanScheduler {
     const val ACTION_ADHAN = "com.mawaqit.action.ADHAN"
     const val ACTION_STOP = "com.mawaqit.action.STOP_ADHAN"
     const val EXTRA_ID = "com.mawaqit.extra.ADHAN_ID"
+
+    /**
+     * Full schedule snapshot embedded in the alarm [PendingIntent]. SharedPreferences
+     * writes are asynchronous by default, so a user swiping the app away within
+     * the schedule→fire window could leave the alarm with nothing to load; the
+     * receiver falls back to this copy when prefs miss.
+     */
+    const val EXTRA_SCHEDULE = "com.mawaqit.extra.SCHEDULE_JSON"
 
     const val PREFS = "mawaqit_adhans"
     private const val KEY_NAME = "name"
@@ -67,13 +76,14 @@ object AdhanScheduler {
     fun alarmManager(context: Context) =
         context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    fun pendingIntent(context: Context, id: Int) =
+    fun pendingIntent(context: Context, id: Int, scheduleJson: String? = null) =
         PendingIntent.getBroadcast(
             context,
             7000 + id, // distinct bucket from PrayerScheduler's 4000..6000
             Intent(context, AdhanAlarmReceiver::class.java)
                 .setAction(ACTION_ADHAN)
-                .putExtra(EXTRA_ID, id),
+                .putExtra(EXTRA_ID, id)
+                .apply { if (scheduleJson != null) putExtra(EXTRA_SCHEDULE, scheduleJson) },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
@@ -119,27 +129,26 @@ object AdhanScheduler {
         soundUri: String,
         isTest: Boolean = false,
     ) {
-        prefs(context)
-            .edit()
-            .putString(
-                "adhan_$id",
-                JSONObject()
-                    .put(KEY_NAME, name)
-                    .put(KEY_PRAYER_ID, prayerId)
-                    .put(KEY_MUTED, muted)
-                    .put(KEY_IS_TEST, isTest)
-                    .put(KEY_SOUND_RAW, soundRaw)
-                    .put(KEY_SOUND_URI, soundUri)
-                    .put(KEY_TIMESTAMP, atEpochMs)
-                    .toString(),
-            )
-            .apply()
+        val snapshot = JSONObject()
+            .put(KEY_NAME, name)
+            .put(KEY_PRAYER_ID, prayerId)
+            .put(KEY_MUTED, muted)
+            .put(KEY_IS_TEST, isTest)
+            .put(KEY_SOUND_RAW, soundRaw)
+            .put(KEY_SOUND_URI, soundUri)
+            .put(KEY_TIMESTAMP, atEpochMs)
+            .toString()
+
+        // commit(), not apply(): the alarm can fire seconds later with the
+        // process already swiped away, and the async disk write of apply()
+        // may not have landed yet — the receiver would then find no snapshot.
+        prefs(context).edit().putString("adhan_$id", snapshot).commit()
 
         // A near-past/now trigger (e.g. the 3-second debug test) must not be
         // pushed a minute into the future — only never schedule into the past.
         val trigger = maxOf(atEpochMs, System.currentTimeMillis())
         val am = alarmManager(context)
-        val pi = pendingIntent(context, id)
+        val pi = pendingIntent(context, id, snapshot)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms()) {
             am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pi)
         } else {
@@ -164,6 +173,12 @@ object AdhanScheduler {
     /** Loads the stored snapshot for [id], or null when it no longer exists. */
     fun load(context: Context, id: Int): Schedule? {
         val raw = prefs(context).getString("adhan_$id", null) ?: return null
+        return fromJson(id, raw)
+    }
+
+    /** Parses a schedule snapshot; used by [load] and the alarm-intent fallback. */
+    fun fromJson(id: Int, raw: String?): Schedule? {
+        if (raw.isNullOrBlank()) return null
         val data = try {
             JSONObject(raw)
         } catch (_: Exception) {
@@ -222,8 +237,8 @@ object AdhanScheduler {
     }
 
     fun ensureChannels(context: Context) {
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL_ALARM, "Prayer call (adhan)", NotificationManager.IMPORTANCE_HIGH)
                 .apply {
@@ -381,6 +396,16 @@ object AdhanScheduler {
         //    from a receiver once the phone is locked / the app is killed.
         //    The service below re-posts the same id with the media-session
         //    style, replacing this card without re-alerting.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val nm = context.getSystemService(NotificationManager::class.java)
+            if (nm != null && !nm.canUseFullScreenIntent()) {
+                Log.w(
+                    "AdhanScheduler",
+                    "USE_FULL_SCREEN_INTENT denied — the lockscreen takeover " +
+                        "degrades to a heads-up card until granted in Settings.",
+                )
+            }
+        }
         try {
             NotificationManagerCompat.from(context)
                 .notify(effective.id, buildAlarmNotification(context, effective, null))

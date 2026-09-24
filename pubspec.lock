@@ -460,18 +460,18 @@ packages:
     dependency: "direct dev"
     description:
       name: home_widget_cli
-      sha256: "716733c942a44851c3c004d02133232a1d3c3d3bbeaa9a28feebe32f087a2f8f"
+      sha256: "4ed0d4cccfb10d1e744e3e8722a7609faa84172dda1675dad20693ab239965f3"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0"
+    version: "0.2.0"
   home_widget_generator:
     dependency: "direct dev"
     description:
       name: home_widget_generator
-      sha256: e57dcfcdc264dc2ec9726edf691c24271a3d5475fd791e7703b8743546b308d4
+      sha256: "4a600888be10fd54fb680232d8a4c59069de4cc7718c9dc303278c15bc5f9b79"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0"
+    version: "0.2.0"
   hooks:
     dependency: transitive
     description:
