@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Pill-shaped status/chip: the small icon + label capsule used for "Muted",
 /// "Update available", "In X min", status labels and toast-like accents.
@@ -46,8 +47,7 @@ class AppPill extends StatelessWidget {
         (accent != null
             ? accent.withValues(alpha: 0.12)
             : scheme.surfaceContainerHighest.withValues(alpha: 0.6));
-    final foreground =
-        foregroundColor ?? accent ?? scheme.onSurfaceVariant;
+    final foreground = foregroundColor ?? accent ?? scheme.onSurfaceVariant;
 
     final child = Row(
       mainAxisSize: expanded ? MainAxisSize.max : MainAxisSize.min,
@@ -60,14 +60,13 @@ class AppPill extends StatelessWidget {
           Icon(icon, size: AppIconSize.sm, color: foreground),
           const SizedBox(width: AppSpacing.xs + 2),
         ],
-        Text(
+        UiText(
           label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: foreground,
-            fontWeight: FontWeight.w600,
-            letterSpacing: letterSpacing,
-            height: 1,
-          ),
+          type: UiTextType.labelSmall,
+          color: foreground,
+          fontWeight: FontWeight.w600,
+          letterSpacing: letterSpacing,
+          style: const TextStyle(height: 1),
         ),
       ],
     );

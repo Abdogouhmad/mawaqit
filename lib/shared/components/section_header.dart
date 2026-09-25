@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/theme/tokens.dart';
-import 'package:mawaqit/shared/widgets/icon_badge.dart';
+import 'package:mawaqit/shared/ui/icon_badge.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Quiet group header: a small accent icon chip, an uppercase letterspaced
 /// label and an optional caption describing what the section controls.
@@ -22,7 +23,6 @@ class SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final headerIcon = icon;
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -47,21 +47,19 @@ class SectionHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                UiText(
                   label.toUpperCase(),
-                  style: textTheme.labelSmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.4,
-                  ),
+                  type: UiTextType.labelSmall,
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.4,
                 ),
                 if (description != null) ...[
                   const SizedBox(height: AppSpacing.xxs),
-                  Text(
+                  UiText(
                     description!,
-                    style: textTheme.labelMedium?.copyWith(
-                      color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
-                    ),
+                    type: UiTextType.labelMedium,
+                    color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
                   ),
                 ],
               ],

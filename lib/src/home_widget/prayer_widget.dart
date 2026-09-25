@@ -1,4 +1,5 @@
 // ignore_for_file: depend_on_referenced_packages
+import 'package:flutter/material.dart' show Icons;
 import 'package:home_widget_generator/home_widget_generator.dart';
 import 'package:mawaqit/core/theme/colors.dart';
 
@@ -25,7 +26,7 @@ import 'package:mawaqit/core/theme/colors.dart';
           dark: HWColor.fixed(AppColors.widgetCanvasDarkArgb),
         ),
         border: HWBoxBorder(
-          radius: 24, // Softer, more modern corner radius
+          radius: 24,
           thickness: 1,
           color: HWColor.themed(
             light: HWColor.fixed(AppColors.widgetHairlineLightArgb),
@@ -37,11 +38,10 @@ import 'package:mawaqit/core/theme/colors.dart';
         padding: HWEdgeInsets.symmetric(vertical: 16, horizontal: 16),
         child: HWColumn(
           crossAxisAlignment: HWCrossAxisAlignment.start,
-          mainAxisAlignment: HWMainAxisAlignment
-              .spaceBetween, // Pushes content to top and bottom
+          mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
           children: [
             // ─────────────────────────────────────────
-            // 1. HEADER: Brand + Location
+            // 1. HEADER: icon + brand + location
             // ─────────────────────────────────────────
             HWRow(
               mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
@@ -50,17 +50,17 @@ import 'package:mawaqit/core/theme/colors.dart';
                 HWRow(
                   crossAxisAlignment: HWCrossAxisAlignment.center,
                   children: [
-                    HWDecoratedBox(
-                      decoration: HWBoxDecoration(
+                    HWPadding(
+                      padding: HWEdgeInsets.only(right: 6),
+                      child: HWIcon.fixed(
+                        Icons.mosque_rounded,
+                        size: 16,
                         color: HWColor.themed(
                           light: HWColor.fixed(AppColors.primaryLightArgb),
-                          dark: HWColor.fixed(AppColors.primaryDarkArgb),
+                          dark: HWColor.fixed(AppColors.radiantSageArgb),
                         ),
-                        border: HWBoxBorder(radius: 4, thickness: 0),
                       ),
-                      child: HWSizedBox(width: 8, height: 8),
                     ),
-                    HWSizedBox(width: 6),
                     HWText.fixed(
                       'MAWAQIT',
                       style: HWRoleTextStyle(
@@ -70,7 +70,6 @@ import 'package:mawaqit/core/theme/colors.dart';
                           dark: HWColor.fixed(AppColors.radiantSageArgb),
                         ),
                         fontWeight: HWFontWeight.bold,
-                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
@@ -80,50 +79,51 @@ import 'package:mawaqit/core/theme/colors.dart';
                   style: HWRoleTextStyle(
                     role: HWTextStyleRole.caption,
                     color: HWDefaultColor(HWColorRole.contentSecondary),
-                    fontWeight: HWFontWeight.medium,
+                    fontWeight: HWFontWeight.w500,
                   ),
                 ),
               ],
             ),
 
             // ─────────────────────────────────────────
-            // 2. HERO: Next Prayer Focus
+            // 2. HERO: next prayer name, countdown, time — text only
             // ─────────────────────────────────────────
             HWColumn(
               crossAxisAlignment: HWCrossAxisAlignment.start,
               children: [
-                HWText.fixed(
-                  'NEXT PRAYER',
-                  style: HWRoleTextStyle(
-                    role: HWTextStyleRole.caption,
-                    color: HWDefaultColor(HWColorRole.contentSecondary),
-                    fontWeight: HWFontWeight.bold,
-                    letterSpacing: 1.2,
+                HWPadding(
+                  padding: HWEdgeInsets.only(bottom: 4),
+                  child: HWText.fixed(
+                    'NEXT PRAYER',
+                    style: HWRoleTextStyle(
+                      role: HWTextStyleRole.caption,
+                      color: HWDefaultColor(HWColorRole.contentSecondary),
+                      fontWeight: HWFontWeight.bold,
+                    ),
                   ),
                 ),
-                HWSizedBox(height: 4),
                 HWText(
                   HWString('nextPrayerName', defaultValue: 'ASR'),
                   style: HWRoleTextStyle(
                     role: HWTextStyleRole.headline,
                     color: HWDefaultColor(HWColorRole.contentPrimary),
                     fontWeight: HWFontWeight.bold,
-                    letterSpacing: -0.5,
                   ),
                 ),
-                HWSizedBox(height: 8),
-                HWText(
-                  HWString('nextPrayerCountdown', defaultValue: '01h 24m'),
-                  style: HWRoleTextStyle(
-                    role: HWTextStyleRole.title,
-                    color: HWColor.themed(
-                      light: HWColor.fixed(AppColors.primaryLightArgb),
-                      dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
+                HWPadding(
+                  padding: HWEdgeInsets.only(top: 8, bottom: 4),
+                  child: HWText(
+                    HWString('nextPrayerCountdown', defaultValue: '01h 24m'),
+                    style: HWRoleTextStyle(
+                      role: HWTextStyleRole.title,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(AppColors.primaryLightArgb),
+                        dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
+                      ),
+                      fontWeight: HWFontWeight.bold,
                     ),
-                    fontWeight: HWFontWeight.bold,
                   ),
                 ),
-                HWSizedBox(height: 4),
                 HWText(
                   HWString('nextPrayerTime', defaultValue: '3:45 PM'),
                   style: HWRoleTextStyle(
@@ -135,8 +135,7 @@ import 'package:mawaqit/core/theme/colors.dart';
             ),
 
             // ─────────────────────────────────────────
-            // 3. FOOTER: Minimalist 5-Prayer Sequence
-            // Clean, evenly spaced dots. No connectors.
+            // 3. FOOTER: 5-prayer sequence — icon dots, no progress bar
             // ─────────────────────────────────────────
             HWRow(
               mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
@@ -145,205 +144,165 @@ import 'package:mawaqit/core/theme/colors.dart';
                 // Fajr
                 HWBoolConditional(
                   data: HWBool('fajrIsActive', defaultValue: false),
-                  whenTrue: HWDecoratedBox(
-                    decoration: HWBoxDecoration(
-                      color: HWColor.themed(
-                        light: HWColor.fixed(AppColors.primaryLightArgb),
-                        dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
-                      ),
-                      border: HWBoxBorder(radius: 999, thickness: 0),
+                  whenTrue: HWIcon.fixed(
+                    Icons.circle,
+                    size: 9,
+                    color: HWColor.themed(
+                      light: HWColor.fixed(AppColors.primaryLightArgb),
+                      dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                     ),
-                    child: HWSizedBox(width: 8, height: 8),
                   ),
                   whenFalse: HWBoolConditional(
                     data: HWBool('fajrIsPast', defaultValue: false),
-                    whenTrue: HWDecoratedBox(
-                      decoration: HWBoxDecoration(
-                        color: HWColor.themed(
-                          light: HWColor.fixed(AppColors.widgetMutedLightArgb),
-                          dark: HWColor.fixed(AppColors.widgetMutedDarkArgb),
-                        ),
-                        border: HWBoxBorder(radius: 999, thickness: 0),
+                    whenTrue: HWIcon.fixed(
+                      Icons.circle,
+                      size: 6,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(AppColors.widgetMutedLightArgb),
+                        dark: HWColor.fixed(AppColors.widgetMutedDarkArgb),
                       ),
-                      child: HWSizedBox(width: 6, height: 6),
                     ),
-                    whenFalse: HWDecoratedBox(
-                      decoration: HWBoxDecoration(
-                        color: HWColor.themed(
-                          light: HWColor.fixed(
-                            AppColors.widgetMutedTintLightArgb,
-                          ),
-                          dark: HWColor.fixed(
-                            AppColors.widgetMutedTintDarkArgb,
-                          ),
+                    whenFalse: HWIcon.fixed(
+                      Icons.circle,
+                      size: 6,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(
+                          AppColors.widgetMutedTintLightArgb,
                         ),
-                        border: HWBoxBorder(radius: 999, thickness: 0),
+                        dark: HWColor.fixed(AppColors.widgetMutedTintDarkArgb),
                       ),
-                      child: HWSizedBox(width: 6, height: 6),
                     ),
                   ),
                 ),
                 // Dhuhr
                 HWBoolConditional(
                   data: HWBool('dhuhrIsActive', defaultValue: false),
-                  whenTrue: HWDecoratedBox(
-                    decoration: HWBoxDecoration(
-                      color: HWColor.themed(
-                        light: HWColor.fixed(AppColors.primaryLightArgb),
-                        dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
-                      ),
-                      border: HWBoxBorder(radius: 999, thickness: 0),
+                  whenTrue: HWIcon.fixed(
+                    Icons.circle,
+                    size: 9,
+                    color: HWColor.themed(
+                      light: HWColor.fixed(AppColors.primaryLightArgb),
+                      dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                     ),
-                    child: HWSizedBox(width: 8, height: 8),
                   ),
                   whenFalse: HWBoolConditional(
                     data: HWBool('dhuhrIsPast', defaultValue: false),
-                    whenTrue: HWDecoratedBox(
-                      decoration: HWBoxDecoration(
-                        color: HWColor.themed(
-                          light: HWColor.fixed(AppColors.widgetMutedLightArgb),
-                          dark: HWColor.fixed(AppColors.widgetMutedDarkArgb),
-                        ),
-                        border: HWBoxBorder(radius: 999, thickness: 0),
+                    whenTrue: HWIcon.fixed(
+                      Icons.circle,
+                      size: 6,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(AppColors.widgetMutedLightArgb),
+                        dark: HWColor.fixed(AppColors.widgetMutedDarkArgb),
                       ),
-                      child: HWSizedBox(width: 6, height: 6),
                     ),
-                    whenFalse: HWDecoratedBox(
-                      decoration: HWBoxDecoration(
-                        color: HWColor.themed(
-                          light: HWColor.fixed(
-                            AppColors.widgetMutedTintLightArgb,
-                          ),
-                          dark: HWColor.fixed(
-                            AppColors.widgetMutedTintDarkArgb,
-                          ),
+                    whenFalse: HWIcon.fixed(
+                      Icons.circle,
+                      size: 6,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(
+                          AppColors.widgetMutedTintLightArgb,
                         ),
-                        border: HWBoxBorder(radius: 999, thickness: 0),
+                        dark: HWColor.fixed(AppColors.widgetMutedTintDarkArgb),
                       ),
-                      child: HWSizedBox(width: 6, height: 6),
                     ),
                   ),
                 ),
                 // Asr
                 HWBoolConditional(
                   data: HWBool('asrIsActive', defaultValue: false),
-                  whenTrue: HWDecoratedBox(
-                    decoration: HWBoxDecoration(
-                      color: HWColor.themed(
-                        light: HWColor.fixed(AppColors.primaryLightArgb),
-                        dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
-                      ),
-                      border: HWBoxBorder(radius: 999, thickness: 0),
+                  whenTrue: HWIcon.fixed(
+                    Icons.circle,
+                    size: 9,
+                    color: HWColor.themed(
+                      light: HWColor.fixed(AppColors.primaryLightArgb),
+                      dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                     ),
-                    child: HWSizedBox(width: 8, height: 8),
                   ),
                   whenFalse: HWBoolConditional(
                     data: HWBool('asrIsPast', defaultValue: false),
-                    whenTrue: HWDecoratedBox(
-                      decoration: HWBoxDecoration(
-                        color: HWColor.themed(
-                          light: HWColor.fixed(AppColors.widgetMutedLightArgb),
-                          dark: HWColor.fixed(AppColors.widgetMutedDarkArgb),
-                        ),
-                        border: HWBoxBorder(radius: 999, thickness: 0),
+                    whenTrue: HWIcon.fixed(
+                      Icons.circle,
+                      size: 6,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(AppColors.widgetMutedLightArgb),
+                        dark: HWColor.fixed(AppColors.widgetMutedDarkArgb),
                       ),
-                      child: HWSizedBox(width: 6, height: 6),
                     ),
-                    whenFalse: HWDecoratedBox(
-                      decoration: HWBoxDecoration(
-                        color: HWColor.themed(
-                          light: HWColor.fixed(
-                            AppColors.widgetMutedTintLightArgb,
-                          ),
-                          dark: HWColor.fixed(
-                            AppColors.widgetMutedTintDarkArgb,
-                          ),
+                    whenFalse: HWIcon.fixed(
+                      Icons.circle,
+                      size: 6,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(
+                          AppColors.widgetMutedTintLightArgb,
                         ),
-                        border: HWBoxBorder(radius: 999, thickness: 0),
+                        dark: HWColor.fixed(AppColors.widgetMutedTintDarkArgb),
                       ),
-                      child: HWSizedBox(width: 6, height: 6),
                     ),
                   ),
                 ),
                 // Maghrib
                 HWBoolConditional(
                   data: HWBool('maghribIsActive', defaultValue: false),
-                  whenTrue: HWDecoratedBox(
-                    decoration: HWBoxDecoration(
-                      color: HWColor.themed(
-                        light: HWColor.fixed(AppColors.primaryLightArgb),
-                        dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
-                      ),
-                      border: HWBoxBorder(radius: 999, thickness: 0),
+                  whenTrue: HWIcon.fixed(
+                    Icons.circle,
+                    size: 9,
+                    color: HWColor.themed(
+                      light: HWColor.fixed(AppColors.primaryLightArgb),
+                      dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                     ),
-                    child: HWSizedBox(width: 8, height: 8),
                   ),
                   whenFalse: HWBoolConditional(
                     data: HWBool('maghribIsPast', defaultValue: false),
-                    whenTrue: HWDecoratedBox(
-                      decoration: HWBoxDecoration(
-                        color: HWColor.themed(
-                          light: HWColor.fixed(AppColors.widgetMutedLightArgb),
-                          dark: HWColor.fixed(AppColors.widgetMutedDarkArgb),
-                        ),
-                        border: HWBoxBorder(radius: 999, thickness: 0),
+                    whenTrue: HWIcon.fixed(
+                      Icons.circle,
+                      size: 6,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(AppColors.widgetMutedLightArgb),
+                        dark: HWColor.fixed(AppColors.widgetMutedDarkArgb),
                       ),
-                      child: HWSizedBox(width: 6, height: 6),
                     ),
-                    whenFalse: HWDecoratedBox(
-                      decoration: HWBoxDecoration(
-                        color: HWColor.themed(
-                          light: HWColor.fixed(
-                            AppColors.widgetMutedTintLightArgb,
-                          ),
-                          dark: HWColor.fixed(
-                            AppColors.widgetMutedTintDarkArgb,
-                          ),
+                    whenFalse: HWIcon.fixed(
+                      Icons.circle,
+                      size: 6,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(
+                          AppColors.widgetMutedTintLightArgb,
                         ),
-                        border: HWBoxBorder(radius: 999, thickness: 0),
+                        dark: HWColor.fixed(AppColors.widgetMutedTintDarkArgb),
                       ),
-                      child: HWSizedBox(width: 6, height: 6),
                     ),
                   ),
                 ),
                 // Isha
                 HWBoolConditional(
                   data: HWBool('ishaIsActive', defaultValue: false),
-                  whenTrue: HWDecoratedBox(
-                    decoration: HWBoxDecoration(
-                      color: HWColor.themed(
-                        light: HWColor.fixed(AppColors.primaryLightArgb),
-                        dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
-                      ),
-                      border: HWBoxBorder(radius: 999, thickness: 0),
+                  whenTrue: HWIcon.fixed(
+                    Icons.circle,
+                    size: 9,
+                    color: HWColor.themed(
+                      light: HWColor.fixed(AppColors.primaryLightArgb),
+                      dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                     ),
-                    child: HWSizedBox(width: 8, height: 8),
                   ),
                   whenFalse: HWBoolConditional(
                     data: HWBool('ishaIsPast', defaultValue: false),
-                    whenTrue: HWDecoratedBox(
-                      decoration: HWBoxDecoration(
-                        color: HWColor.themed(
-                          light: HWColor.fixed(AppColors.widgetMutedLightArgb),
-                          dark: HWColor.fixed(AppColors.widgetMutedDarkArgb),
-                        ),
-                        border: HWBoxBorder(radius: 999, thickness: 0),
+                    whenTrue: HWIcon.fixed(
+                      Icons.circle,
+                      size: 6,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(AppColors.widgetMutedLightArgb),
+                        dark: HWColor.fixed(AppColors.widgetMutedDarkArgb),
                       ),
-                      child: HWSizedBox(width: 6, height: 6),
                     ),
-                    whenFalse: HWDecoratedBox(
-                      decoration: HWBoxDecoration(
-                        color: HWColor.themed(
-                          light: HWColor.fixed(
-                            AppColors.widgetMutedTintLightArgb,
-                          ),
-                          dark: HWColor.fixed(
-                            AppColors.widgetMutedTintDarkArgb,
-                          ),
+                    whenFalse: HWIcon.fixed(
+                      Icons.circle,
+                      size: 6,
+                      color: HWColor.themed(
+                        light: HWColor.fixed(
+                          AppColors.widgetMutedTintLightArgb,
                         ),
-                        border: HWBoxBorder(radius: 999, thickness: 0),
+                        dark: HWColor.fixed(AppColors.widgetMutedTintDarkArgb),
                       ),
-                      child: HWSizedBox(width: 6, height: 6),
                     ),
                   ),
                 ),

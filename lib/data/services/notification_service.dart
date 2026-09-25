@@ -1005,19 +1005,22 @@ class NotificationService {
       // Native engine unavailable — best-effort in-app fire. Only valid while
       // this process lives; there is no host to schedule against otherwise.
       _timers.remove(_testNotificationId)?.cancel();
-      _timers[_testNotificationId] = Timer(const Duration(seconds: 3), () async {
-        try {
-          await _fireNativeAdhanNow(
-            _testNotificationId,
-            _testAdhanLabel,
-            settings,
-            isTest: true,
-          );
-        } catch (e, st) {
-          debugPrint('Native adhan test fire failed: $e\n$st');
-        }
-        _timers.remove(_testNotificationId);
-      });
+      _timers[_testNotificationId] = Timer(
+        const Duration(seconds: 3),
+        () async {
+          try {
+            await _fireNativeAdhanNow(
+              _testNotificationId,
+              _testAdhanLabel,
+              settings,
+              isTest: true,
+            );
+          } catch (e, st) {
+            debugPrint('Native adhan test fire failed: $e\n$st');
+          }
+          _timers.remove(_testNotificationId);
+        },
+      );
     }
   }
 

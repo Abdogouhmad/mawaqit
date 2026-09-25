@@ -11,6 +11,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.4] - 2026-09-25
+
+New since v0.8.3.
+
+### Added
+
+- **A location-missing marker in the home header** — when prayer times can't be
+  resolved (no city or GPS chosen yet, or the lookup failed), a red "location
+  off" icon with a tooltip sits beside the Mawaqit title; tap it to jump
+  straight to Settings and pick a place.
+
+### Changed
+
+- **The adhan screen now follows your theme** — the presenter dropped its fixed
+  dark backdrop for the app's own surface (so it reads light in light mode),
+  leads with an "IT IS TIME FOR" eyebrow over the prayer name, puts the live
+  clock in a rounded card, compacts itself on short screens, pins the Stop
+  button at the bottom and dismisses a beat sooner.
+- **Action buttons are soft rectangles, not pills** — every primary action
+  (Save location, Update now, Install now, Check for updates) uses a 14dp
+  rounded shape instead of a full pill, and the adhan Stop button was tightened
+  to match.
+- **The home-screen widget wears a mosque mark** — a mosque icon now leads the
+  MAWAQIT wordmark, the five prayer markers are drawn as true round glyphs
+  (slightly larger while that prayer is active) instead of small squares, and
+  the location label is a touch heavier.
+- **The Settings footer uses a real clock icon** — the "◷" text glyph is now a
+  Material icon, so the footer renders the same on every device.
+
+### Fixed
+
+- **The OTA retry button matches the update screen** — retrying a failed update
+  now uses the app's own button style instead of default Material text styling.
+
+### Removed
+
+- **The "In …" pill on the active prayer row** — the schedule tile no longer
+  repeats the countdown the hero card already shows; the live countdown stays on
+  the next-prayer hero.
+- **The location-off glyph on the prayer-times error card** — that indicator
+  moved up into the header, so the error card keeps just its message and retry
+  hint.
+
 ## [0.8.3] - 2026-09-24
 
 New since v0.8.2.
@@ -538,3 +581,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.7.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.6.0...v0.7.0
 [0.8.2]: https://github.com/Abdogouhmad/mawaqit/compare/v0.7.0...v0.8.2
 [0.8.3]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.2...v0.8.3
+[0.8.4]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.3...v0.8.4

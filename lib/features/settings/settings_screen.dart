@@ -13,15 +13,16 @@ import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/widgets/notification_settings_section.dart';
 import 'package:mawaqit/features/settings/widgets/update_section.dart';
 import 'package:mawaqit/providers/providers.dart';
-import 'package:mawaqit/shared/widgets/app_button.dart';
-import 'package:mawaqit/shared/widgets/app_card.dart';
-import 'package:mawaqit/shared/widgets/app_pill.dart';
-import 'package:mawaqit/shared/widgets/icon_badge.dart';
-import 'package:mawaqit/shared/widgets/option_sheet.dart';
-import 'package:mawaqit/shared/widgets/section_header.dart';
-import 'package:mawaqit/shared/widgets/segmented_control.dart';
-import 'package:mawaqit/shared/widgets/settings_group.dart';
-import 'package:mawaqit/shared/widgets/settings_row.dart';
+import 'package:mawaqit/shared/components/section_header.dart';
+import 'package:mawaqit/shared/components/settings_group.dart';
+import 'package:mawaqit/shared/components/settings_row.dart';
+import 'package:mawaqit/shared/ui/app_button.dart';
+import 'package:mawaqit/shared/ui/app_card.dart';
+import 'package:mawaqit/shared/ui/app_pill.dart';
+import 'package:mawaqit/shared/ui/icon_badge.dart';
+import 'package:mawaqit/shared/ui/segmented_control.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
+import 'package:mawaqit/shared/ui/option_sheet.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -40,7 +41,9 @@ class SettingsScreen extends ConsumerWidget {
             Expanded(
               child: asyncSettings.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, _) => Center(child: Text(error.toString())),
+                error: (error, _) => Center(
+                  child: UiText(error.toString(), textAlign: TextAlign.center),
+                ),
                 data: (settings) => _SettingsBody(settings: settings),
               ),
             ),
@@ -57,7 +60,6 @@ class _SettingsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(
@@ -68,46 +70,43 @@ class _SettingsHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-Material(
-              color: scheme.secondaryContainer.withValues(alpha: 0.6),
-              shape: const CircleBorder(),
-              child: IconButton(
-                onPressed: () => Navigator.of(context).maybePop(),
-                icon: const Icon(Icons.arrow_back),
-                color: scheme.onSecondaryContainer,
-                tooltip: 'Back',
-              ),
+          Material(
+            color: scheme.secondaryContainer.withValues(alpha: 0.6),
+            shape: const CircleBorder(),
+            child: IconButton(
+              onPressed: () => Navigator.of(context).maybePop(),
+              icon: const Icon(Icons.arrow_back),
+              color: scheme.onSecondaryContainer,
+              tooltip: 'Back',
             ),
+          ),
           const SizedBox(width: AppSpacing.xl),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                UiText(
                   'Settings',
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.2,
-                  ),
+                  type: UiTextType.titleLarge,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
                 ),
                 const SizedBox(height: AppSpacing.xxs),
-                Text(
+                UiText(
                   'Prayer times, reminders & appearance',
-                  style: textTheme.labelMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+                  type: UiTextType.labelMedium,
+                  color: scheme.onSurfaceVariant,
                 ),
               ],
             ),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).maybePop(),
-            child: Text(
+            child: UiText(
               'Done',
-              style: textTheme.labelLarge?.copyWith(
-                color: scheme.primary,
-                fontWeight: FontWeight.w700,
-              ),
+              type: UiTextType.labelLarge,
+              color: scheme.primary,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -125,7 +124,6 @@ class _SettingsBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(settingsProvider.notifier);
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -151,10 +149,7 @@ class _SettingsBody extends ConsumerWidget {
             title: 'Current Location',
             subtitle: _locationSubtitle(settings),
             onTap: () => _openLocationSheet(context, ref, controller, settings),
-            trailing: AppPill(
-              label: settings.locationMode.label,
-              dense: true,
-            ),
+            trailing: AppPill(label: settings.locationMode.label, dense: true),
           ),
         ),
         const SizedBox(height: AppSpacing.mega),
@@ -224,28 +219,26 @@ class _SettingsBody extends ConsumerWidget {
                 AppSpacing.xxxl,
                 AppSpacing.md,
               ),
-child: Row(
-                  children: [
-                    const IconBadge(icon: Icons.palette_outlined),
-                    const SizedBox(width: AppSpacing.xxl),
+              child: Row(
+                children: [
+                  const IconBadge(icon: Icons.palette_outlined),
+                  const SizedBox(width: AppSpacing.xxl),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        UiText(
                           'Theme',
-                          style: textTheme.titleMedium?.copyWith(
-                            fontSize: AppFontSize.lg,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          type: UiTextType.titleMedium,
+                          fontSize: AppFontSize.lg,
+                          fontWeight: FontWeight.w600,
                         ),
                         const SizedBox(height: AppSpacing.xxs),
-                        Text(
+                        UiText(
                           _themeLabel(settings.themeMode),
-                          style: textTheme.labelMedium?.copyWith(
-                            color: scheme.primary,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          type: UiTextType.labelMedium,
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ],
                     ),
@@ -482,7 +475,6 @@ class _LocationSheetState extends State<_LocationSheet> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final query = _queryController.text.trim();
     final city = _draft.locationMode == LocationMode.city;
     final canSave = !city || _draft.hasCityCoordinates;
@@ -499,7 +491,7 @@ class _LocationSheetState extends State<_LocationSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Location', style: textTheme.titleLarge),
+            UiText('Location', type: UiTextType.titleLarge),
             const SizedBox(height: AppSpacing.xxxl),
             SegmentedControl<LocationMode>(
               value: _draft.locationMode,
@@ -544,22 +536,20 @@ class _LocationSheetState extends State<_LocationSheet> {
               ),
               if (_searching) ...[
                 const SizedBox(height: AppSpacing.lg),
-                Text(
+                UiText(
                   'Searching…',
-                  style: textTheme.labelMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+                  type: UiTextType.labelMedium,
+                  color: scheme.onSurfaceVariant,
                 ),
               ] else if (!_searched &&
                   query.length < 3 &&
                   _results.isEmpty &&
                   _error == null) ...[
                 const SizedBox(height: AppSpacing.lg),
-                Text(
+                UiText(
                   'Type at least 3 characters to search.',
-                  style: textTheme.labelMedium?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+                  type: UiTextType.labelMedium,
+                  color: scheme.onSurfaceVariant,
                 ),
               ],
               if (_results.isNotEmpty) ...[
@@ -579,14 +569,16 @@ class _LocationSheetState extends State<_LocationSheet> {
                           ),
                         ListTile(
                           dense: true,
-                          title: Text(
+                          title: UiText(
                             result.name,
+                            type: UiTextType.bodyLarge,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          subtitle: Text(
+                          subtitle: UiText(
                             '${result.latitude.toStringAsFixed(3)}, '
                             '${result.longitude.toStringAsFixed(3)}',
+                            type: UiTextType.bodyMedium,
                           ),
                           trailing: _draft.cityName == result.name
                               ? Icon(
@@ -615,9 +607,10 @@ class _LocationSheetState extends State<_LocationSheet> {
               ],
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.lg),
-                Text(
+                UiText(
                   _error!,
-                  style: textTheme.labelMedium?.copyWith(color: scheme.error),
+                  type: UiTextType.labelMedium,
+                  color: scheme.error,
                 ),
               ],
             ],
@@ -643,35 +636,29 @@ class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     return Column(
       children: [
-        Text(
-          '◷',
-          style: textTheme.headlineSmall?.copyWith(
-            color: scheme.primary.withValues(alpha: 0.45),
-          ),
+        Icon(
+          Icons.timelapse_outlined,
+          color: scheme.primary.withValues(alpha: 0.45),
         ),
         const SizedBox(height: AppSpacing.md),
-        Text(
+        UiText(
           'Mawaqit',
-          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          type: UiTextType.titleMedium,
+          fontWeight: FontWeight.w700,
         ),
         const SizedBox(height: AppSpacing.xxs),
-        Text(
+        UiText(
           'Prayer times, without the noise.',
-          style: textTheme.labelMedium?.copyWith(
-            color: scheme.onSurfaceVariant,
-          ),
+          type: UiTextType.labelMedium,
+          color: scheme.onSurfaceVariant,
         ),
         const SizedBox(height: AppSpacing.md),
-        Text(
+        UiText(
           'v${AppInfo.version}  •  No accounts, no tracking',
-          style: textTheme.labelSmall?.copyWith(
-            color: scheme.onSurfaceVariant.withValues(alpha: 0.55),
-            letterSpacing: 0.2,
-            fontWeight: FontWeight.w500,
-          ),
+          type: UiTextType.labelSmall,
+          color: scheme.onSurfaceVariant.withValues(alpha: 0.55),
         ),
       ],
     );

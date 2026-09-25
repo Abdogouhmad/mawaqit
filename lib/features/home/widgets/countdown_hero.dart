@@ -5,8 +5,9 @@ import 'package:mawaqit/core/theme/colors.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
-import 'package:mawaqit/shared/widgets/app_pill.dart';
-import 'package:mawaqit/shared/widgets/pulse_dot.dart';
+import 'package:mawaqit/shared/ui/app_pill.dart';
+import 'package:mawaqit/shared/ui/pulse_dot.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Large focal countdown with temporal progress bar.
 class CountdownHero extends StatelessWidget {
@@ -82,12 +83,13 @@ class CountdownHero extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            UiText(
               TimeFormatter.clock(next.time),
-              style: textTheme.titleMedium?.copyWith(
-                fontSize: AppFontSize.lg,
-                color: scheme.onSurface,
-                fontFeatures: const [FontFeature.tabularFigures()],
+              type: UiTextType.titleMedium,
+              fontSize: AppFontSize.lg,
+              color: scheme.onSurface,
+              style: const TextStyle(
+                fontFeatures: [FontFeature.tabularFigures()],
               ),
             ),
             const SizedBox(width: AppSpacing.md),
@@ -123,21 +125,21 @@ class CountdownHero extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    startTime == null ? 'Start' : TimeFormatter.clock(startTime),
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                      letterSpacing: 0.4,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  UiText(
+                    startTime == null
+                        ? 'Start'
+                        : TimeFormatter.clock(startTime),
+                    type: UiTextType.labelSmall,
+                    color: scheme.onSurfaceVariant,
+                    letterSpacing: 0.4,
+                    fontWeight: FontWeight.w500,
                   ),
-                  Text(
+                  UiText(
                     TimeFormatter.clock(endTime),
-                    style: textTheme.labelSmall?.copyWith(
-                      color: scheme.primary,
-                      letterSpacing: 0.4,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    type: UiTextType.labelSmall,
+                    color: scheme.primary,
+                    letterSpacing: 0.4,
+                    fontWeight: FontWeight.w700,
                   ),
                 ],
               ),

@@ -19,7 +19,7 @@ class AppButton extends StatelessWidget {
     this.loading = false,
     this.loadingLabel,
     this.minHeight = AppSpacing.touch,
-    this.radius = AppRadius.pill,
+    this.radius = AppRadius.md,
     this.backgroundColor,
     this.foregroundColor,
     this.labelStyle,
@@ -119,7 +119,8 @@ class AppButton extends StatelessWidget {
     if (icon == null) return const SizedBox.shrink();
     return Icon(
       icon,
-      size: variant == AppButtonVariant.filled ||
+      size:
+          variant == AppButtonVariant.filled ||
               variant == AppButtonVariant.tonal
           ? AppIconSize.xl
           : AppIconSize.lg,

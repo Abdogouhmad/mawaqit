@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/theme/tokens.dart';
-import 'package:mawaqit/shared/widgets/app_card.dart';
+import 'package:mawaqit/shared/ui/app_card.dart';
 
 /// Groups [SettingsRow]s (or full-width blocks) into one card, separating them
 /// with hairline dividers inset to the text column — so every row reads as an

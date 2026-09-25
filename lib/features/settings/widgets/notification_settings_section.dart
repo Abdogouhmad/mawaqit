@@ -8,9 +8,10 @@ import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/features/settings/widgets/tone_sheet.dart';
 import 'package:mawaqit/providers/providers.dart';
-import 'package:mawaqit/shared/widgets/icon_badge.dart';
-import 'package:mawaqit/shared/widgets/segmented_control.dart';
-import 'package:mawaqit/shared/widgets/settings_row.dart';
+import 'package:mawaqit/shared/ui/icon_badge.dart';
+import 'package:mawaqit/shared/ui/segmented_control.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
+import 'package:mawaqit/shared/components/settings_row.dart';
 
 /// One reusable section for a notification type — **Pre-Prayer** and **Adhan**
 /// both render this exact component parameterized by [kind], so the kill
@@ -38,7 +39,6 @@ class NotificationSettingsSection extends ConsumerWidget {
     if (settings == null) return const SizedBox.shrink();
 
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final controller = ref.read(settingsProvider.notifier);
     final enabled = settings.notifEnabled(kind);
     final icon = kind == NotificationKind.prePrayer
@@ -63,17 +63,15 @@ class NotificationSettingsSection extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    UiText(
                       kind.label,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                      type: UiTextType.titleMedium,
+                      fontWeight: FontWeight.w700,
                     ),
-                    Text(
+                    UiText(
                       enabled ? _enabledHint : kind.offHint,
-                      style: textTheme.labelMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
+                      type: UiTextType.labelMedium,
+                      color: scheme.onSurfaceVariant,
                     ),
                   ],
                 ),
@@ -142,14 +140,13 @@ class NotificationSettingsSection extends ConsumerWidget {
       : 'Rings the adhan at prayer entry';
 
   Widget _disabledNote(BuildContext context) {
-    return Text(
+    return UiText(
       kind == NotificationKind.prePrayer
           ? 'Turn on to get countdown reminders before each prayer.'
           : 'Turn on to make the full adhan ring at every prayer time.',
-      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-        fontStyle: FontStyle.italic,
-      ),
+      type: UiTextType.labelMedium,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      style: const TextStyle(fontStyle: FontStyle.italic),
     );
   }
 
@@ -159,18 +156,16 @@ class NotificationSettingsSection extends ConsumerWidget {
     SettingsController controller,
     AppSettings settings,
   ) {
-    final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            UiText(
               'Remind me before',
-              style: textTheme.titleMedium?.copyWith(fontSize: AppFontSize.lg),
+              type: UiTextType.titleMedium,
+              fontSize: AppFontSize.lg,
             ),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 320),
@@ -187,12 +182,11 @@ class NotificationSettingsSection extends ConsumerWidget {
                   ),
                 ),
               ),
-              child: Text(
+              child: UiText(
                 '${settings.leadMinutes} min before',
                 key: ValueKey(settings.leadMinutes),
-                style: textTheme.labelMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                ),
+                type: UiTextType.labelMedium,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],

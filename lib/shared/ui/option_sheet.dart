@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Generic radio-style picker bottom sheet used by the settings screen to
 /// choose a calculation method, madhab, or any single-select list.
@@ -31,11 +32,7 @@ Future<T?> showOptionSheet<T>({
               AppSpacing.giga,
               AppSpacing.xl,
             ),
-            child: Row(
-              children: [
-                Text(title, style: Theme.of(context).textTheme.titleLarge),
-              ],
-            ),
+            child: Row(children: [UiText(title, type: UiTextType.titleLarge)]),
           ),
           Flexible(
             child: ListView.builder(
@@ -45,7 +42,7 @@ Future<T?> showOptionSheet<T>({
                 final option = options[index];
                 final isSelected = option == current;
                 return ListTile(
-                  title: Text(label(option)),
+                  title: UiText(label(option), type: UiTextType.bodyLarge),
                   trailing: isSelected
                       ? Icon(
                           Icons.check,

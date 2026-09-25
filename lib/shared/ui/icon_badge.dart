@@ -37,7 +37,8 @@ class IconBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final backgroundColor = color ?? scheme.secondaryContainer.withValues(alpha: 0.55);
+    final backgroundColor =
+        color ?? scheme.secondaryContainer.withValues(alpha: 0.55);
     final iconColor = foregroundColor ?? scheme.onSecondaryContainer;
 
     return Container(
