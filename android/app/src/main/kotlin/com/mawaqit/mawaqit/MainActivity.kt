@@ -1,9 +1,16 @@
 package com.mawaqit.mawaqit
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Build
+import android.os.Bundle
 import android.view.KeyEvent
+import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -13,6 +20,89 @@ class MainActivity : FlutterActivity() {
     private var previewRingtone: Ringtone? = null
     private var channel: MethodChannel? = null
     private var alarmActive = false
+
+    /** Occurrence the native engine wants presented (until Flutter consumes it). */
+    private var pendingAdhanId: Int = -1
+    private var pendingAdhanName: String? = null
+
+    /**
+     * The alarm stopped on the native side (clip finished, tray Stop action):
+     * drop the lockscreen takeover and tell Flutter so its presenter closes.
+     */
+    private val alarmStopReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action != AdhanScheduler.ACTION_STOP) return
+            val id = intent.getIntExtra(AdhanScheduler.EXTRA_ID, -1)
+            alarmActive = false
+            pendingAdhanId = -1
+            pendingAdhanName = null
+            clearAlarmPresentation()
+            try {
+                channel?.invokeMethod("alarmStopped", mapOf("id" to id))
+            } catch (_: Exception) {
+                // Flutter side not attached — nothing to notify.
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val filter = IntentFilter(AdhanScheduler.ACTION_STOP)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(alarmStopReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(alarmStopReceiver, filter)
+        }
+        handleAdhanIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleAdhanIntent(intent)
+    }
+
+    /**
+     * The engine launched this shell with a ringing occurrence (full-screen
+     * intent or alarm-card tap): take over the lockscreen immediately and stash
+     * the occurrence until Flutter consumes it and raises the presenter.
+     */
+    private fun handleAdhanIntent(intent: Intent?) {
+        if (intent?.action != AdhanScheduler.ACTION_SHOW_ADHAN) return
+        val id = intent.getIntExtra(AdhanScheduler.EXTRA_ID, -1)
+        if (id == -1) return
+        pendingAdhanId = id
+        pendingAdhanName = intent.getStringExtra(AdhanScheduler.EXTRA_NAME) ?: "Prayer"
+        alarmActive = true
+        applyAlarmPresentation()
+        notifyFlutterAdhan()
+    }
+
+    /** The alarm presenter may sit over the lockscreen and must keep the screen on. */
+    private fun applyAlarmPresentation() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        }
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    private fun clearAlarmPresentation() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(false)
+            setTurnScreenOn(false)
+        }
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
+    private fun notifyFlutterAdhan() {
+        try {
+            channel?.invokeMethod("adhanFired", null)
+        } catch (_: Exception) {
+            // Flutter handler not attached yet — init() pulls the stashed
+            // occurrence itself, so nothing is lost.
+        }
+    }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -27,7 +117,23 @@ class MainActivity : FlutterActivity() {
                 when (call.method) {
                     "setAlarmActive" -> {
                         alarmActive = call.argument<Boolean>("active") ?: false
+                        if (alarmActive) {
+                            applyAlarmPresentation()
+                        } else {
+                            clearAlarmPresentation()
+                        }
                         result.success(true)
+                    }
+                    "consumePendingAdhan" -> {
+                        val name = pendingAdhanName
+                        val id = pendingAdhanId
+                        if (name != null && id != -1) {
+                            pendingAdhanName = null
+                            pendingAdhanId = -1
+                            result.success(mapOf("name" to name, "id" to id))
+                        } else {
+                            result.success(null)
+                        }
                     }
                     "scheduleReminders" -> {
                         val reminders =
@@ -122,6 +228,11 @@ class MainActivity : FlutterActivity() {
                 }
             }
         }
+        // Cold start raced ahead of the channel: if the engine was launched by
+        // a ringing occurrence, ping Flutter now that both handlers are up.
+        if (pendingAdhanId != -1) {
+            notifyFlutterAdhan()
+        }
     }
 
     /**
@@ -148,6 +259,12 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         stopDeviceTonePreview()
+        try {
+            unregisterReceiver(alarmStopReceiver)
+        } catch (_: Exception) {
+            // Already unregistered — nothing to do.
+        }
+        channel = null
         super.onDestroy()
     }
 

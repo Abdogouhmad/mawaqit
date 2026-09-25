@@ -1,15 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#096444</color>
-
-    <!-- Native AdhanAlarmActivity palette (mirrors the Flutter overlay) -->
-    <color name="alarm_background">#00130A</color>
-    <color name="alarm_background_top">#0A3524</color>
-    <color name="alarm_text">#EDEDEA</color>
-    <color name="alarm_subtext">#8A918C</color>
-    <color name="alarm_accent">#A4F3CA</color>
-    <color name="alarm_halo">#332E7D5B</color>
-    <color name="alarm_button">#3E9B76</color>
-    <color name="alarm_button_end">#2E7D5B</color>
-    <color name="alarm_button_pressed">#256749</color>
 </resources>

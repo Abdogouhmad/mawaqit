@@ -32,10 +32,12 @@ enum NotificationType { preAlert, adhan }
 ///
 /// - **Android adhans** are handed to the native alarm engine ([`AdhanScheduler`]
 ///   behind the `mawaqit/native` MethodChannel): `AlarmManager` exact alarms
-///   fire a foreground service that owns the Adhan clip and a full-screen
-///   [`AdhanAlarmActivity`] over the lockscreen, so the call rings even when
-///   this process is dead. Flutter stays the controller — prayer times, tone,
-///   mute and IDs — and never "double-rings" the adhan.
+///   fire a foreground service that owns the Adhan clip, and the shell is
+///   launched over the lockscreen with the occurrence stashed for
+///   [`_consumePendingAdhan`] — so the call rings even when this process is
+///   dead and the in-app presenter ([`AdhanOverlayScreen`]) takes over the
+///   display. Flutter stays the controller — prayer times, tone, mute and IDs
+///   — and never "double-rings" the adhan.
 /// - **Muted adhans, pre-prayer alerts and Linux** use `zonedSchedule` (exact
 ///   timers) / local timers that post via the plugin's `show`, still behind
 ///   the same scheduling math.
@@ -49,7 +51,16 @@ class NotificationService {
   /// would survive a reschedule and double-fire alongside new ones.
   static final NotificationService instance = NotificationService._();
 
-  NotificationService._();
+  NotificationService._() {
+    // The clip plays through exactly once; when it ends the alarm dismisses
+    // itself — tear everything down and let any live presenter close.
+    // A manual stop transitions the player to `stopped`, never to `completed`,
+    // so this cannot fire from [`stopAlarm`].
+    _adhanPlayer.onPlayerComplete.listen((_) {
+      if (!_alarmRinging) return;
+      unawaited(_onAdhanFinished());
+    });
+  }
 
   static const String _nativeChannel = 'mawaqit/native';
 
@@ -211,6 +222,14 @@ class NotificationService {
   /// Whether an adhan alarm is currently ringing.
   bool get isAlarmRinging => _alarmRinging;
 
+  /// The live presenter route, when one is on screen — used to replace it
+  /// instead of stacking a second full-screen alarm on top.
+  Route<void>? _overlayRoute;
+
+  /// Occurrence the native Android engine asked to present before (or while)
+  /// the shell boots — consumed once the navigator is up.
+  ({int id, String name})? _pendingNativeAdhan;
+
   bool _initialized = false;
   bool _exactAlarmGranted = false;
   bool _notificationsGranted = false;
@@ -235,8 +254,17 @@ class NotificationService {
     );
 
     // Kotlin → Dart direction of the native channel: notifies the app when the
-    // user dismisses a ringing adhan with the volume/side buttons.
+    // user dismisses a ringing adhan with the volume/side buttons, when native
+    // playback ends on its own, and when the engine has an occurrence ready to
+    // present.
     _channel.setMethodCallHandler(_onNativeCall);
+
+    if (_isAndroid) {
+      // The shell may have been launched by a ringing adhan (full-screen
+      // intent / card tap): the native side stashed the occurrence — raise
+      // the presenter over it as soon as the navigator exists.
+      unawaited(_consumePendingAdhan());
+    }
 
     if (_isAndroid) {
       // Runtime POST_NOTIFICATIONS (Android 13+) before the first schedule.
@@ -327,14 +355,15 @@ class NotificationService {
   ///
   /// **Adhan** — behaves exactly like the real prayer-entry alarm:
   /// - on Android it is handed to the native exact-alarm engine *immediately*
-  ///   (AlarmManager → foreground-service audio + full-screen activity), so it
+  ///   (AlarmManager → foreground-service audio + the shell raised over the
+  ///   lockscreen for the in-app presenter), so it
   ///   rings and takes over the lockscreen even when the app is frozen or
   ///   killed within the 3-second window — a Dart `Timer` cannot be trusted to
   ///   fire on a backgrounded phone, which made the old test feel dead right
   ///   when it mattered (tap, lock, expect an alarm);
   /// - on desktop the selected tone plays **directly** through audioplayers on
-  ///   the alarm stream (looping, so it rings until dismissed) and the
-  ///   full-screen presenter is pushed over the app;
+  ///   the alarm stream (one pass; the presenter closes when the clip ends) and
+  ///   the full-screen presenter is pushed over the app;
   /// - dismissible via the volume/side buttons (native → `alarmDismissRequest`)
   ///   or the on-screen Stop control.
   ///
@@ -472,8 +501,9 @@ class NotificationService {
   /// Fires the live adhan the moment its prayer time is reached while the app
   /// is open. On Android the native alarm engine owns the call: the scheduled
   /// occurrence is cancelled first (so AlarmManager doesn't also fire it — the
-  /// "two Adhan" bug) then handed off to the native foreground service +
-  /// full-screen activity, which ring even when the phone is locked. On desktop
+  /// "two Adhan" bug) then handed off to the native foreground service, which
+  /// rings even when the phone is locked and raises this app's own presenter
+  /// over the lockscreen. On desktop
   /// the tone is played **directly** (audioplayers, alarm stream) and the
   /// full-screen presenter is pushed so the whole pipeline stays verifiable
   /// without an Android device.
@@ -594,9 +624,11 @@ class NotificationService {
   }
 
   /// Plays the selected adhan tone **directly** through audioplayers on the
-  /// alarm stream, looping like an alarm until dismissed. On desktop this is
-  /// what makes the call actually ring while the app is open — the scheduled
-  /// path relies on the notification sound, which cannot be frozen the way an
+  /// alarm stream — exactly one pass, never looping. When the clip ends the
+  /// alarm dismisses itself (see the `_adhanPlayer.onPlayerComplete` listener),
+  /// so the call and its presenter close together. On desktop this is what
+  /// makes the call actually ring while the app is open — the scheduled path
+  /// relies on the notification sound, which cannot be frozen the way an
   /// Android channel sound can. On Android the native alarm engine owns audio,
   /// so this only runs as the desktop stand-in (a muted adhan never starts —
   /// `adhanSoundEnabled` guard).
@@ -620,7 +652,9 @@ class NotificationService {
         _adhanAudioContextSet = true;
       }
       await _adhanPlayer.stop();
-      await _adhanPlayer.setReleaseMode(ReleaseMode.loop);
+      // One pass only: the completion listener dismisses the alarm when the
+      // clip runs out instead of restarting it forever.
+      await _adhanPlayer.setReleaseMode(ReleaseMode.release);
       await _adhanPlayer.play(source);
       _alarmRinging = true;
       _ringingNotificationId = notificationId ?? _ringingNotificationId;
@@ -667,12 +701,16 @@ class NotificationService {
   }
 
   /// Stops the ringing adhan and, when given, dismisses the mirroring tray
-  /// notification. Used by the full-screen presenter's Stop control and by the
-  /// native volume-button dismissal path.
+  /// notification. Used by the full-screen presenter's Stop control, by the
+  /// native volume-button dismissal path and by the end-of-clip teardown.
   Future<void> stopAlarm({int? notificationId}) async {
+    // Clear the ringing flag first: any echo the stop provokes (player
+    // completion, the native stop broadcast) is ignored instead of re-entering.
+    final wasRinging = _alarmRinging;
+    _alarmRinging = false;
     await stopAdhanPlayback();
     if (_isAndroid) {
-      // Tear down any native alarm (foreground service + full-screen activity)
+      // Tear down any native alarm (foreground service + shell takeover)
       // when the caller stops it from the app — e.g. a reschedule while the
       // call is ringing. Swing both directions so audio ownership is single.
       try {
@@ -685,15 +723,26 @@ class NotificationService {
       } catch (_) {}
     }
     _ringingNotificationId = null;
-    if (_alarmRinging) {
-      _alarmRinging = false;
+    if (wasRinging) {
       await _setAlarmActive(false);
+    }
+  }
+
+  /// The clip ran out: stop the alarm and tell the presenter to close itself,
+  /// so a finished call never restarts or lingers on screen.
+  Future<void> _onAdhanFinished() async {
+    final id = _ringingNotificationId;
+    await stopAlarm(notificationId: id);
+    if (!_alarmDismissController.isClosed) {
+      _alarmDismissController.add(null);
     }
   }
 
   /// Raises the full-screen adhan presenter over the app when it is open and
   /// arms the volume-button dismissal for the given tray notification. No-op
-  /// when the navigator is unavailable (e.g. app backgrounded).
+  /// when the navigator is unavailable (e.g. app backgrounded). A presenter
+  /// that is already up is replaced in place — a re-fired test or a new
+  /// occurrence must never stack a second alarm screen on top.
   void showAdhanOverlay({required String title, int? notificationId}) {
     final navigator = appNavigatorKey.currentState;
     if (navigator == null) return;
@@ -702,16 +751,29 @@ class NotificationService {
       unawaited(_setAlarmActive(true));
       _alarmRinging = true;
     }
-    navigator.push(
-      PageRouteBuilder<void>(
-        opaque: true,
-        barrierDismissible: false,
-        transitionDuration: const Duration(milliseconds: 400),
-        reverseTransitionDuration: const Duration(milliseconds: 250),
-        pageBuilder: (_, _, _) =>
-            AdhanOverlayScreen(title: title, notificationId: notificationId),
-      ),
+    final previous = _overlayRoute;
+    if (previous != null) {
+      _overlayRoute = null;
+      try {
+        navigator.removeRoute(previous);
+      } catch (_) {
+        // Already popped — nothing to replace.
+      }
+    }
+    final route = PageRouteBuilder<void>(
+      opaque: true,
+      barrierDismissible: false,
+      transitionDuration: const Duration(milliseconds: 400),
+      reverseTransitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (_, _, _) =>
+          AdhanOverlayScreen(title: title, notificationId: notificationId),
     );
+    _overlayRoute = route;
+    navigator.push(route).whenComplete(() {
+      if (_overlayRoute == route) {
+        _overlayRoute = null;
+      }
+    });
   }
 
   /// Handles a tapped / opened notification (foreground or via the full-screen
@@ -729,8 +791,80 @@ class NotificationService {
     switch (call.method) {
       case 'alarmDismissRequest':
         await _dismissFromVolume();
+      case 'alarmStopped':
+        // The native engine stopped on its own (clip finished, tray Stop
+        // action) — close the presenter instead of leaving it up in silence.
+        await _onNativeAlarmStopped(call.arguments);
+      case 'adhanFired':
+        // The engine has an occurrence ready to present (shell already up).
+        unawaited(_consumePendingAdhan());
     }
     return null;
+  }
+
+  /// A stop that originated on the native side. Ignored when nothing is
+  /// ringing on this side anymore (echo of a Dart-initiated stop) or when it
+  /// belongs to an occurrence other than the one currently presented.
+  Future<void> _onNativeAlarmStopped(Object? arguments) async {
+    if (!_alarmRinging) return;
+    int? stoppedId;
+    if (arguments is Map) {
+      stoppedId = (arguments['id'] as num?)?.toInt();
+    }
+    final ringingId = _ringingNotificationId;
+    if (stoppedId != null && stoppedId != -1 && ringingId != null && stoppedId != ringingId) {
+      return;
+    }
+    await stopAlarm(notificationId: ringingId);
+    if (!_alarmDismissController.isClosed) {
+      _alarmDismissController.add(null);
+    }
+  }
+
+  /// Pulls the occurrence the native Android engine stashed for the presenter
+  /// (set right before the shell is launched over the lockscreen) and raises
+  /// it once the navigator exists. Called from [`init`] (cold start) and on
+  /// every `adhanFired` ping (shell already alive). Retries briefly when the
+  /// native handler isn't wired yet — the engine can still be coming up while
+  /// `init()` runs, and an alarm must never be dropped to that race.
+  Future<void> _consumePendingAdhan({int attempt = 0}) async {
+    try {
+      final data = await _channel.invokeMapMethod<dynamic, dynamic>(
+        'consumePendingAdhan',
+      );
+      if (data == null) return;
+      final name = data['name'] as String? ?? 'Prayer';
+      final id = (data['id'] as num?)?.toInt() ?? -1;
+      if (id == -1) return;
+      _pendingNativeAdhan = (id: id, name: name);
+      _raisePendingNativeAdhan();
+    } catch (_) {
+      if (attempt < 10) {
+        await Future.delayed(const Duration(milliseconds: 250));
+        await _consumePendingAdhan(attempt: attempt + 1);
+      }
+    }
+  }
+
+  /// Presents the stashed native occurrence, retrying briefly while the
+  /// engine is still booting: the alarm must not be dropped just because the
+  /// navigator wasn't mounted on the first attempt.
+  void _raisePendingNativeAdhan() {
+    var attempts = 0;
+    void attempt() {
+      final pending = _pendingNativeAdhan;
+      if (pending == null) return;
+      if (appNavigatorKey.currentState == null) {
+        if (attempts++ < 40) {
+          Future.delayed(const Duration(milliseconds: 250), attempt);
+        }
+        return;
+      }
+      _pendingNativeAdhan = null;
+      showAdhanOverlay(title: pending.name, notificationId: pending.id);
+    }
+
+    attempt();
   }
 
   /// Volume/side-button dismissal: stop playback, clear the tray notification
@@ -895,7 +1029,7 @@ class NotificationService {
       final isMuted = muted.contains(prayerId);
 
       // Audible occurrences on Android are owned by the native alarm engine
-      // (AlarmManager → foreground service + full-screen activity), so the call
+      // (AlarmManager → foreground service + shell launch), so the call
       // rings even when this process is dead and never double-plays with a
       // channel sound. Muted occurrences keep the silent Flutter card.
       if (_isAndroid && !isMuted) {

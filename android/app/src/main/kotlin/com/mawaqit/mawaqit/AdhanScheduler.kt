@@ -22,16 +22,20 @@ import org.json.JSONObject
  * Flutter computes the prayer times and hands each occurrence over here; this
  * object persists the schedule, arms an exact `AlarmManager` alarm and, when it
  * fires, distributes the work to [AdhanAlarmReceiver] (foreground service that
- * owns the audio + a full-screen [AdhanAlarmActivity] over the lockscreen).
- * The audio is deliberately NOT the notification-channel sound — a dedicated
- * [AdhanPlaybackService] plays the selected clip through `MediaPlayer` on the
- * alarm stream, so the call rings even when the Flutter process is dead.
+ * owns the audio + a launch of the shell, whose in-app presenter takes over the
+ * lockscreen). The audio is deliberately NOT the notification-channel sound — a
+ * dedicated [AdhanPlaybackService] plays the selected clip through `MediaPlayer`
+ * on the alarm stream, so the call rings even when the Flutter process is dead.
  */
 object AdhanScheduler {
 
     const val ACTION_ADHAN = "com.mawaqit.action.ADHAN"
     const val ACTION_STOP = "com.mawaqit.action.STOP_ADHAN"
+
+    /** Launches the shell and tells it to raise the in-app adhan presenter. */
+    const val ACTION_SHOW_ADHAN = "com.mawaqit.action.SHOW_ADHAN"
     const val EXTRA_ID = "com.mawaqit.extra.ADHAN_ID"
+    const val EXTRA_NAME = "com.mawaqit.extra.ADHAN_NAME"
 
     /**
      * Full schedule snapshot embedded in the alarm [PendingIntent]. SharedPreferences
@@ -87,13 +91,36 @@ object AdhanScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-    /** Content intent for the foreground-service card: reopen the app. */
-    fun openAppPendingIntent(context: Context, id: Int) = PendingIntent.getActivity(
+    /**
+     * Content intent for the foreground-service card: reopen the app, raising
+     * the presenter when the alarm is still ringing ([name] given), plain home
+     * otherwise (muted card).
+     */
+    fun openAppPendingIntent(context: Context, id: Int, name: String? = null) = PendingIntent.getActivity(
         context,
         7100 + id,
-        context.packageManager.getLaunchIntentForPackage(context.packageName),
+        if (name != null) {
+            showAdhanIntent(context, id, name)
+        } else {
+            context.packageManager.getLaunchIntentForPackage(context.packageName)
+        },
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
+
+    /**
+     * Intent that raises the shell's own full-screen adhan presenter
+     * ([MainActivity] → `AdhanOverlayScreen` in Flutter) over the lockscreen.
+     */
+    fun showAdhanIntent(context: Context, id: Int, name: String): Intent =
+        Intent(context, MainActivity::class.java)
+            .setAction(ACTION_SHOW_ADHAN)
+            .setFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP,
+            )
+            .putExtra(EXTRA_ID, id)
+            .putExtra(EXTRA_NAME, name)
 
     /**
      * Full-screen intent used by the alarm card. Android launches its target
@@ -106,14 +133,7 @@ object AdhanScheduler {
         PendingIntent.getActivity(
             context,
             7300 + id,
-            Intent(context, AdhanAlarmActivity::class.java)
-                .setFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP,
-                )
-                .putExtra(EXTRA_ID, id)
-                .putExtra("name", name),
+            showAdhanIntent(context, id, name),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
@@ -203,9 +223,14 @@ object AdhanScheduler {
     /**
      * Centralized dismissal used by every route (volume keys, Stop button,
      * notification action, Flutter stop): silence the service, cancel the
-     * alarm card and tell any live [AdhanAlarmActivity] to finish.
+     * alarm card and tell the shell's live presenter to close.
+     *
+     * [notifyFlutter] is false for a teardown that is immediately followed by
+     * a fresh fire (the debug test re-arming itself): the old presenter is
+     * replaced by the new one anyway, and forwarding the stale stop would let
+     * it knock down the alarm that just replaced it.
      */
-    fun stopActive(context: Context) {
+    fun stopActive(context: Context, notifyFlutter: Boolean = true) {
         context.stopService(Intent(context, AdhanPlaybackService::class.java))
 
         val activeId = prefs(context).getInt(KEY_ACTIVE_ID, -1)
@@ -214,9 +239,13 @@ object AdhanScheduler {
             prefs(context).edit().remove(KEY_ACTIVE_ID).apply()
         }
 
-        context.sendBroadcast(
-            Intent(ACTION_STOP).setPackage(context.packageName),
-        )
+        if (notifyFlutter) {
+            context.sendBroadcast(
+                Intent(ACTION_STOP)
+                    .setPackage(context.packageName)
+                    .putExtra(EXTRA_ID, activeId),
+            )
+        }
     }
 
     /** Remembers the currently ringing occurrence while it lives. */
@@ -258,7 +287,7 @@ object AdhanScheduler {
         )
     }
 
-    /** Builds the loopable content URI for the selected sound. */
+    /** Builds the content URI for the selected sound. */
     fun soundUri(context: Context, schedule: Schedule): android.net.Uri? {
         if (schedule.soundUri.isNotBlank()) {
             return try {
@@ -293,7 +322,7 @@ object AdhanScheduler {
             .setSmallIcon(R.drawable.ic_stat_mawaqit)
             .setContentTitle("Adhan — ${schedule.name}")
             .setContentText("It is now time for the ${schedule.name} prayer")
-            .setContentIntent(openAppPendingIntent(context, schedule.id))
+            .setContentIntent(openAppPendingIntent(context, schedule.id, schedule.name))
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -350,18 +379,19 @@ object AdhanScheduler {
 
     /**
      * Fires an occurrence immediately (muted → silent card; audible → foreground
-     * [AdhanPlaybackService] + full-screen [AdhanAlarmActivity]). Shared by the
+     * [AdhanPlaybackService] + the shell's full-screen presenter). Shared by the
      * alarm-armed [AdhanAlarmReceiver] and the Flutter "test adhan" / live-rollover
      * hand-off so both paths behave identically.
      *
      * A debug test ([Schedule.isTest]) always takes over the screen like a real
      * alarm — even when muted, it posts the full-screen card and simply stays
-     * quiet — and it tears down any still-ringing alarm first, so re-tapping
-     * "Test" always rings instead of being swallowed by the single-audio guard.
+     * quiet — and it tears down any still-ringing alarm first (silently: the
+     * fresh fire replaces that presenter itself), so re-tapping "Test" always
+     * rings instead of being swallowed by the single-audio guard.
      */
     fun fireNow(context: Context, schedule: Schedule) {
         if (schedule.isTest) {
-            stopActive(context)
+            stopActive(context, notifyFlutter = false)
         }
         // Single-audio guard: when the same occurrence is already ringing —
         // e.g. the AlarmManager fire raced the in-app rollover hand-off — the
@@ -390,12 +420,13 @@ object AdhanScheduler {
 
         // 1) System full-screen-intent card FIRST. Notifying with an alarm
         //    category + full-screen intent makes Android wake the display and
-        //    launch [AdhanAlarmActivity] over the lockscreen itself — a
-        //    system-initiated launch, so it is exempt from the background-
-        //    activity start restrictions that swallow a naked startActivity
-        //    from a receiver once the phone is locked / the app is killed.
-        //    The service below re-posts the same id with the media-session
-        //    style, replacing this card without re-alerting.
+        //    launch the shell itself over the lockscreen — a system-initiated
+        //    launch, so it is exempt from the background-activity start
+        //    restrictions that swallow a naked startActivity from a receiver
+        //    once the phone is locked / the app is killed. The intent carries
+        //    the occurrence so the shell raises its presenter as soon as
+        //    Flutter is up. The service below re-posts the same id with the
+        //    media-session style, replacing this card without re-alerting.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val nm = context.getSystemService(NotificationManager::class.java)
             if (nm != null && !nm.canUseFullScreenIntent()) {
@@ -432,14 +463,9 @@ object AdhanScheduler {
         // 3) Foreground best-effort launch. When the app is on screen this is
         //    the instant path (SINGLE_TOP dedupes with the FSI launch); when it
         //    is not, the system FSI from step 1 already covers the takeover.
-        val activityIntent = Intent(context, AdhanAlarmActivity::class.java)
-            .setFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP,
-            )
-            .putExtra(EXTRA_ID, effective.id)
-            .putExtra("name", effective.name)
+        //    Either way the shell raises the in-app presenter for this
+        //    occurrence — the Flutter design replaces the old native alarm UI.
+        val activityIntent = showAdhanIntent(context, effective.id, effective.name)
         try {
             context.startActivity(activityIntent)
         } catch (_: Exception) {

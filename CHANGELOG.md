@@ -11,6 +11,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.5] - 2026-09-25
+
+New since v0.8.4.
+
+### Changed
+
+- **The adhan screen now comes to Android** — prayer-time and test alarms raise
+  the same presenter you see on desktop (over the lockscreen, with the live
+  clock and Stop button) instead of a separate native alarm activity, so the
+  design, theme and behaviour match on every device.
+- **The lockscreen takeover rides on the main window** — while an alarm rings
+  the app keeps the display on and shows over the lockscreen, and the old
+  dedicated alarm activity (with its theme, strings and drawables) was retired.
+
+### Fixed
+
+- **The adhan rings once, then stops by itself** — the call no longer loops
+  forever: it plays through a single pass and the presenter closes itself when
+  it ends. One tap of Stop (or either volume key) still silences it instantly.
+- **Stopping the alarm always closes the presenter** — silencing from the tray
+  card or a volume key now dismisses the in-app adhan screen too, and firing a
+  test back-to-back replaces the ringing screen instead of stacking another on
+  top of it.
+
 ## [0.8.4] - 2026-09-25
 
 New since v0.8.3.
@@ -582,3 +606,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.8.2]: https://github.com/Abdogouhmad/mawaqit/compare/v0.7.0...v0.8.2
 [0.8.3]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.2...v0.8.3
 [0.8.4]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.3...v0.8.4
+[0.8.5]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.4...v0.8.5

@@ -10,11 +10,12 @@ import android.os.IBinder
 
 /**
  * Foreground service that owns the Adhan audio. Started by [AdhanAlarmReceiver]
- * when an audible alarm fires (even with the Flutter process dead), it loops the
- * selected clip through `MediaPlayer` on the alarm audio stream in a sticky,
- * system-owned foreground notification so the call keeps ringing until
- * dismissed. Dismissal (volume keys, activity Stop button, notification Stop
- * action, Flutter stop) funnels through [AdhanScheduler.stopActive].
+ * when an audible alarm fires (even with the Flutter process dead), it plays the
+ * selected clip once through `MediaPlayer` on the alarm audio stream in a
+ * sticky, system-owned foreground notification — the call rings until dismissed
+ * or until the clip runs out, and finishing it tears the alarm down the same way
+ * a dismissal does. Dismissal (volume keys, presenter Stop button, notification
+ * Stop action, Flutter stop) funnels through [AdhanScheduler.stopActive].
  */
 class AdhanPlaybackService : Service() {
 
@@ -112,8 +113,13 @@ class AdhanPlaybackService : Service() {
             val mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(AdhanScheduler.alarmAudioAttributes())
                 setDataSource(this@AdhanPlaybackService, uri)
-                isLooping = true
+                // One pass, never a loop: when the clip ends the alarm stops
+                // itself (service, tray card and presenter go down together).
+                isLooping = false
                 setOnPreparedListener { it.start() }
+                setOnCompletionListener {
+                    stopAdhan()
+                }
                 setOnErrorListener { _, _, _ ->
                     stopAdhan()
                     true
@@ -133,13 +139,15 @@ class AdhanPlaybackService : Service() {
         super.onDestroy()
     }
 
-    /** Stops playback and tears down the alarm (also clears the activity via broadcast). */
+    /** Stops playback and tears down the alarm (also clears the presenter via broadcast). */
     fun stopAdhan() {
         try {
-            player?.stop()
+            // release() is valid in every player state — unlike stop(), it can
+            // never throw while prepareAsync is still in flight — and it frees
+            // the native MediaPlayer instead of just dropping the reference.
+            player?.release()
         } catch (_: Exception) {
-            // `stop()` before `prepareAsync` completes throws IllegalStateException;
-            // the player is released in onDestroy either way.
+            // Already released — nothing to do; onDestroy is a no-op then.
         }
         player = null
         AdhanScheduler.stopActive(this)

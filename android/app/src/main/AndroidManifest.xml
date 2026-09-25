@@ -64,8 +64,8 @@
             android:enabled="true"
             android:exported="false" />
         <!-- Native Adhan alarm engine: exact-alarm broadcast fires the alarm
-             (foreground service + full-screen activity) even when the app is
-             killed. -->
+             (foreground service + full-screen shell takeover) even when the
+             app is killed. -->
         <receiver
             android:name=".AdhanAlarmReceiver"
             android:enabled="true"
@@ -74,13 +74,6 @@
             android:name=".AdhanPlaybackService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
-        <activity
-            android:name=".AdhanAlarmActivity"
-            android:exported="false"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
-            android:excludeFromRecents="true"
-            android:theme="@style/Theme.Mawaqit.Alarm" />
         <!-- OTA update file provider (package installer handoff) -->
         <provider
             android:name=".OtaUpdateFileProvider"

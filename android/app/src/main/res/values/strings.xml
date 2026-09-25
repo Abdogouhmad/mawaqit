@@ -16,12 +16,4 @@
     <string name="notif_prayer_time">%1$s — prayer time</string>
     <string name="notif_prayer_time_body">It is now time for the prayer at %1$s</string>
     <string name="widget_placeholder_subtitle">Loading prayer times…</string>
-
-    <!-- Native AdhanAlarmActivity -->
-    <string name="alarm_eyebrow">ADHAN</string>
-    <string name="alarm_default_title">Prayer</string>
-    <string name="alarm_default_clock">--:--:--</string>
-    <string name="alarm_default_date">—</string>
-    <string name="alarm_subtitle">Tap Stop or press either volume key\nto silence the call</string>
-    <string name="alarm_stop">Stop alarm</string>
 </resources>

@@ -9,8 +9,9 @@ adhan reminders and per-prayer mute.
   GPS, or manual coordinates), with a live countdown, the next-prayer progress
   row and the Hijri date alongside the Gregorian.
 - **The adhan rings like a real alarm clock** — prayer calls run on Android's
-  exact-alarm engine: a playback service loops the tone you chose at alarm volume
-  and a full-screen presenter takes over the lockscreen, whether the app is open,
+  exact-alarm engine: a playback service plays the tone you chose once at alarm
+  volume (the alarm stops itself when the call finishes) and the app's own
+  full-screen presenter takes over the lockscreen, whether the app is open,
   closed or swiped away. Silence it with the on-screen Stop button or either
   volume key.
 - **Pre-prayer alert + adhan** — two independent reminder channels with *separate*
@@ -89,14 +90,13 @@ Native Android (`android/app/src/main/kotlin/com/mawaqit/mawaqit/`):
 - `PrayerReminderReceiver.kt` — renders the decorated collapsed and expanded cards + prayer-time flip card.
 - `MutePrayerReceiver.kt` — persists per-occurrence mutes from the card's action into shared preferences.
 - `AdhanScheduler.kt` / `AdhanAlarmReceiver.kt` — arms the exact per-prayer alarm and hands it to playback.
-- `AdhanPlaybackService.kt` — foreground playback of the looping adhan at alarm volume.
-- `AdhanAlarmActivity.kt` — full-screen presenter that takes over the lockscreen.
+- `AdhanPlaybackService.kt` — foreground playback of the adhan (one pass) at alarm volume.
+- `MainActivity.kt` — also raises the in-app adhan presenter over the lockscreen when the alarm fires.
 - `PrayerWidgetHomeWidget.kt` / `PrayerWidgetHomeWidgetReceiver.kt` — the Glance home-screen widget.
 
 Layout resources (`android/app/src/main/res/`):
 - `layout/notification_prayer_collapsed.xml` — collapsed notification card for Android 12+ lockscreens.
 - `layout/notification_prayer.xml` — expanded notification card with action pills and ambient footer.
-- `layout/activity_adhan_alarm.xml` — full-screen alarm presenter.
 - `drawable/notif_progress_bar.xml` — custom rounded pill progress bar matching Stitch Sage Emerald.
 - `drawable/ic_sunny.xml` — ambient footer sunrise glyph.
 
