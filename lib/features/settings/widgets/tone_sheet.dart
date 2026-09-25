@@ -7,7 +7,8 @@ import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/services/tone_preview_service.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
-import 'package:mawaqit/shared/widgets/app_card.dart';
+import 'package:mawaqit/shared/ui/app_card.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Bottom-sheet tone picker shared by the Pre-Prayer and Adhan notification
 /// settings. Parameterized by [kind] so both sections reuse the exact same
@@ -75,7 +76,6 @@ class _ToneSheetState extends State<ToneSheet> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final settings = widget.initialSettings;
 
     return SafeArea(
@@ -89,13 +89,12 @@ class _ToneSheetState extends State<ToneSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('${_kind.label} Tone', style: textTheme.titleLarge),
+            UiText('${_kind.label} Tone', type: UiTextType.titleLarge),
             const SizedBox(height: AppSpacing.xs),
-            Text(
+            UiText(
               'Tap the speaker to preview a sound before choosing.',
-              style: textTheme.labelMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
+              type: UiTextType.labelMedium,
+              color: scheme.onSurfaceVariant,
             ),
             const SizedBox(height: AppSpacing.xxxl),
             _sectionLabel(context, 'Built-in tones'),
@@ -171,8 +170,8 @@ class _ToneSheetState extends State<ToneSheet> {
             color: scheme.outlineVariant.withValues(alpha: 0.4),
           ),
         ListTile(
-          title: Text(title),
-          subtitle: Text(subtitle),
+          title: UiText(title, type: UiTextType.bodyLarge),
+          subtitle: UiText(subtitle, type: UiTextType.bodyMedium),
           leading: leading,
           trailing: selected
               ? Icon(
@@ -209,10 +208,10 @@ class _ToneSheetState extends State<ToneSheet> {
   }
 
   Widget _sectionLabel(BuildContext context, String label) {
-    return Text(
+    return UiText(
       label,
-      style: Theme.of(context).textTheme.titleSmall
-          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+      type: UiTextType.titleSmall,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
     );
   }
 }

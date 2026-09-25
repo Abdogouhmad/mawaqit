@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
-import 'package:mawaqit/shared/widgets/app_card.dart';
-import 'package:mawaqit/shared/widgets/app_text.dart';
+import 'package:mawaqit/shared/ui/app_card.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Quiet astronomical summary: solar noon, day length and sunset.
 class SolarCard extends StatelessWidget {
@@ -15,7 +15,6 @@ class SolarCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final dayLength = day.sunset.difference(day.sunrise);
 
     return AppCard(
@@ -37,18 +36,17 @@ class SolarCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                UiText(
                   'Solar Noon',
-                  style: textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  type: UiTextType.labelLarge,
+                  fontWeight: FontWeight.w600,
                 ),
                 const SizedBox(height: AppSpacing.xxs),
-                AppText.support(
-                  context,
+                UiText(
                   '${TimeFormatter.clock(day.solarNoon)}  •  Day length '
                   '${TimeFormatter.dayLength(dayLength)}',
-                  style: textTheme.labelSmall,
+                  type: UiTextType.labelSmall,
+                  color: scheme.onSurfaceVariant,
                 ),
               ],
             ),
@@ -56,17 +54,16 @@ class SolarCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
+              UiText(
                 'Sunset',
-                style: textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                type: UiTextType.labelLarge,
+                fontWeight: FontWeight.w600,
               ),
               const SizedBox(height: AppSpacing.xxs),
-              AppText.support(
-                context,
+              UiText(
                 TimeFormatter.clock(day.sunset),
-                style: textTheme.labelSmall,
+                type: UiTextType.labelSmall,
+                color: scheme.onSurfaceVariant,
               ),
             ],
           ),

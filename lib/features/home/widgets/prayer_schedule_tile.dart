@@ -5,8 +5,9 @@ import 'package:mawaqit/core/theme/colors.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
-import 'package:mawaqit/shared/widgets/app_pill.dart';
-import 'package:mawaqit/shared/widgets/pulse_dot.dart';
+import 'package:mawaqit/shared/ui/app_pill.dart';
+import 'package:mawaqit/shared/ui/pulse_dot.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 enum PrayerTileStatus { passed, active, upcoming }
 
@@ -35,7 +36,6 @@ class PrayerScheduleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final isLight = Theme.of(context).brightness == Brightness.light;
     final active = status == PrayerTileStatus.active;
     final passed = status == PrayerTileStatus.passed;
@@ -68,14 +68,16 @@ class PrayerScheduleTile extends StatelessWidget {
         ),
       ];
     } else if (passed) {
-      background = isLight
-          ? AppColors.tileInactiveLight
-          : AppColors.cardDark;
-      border = isLight ? AppColors.hairlineOverlayLight : AppColors.hairlineOverlayDark;
+      background = isLight ? AppColors.tileInactiveLight : AppColors.cardDark;
+      border = isLight
+          ? AppColors.hairlineOverlayLight
+          : AppColors.hairlineOverlayDark;
       shadow = null;
     } else {
       background = scheme.surfaceContainerLowest;
-      border = isLight ? AppColors.hairlineOverlayLight : AppColors.hairlineOverlayDark;
+      border = isLight
+          ? AppColors.hairlineOverlayLight
+          : AppColors.hairlineOverlayDark;
       shadow = null;
     }
 
@@ -112,12 +114,11 @@ class PrayerScheduleTile extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.xl),
           Expanded(
-            child: Text(
+            child: UiText(
               prayer.kind.displayName,
-              style: textTheme.titleMedium?.copyWith(
-                color: nameColor,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-              ),
+              type: UiTextType.titleMedium,
+              color: nameColor,
+              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
           if (active && countdownLabel != null) ...[
@@ -130,12 +131,13 @@ class PrayerScheduleTile extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.lg),
           ],
-          Text(
+          UiText(
             TimeFormatter.clock(prayer.time),
-            style: textTheme.titleMedium?.copyWith(
-              color: timeColor,
-              fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-              fontFeatures: const [FontFeature.tabularFigures()],
+            type: UiTextType.titleMedium,
+            color: timeColor,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+            style: const TextStyle(
+              fontFeatures: [FontFeature.tabularFigures()],
             ),
           ),
           const SizedBox(width: AppSpacing.lg),

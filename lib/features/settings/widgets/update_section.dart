@@ -5,9 +5,10 @@ import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
 import 'package:mawaqit/features/settings/widgets/ota_update_screen.dart';
-import 'package:mawaqit/shared/widgets/app_pill.dart';
-import 'package:mawaqit/shared/widgets/settings_group.dart';
-import 'package:mawaqit/shared/widgets/settings_row.dart';
+import 'package:mawaqit/shared/ui/app_pill.dart';
+import 'package:mawaqit/shared/components/settings_group.dart';
+import 'package:mawaqit/shared/components/settings_row.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// The "About & update" card shown on the settings screen: a software-update
 /// entry that opens the OTA center, plus the installed-version row.
@@ -53,31 +54,35 @@ class UpdateSection extends ConsumerWidget {
 
   void _showAbout(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Mawaqit'),
+        title: const UiText('Mawaqit', type: UiTextType.titleLarge),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            UiText(
               'Version ${AppInfo.version}',
-              style: textTheme.bodyMedium?.copyWith(color: scheme.primary),
+              type: UiTextType.bodyMedium,
+              color: scheme.primary,
             ),
             const SizedBox(height: AppSpacing.md),
-            Text(
+            const UiText(
               'A calm, focused prayer-times app with adhan reminders. '
               'No accounts, no tracking.',
-              style: textTheme.bodyMedium,
+              type: UiTextType.bodyMedium,
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
+            child: UiText(
+              'Close',
+              type: UiTextType.labelLarge,
+              color: scheme.primary,
+            ),
           ),
         ],
       ),

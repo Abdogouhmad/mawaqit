@@ -126,17 +126,17 @@ class _HighlightPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(AppRadius.mini),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.shadowSoft,
-              blurRadius: 4,
-              offset: Offset(0, 1),
-            ),
-          ],
-        ),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppRadius.mini),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowSoft,
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
     );
   }
 }

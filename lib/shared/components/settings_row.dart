@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Settings list tile: leading icon in a soft circle, title + subtitle,
 /// and a trailing widget (chevron / switch / pill).
@@ -28,7 +29,6 @@ class SettingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
     final onTap = this.onTap;
 
     void handleTap() {
@@ -66,20 +66,18 @@ class SettingsRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    UiText(
                       title,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontSize: AppFontSize.lg,
-                      ),
+                      type: UiTextType.titleMedium,
+                      fontSize: AppFontSize.lg,
                     ),
                     if (subtitle != null) ...[
                       const SizedBox(height: AppSpacing.xxs),
-                      Text(
+                      UiText(
                         subtitle!,
-                        style: textTheme.labelMedium?.copyWith(
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        type: UiTextType.labelMedium,
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w500,
                       ),
                     ],
                   ],

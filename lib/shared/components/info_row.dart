@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Label/value list row (icon · label — value), used by the OTA "version
 /// details" card. [highlight] promotes the value to the primary accent.
@@ -21,7 +22,6 @@ class InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -35,19 +35,17 @@ class InfoRow extends StatelessWidget {
             const SizedBox(width: AppSpacing.md),
           ],
           Expanded(
-            child: Text(
+            child: UiText(
               label,
-              style: textTheme.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
+              type: UiTextType.bodyMedium,
+              color: scheme.onSurfaceVariant,
             ),
           ),
-          Text(
+          UiText(
             value,
-            style: textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: highlight ? scheme.primary : scheme.onSurface,
-            ),
+            type: UiTextType.bodyMedium,
+            fontWeight: FontWeight.w700,
+            color: highlight ? scheme.primary : scheme.onSurface,
           ),
         ],
       ),

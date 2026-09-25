@@ -2,20 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/theme/colors.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
-import 'package:mawaqit/shared/widgets/app_button.dart';
-import 'package:mawaqit/shared/widgets/app_text.dart';
+import 'package:mawaqit/shared/ui/app_button.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
-/// Full-screen adhan presenter (Rakiz-style): raised when the adhan fires while
-/// the app is open, giving the call a room-consuming surface instead of a tray
-/// toast. The tone itself is started by [`NotificationService`] (audioplayers,
-/// looping on the alarm stream) — this screen only owns dismissal, which stops
-/// playback and clears the mirroring tray notification. The route cannot be
-/// swiped away; it exits via the on-screen Stop control or the device
-/// volume/side buttons (native → service → [alarmDismissed]).
 class AdhanOverlayScreen extends StatefulWidget {
   const AdhanOverlayScreen({
     super.key,
@@ -23,11 +15,7 @@ class AdhanOverlayScreen extends StatefulWidget {
     this.notificationId,
   });
 
-  /// Headline text — just the occurrence ("Maghrib", "Test"); the "ADHAN"
-  /// eyebrow above it carries the context, matching the native lockscreen UI.
   final String title;
-
-  /// Tray notification (if any) to dismiss together with the alarm.
   final int? notificationId;
 
   @override
@@ -41,10 +29,11 @@ class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
   @override
   void initState() {
     super.initState();
-    // Close when the alarm is stopped externally — the volume/side buttons
-    // route through NotificationService and emit on [alarmDismissed].
+
     _dismissSub = NotificationService.instance.alarmDismissed.listen((_) {
-      if (mounted) _stop();
+      if (mounted) {
+        _stop();
+      }
     });
   }
 
@@ -56,111 +45,66 @@ class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
 
   Future<void> _stop() async {
     if (_stopping) return;
-    setState(() => _stopping = true);
+
+    setState(() {
+      _stopping = true;
+    });
+
     try {
       await NotificationService.instance.stopAlarm(
         notificationId: widget.notificationId,
       );
-      // Small delay so the loading state is perceived and the native service
-      // fully tears down before the route pops.
-      await Future.delayed(const Duration(milliseconds: 300));
-      if (mounted) Navigator.of(context).pop();
+
+      await Future.delayed(const Duration(milliseconds: 180));
+
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
     } catch (_) {
-      // Fallback: if stopping fails, still allow the user to exit.
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final size = MediaQuery.sizeOf(context);
+
+    final compact = size.height < 700;
+
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: scheme.surface,
       body: PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) _stop();
+          if (!didPop) {
+            _stop();
+          }
         },
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [AppColors.darkForest, AppColors.deepInk],
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.md,
+              AppSpacing.lg,
+              AppSpacing.lg,
             ),
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.huge),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Spacer(flex: 2),
-                  // Soft halo behind the bell — mirrors the native lockscreen
-                  // activity so both presenters read as the same screen.
-                  Center(
-                    child: Container(
-                      width: AppSpacing.offsetLg + AppSpacing.huge,
-                      height: AppSpacing.offsetLg + AppSpacing.huge,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primaryDark.withValues(alpha: 0.18),
-                      ),
-                      child: const Icon(
-                        Icons.notifications_active_rounded,
-                        size: AppIconSize.display,
-                        color: AppColors.radiantSage,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  AppText.eyebrow(
-                    context,
-                    'ADHAN',
-                    color: AppColors.radiantSage,
-                    tracking: 6,
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    widget.title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: AppFontSize.displaySm,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                      height: 1.1,
-                    ),
-                  ),
-                  const Spacer(flex: 1),
-                  const _AlarmClock(),
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    'Tap Stop or press either volume key\nto silence the call',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      fontSize: AppFontSize.sm,
-                      height: 1.5,
-                    ),
-                  ),
-                  const Spacer(flex: 2),
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-                    child: AppButton(
-                      label: 'Stop Adhan',
-                      icon: Icons.stop_rounded,
-                      loading: _stopping,
-                      loadingLabel: 'Silencing…',
-                      onPressed: _stop,
-                      minHeight: 64,
-                      radius: AppRadius.xxl,
-                      backgroundColor: AppColors.radiantSage,
-                      foregroundColor: AppColors.deepInk,
-                    ),
-                  ),
-                ],
-              ),
+            child: Column(
+              children: [
+                _Header(),
+
+                Expanded(
+                  child: _Content(title: widget.title, compact: compact),
+                ),
+
+                _BottomAction(
+                  stopping: _stopping,
+                  onStop: _stop,
+                  compact: compact,
+                ),
+              ],
             ),
           ),
         ),
@@ -169,58 +113,263 @@ class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
   }
 }
 
-/// Live clock + date for the alarm presenter — the only widgets that rebuild
-/// on the per-second ticker.
-class _AlarmClock extends StatefulWidget {
-  const _AlarmClock();
+class _Header extends StatelessWidget {
+  const _Header();
 
   @override
-  State<_AlarmClock> createState() => _AlarmClockState();
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: scheme.secondaryContainer,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.graphic_eq_rounded,
+                size: 18,
+                color: scheme.onSecondaryContainer,
+              ),
+              const SizedBox(width: 6),
+              UiText(
+                'ADHAN',
+                type: UiTextType.labelLarge,
+                color: scheme.onSecondaryContainer,
+                fontWeight: FontWeight.w700,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-class _AlarmClockState extends State<_AlarmClock> {
+class _Content extends StatelessWidget {
+  const _Content({required this.title, required this.compact});
+
+  final String title;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _AdhanIcon(compact: compact),
+
+          SizedBox(height: compact ? AppSpacing.lg : AppSpacing.xl),
+
+          UiText(
+            'IT IS TIME FOR',
+            type: UiTextType.labelMedium,
+            color: scheme.primary,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.6,
+          ),
+
+          const SizedBox(height: 6),
+
+          UiText(
+            title,
+            type: UiTextType.displaySmall,
+            textAlign: TextAlign.center,
+            color: scheme.onSurface,
+            fontWeight: FontWeight.w700,
+            style: const TextStyle(height: 1, letterSpacing: -1),
+          ),
+
+          const SizedBox(height: 8),
+
+          UiText(
+            'The call to prayer is playing',
+            type: UiTextType.bodyMedium,
+            textAlign: TextAlign.center,
+            color: scheme.onSurfaceVariant,
+          ),
+
+          SizedBox(height: compact ? AppSpacing.xl : AppSpacing.huge),
+
+          const _ClockCard(),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdhanIcon extends StatelessWidget {
+  const _AdhanIcon({required this.compact});
+
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    final size = compact ? 112.0 : 132.0;
+
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(size * .42),
+          topRight: Radius.circular(size * .25),
+          bottomLeft: Radius.circular(size * .25),
+          bottomRight: Radius.circular(size * .42),
+        ),
+      ),
+      child: Center(
+        child: Container(
+          width: size * .62,
+          height: size * .62,
+          decoration: BoxDecoration(
+            color: scheme.primary,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            Icons.notifications_active_rounded,
+            color: scheme.onPrimary,
+            size: size * .30,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ClockCard extends StatelessWidget {
+  const _ClockCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: const _LiveClock(),
+    );
+  }
+}
+
+class _LiveClock extends StatefulWidget {
+  const _LiveClock();
+
+  @override
+  State<_LiveClock> createState() => _LiveClockState();
+}
+
+class _LiveClockState extends State<_LiveClock> {
   DateTime _now = DateTime.now();
-  Timer? _clock;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _clock = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() => _now = DateTime.now());
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) {
+        setState(() {
+          _now = DateTime.now();
+        });
+      }
     });
   }
 
   @override
   void dispose() {
-    _clock?.cancel();
+    _timer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
+        UiText(
           TimeFormatter.clock(_now),
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: AppFontSize.displayLg,
-            fontWeight: FontWeight.w200,
-            letterSpacing: -1.5,
-            height: 1,
-          ),
+          type: UiTextType.displayMedium,
+          color: scheme.onSurface,
+          fontWeight: FontWeight.w400,
+          style: const TextStyle(height: 1, letterSpacing: -1.5),
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
+
+        const SizedBox(height: 4),
+
+        UiText(
           TimeFormatter.dateTitle(_now),
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.55),
-            fontSize: AppFontSize.md,
-            fontWeight: FontWeight.w500,
-          ),
+          type: UiTextType.bodySmall,
+          color: scheme.onSurfaceVariant,
+          fontWeight: FontWeight.w500,
+        ),
+      ],
+    );
+  }
+}
+
+class _BottomAction extends StatelessWidget {
+  const _BottomAction({
+    required this.stopping,
+    required this.onStop,
+    required this.compact,
+  });
+
+  final bool stopping;
+  final VoidCallback onStop;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Column(
+      children: [
+        AppButton(
+          label: 'Stop Adhan',
+          icon: Icons.stop_rounded,
+          loading: stopping,
+          loadingLabel: 'Silencing…',
+          onPressed: onStop,
+          expanded: false,
+          minHeight: compact ? 56 : 60,
+          radius: AppRadius.lg,
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
+        ),
+        const SizedBox(height: 8),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.volume_up_outlined,
+              size: 16,
+              color: scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 5),
+            UiText(
+              'Press a volume key to silence',
+              type: UiTextType.bodySmall,
+              color: scheme.onSurfaceVariant,
+            ),
+          ],
         ),
       ],
     );

@@ -5,11 +5,12 @@ import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/data/services/update_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
-import 'package:mawaqit/shared/widgets/app_button.dart';
-import 'package:mawaqit/shared/widgets/app_card.dart';
-import 'package:mawaqit/shared/widgets/app_pill.dart';
-import 'package:mawaqit/shared/widgets/icon_badge.dart';
-import 'package:mawaqit/shared/widgets/info_row.dart';
+import 'package:mawaqit/shared/ui/app_button.dart';
+import 'package:mawaqit/shared/ui/app_card.dart';
+import 'package:mawaqit/shared/ui/app_pill.dart';
+import 'package:mawaqit/shared/ui/icon_badge.dart';
+import 'package:mawaqit/shared/components/info_row.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Full-page OTA update center, reachable from the settings "Update" entry.
 ///
@@ -50,10 +51,10 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         centerTitle: true,
-        title: Text(
+        title: UiText(
           'Software Update',
-          style: Theme.of(context).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w700),
+          type: UiTextType.titleLarge,
+          fontWeight: FontWeight.w700,
         ),
       ),
       body: SafeArea(
@@ -251,9 +252,9 @@ class _CheckingCard extends StatelessWidget {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: AppSpacing.md),
-              Text(
+              UiText(
                 'Looking for newer versions…',
-                style: Theme.of(context).textTheme.bodyMedium,
+                type: UiTextType.bodyMedium,
               ),
             ],
           ),
@@ -378,12 +379,11 @@ class _ChangelogCard extends StatelessWidget {
       icon: Icons.new_releases_outlined,
       children: [
         if (lines.isEmpty)
-          Text(
+          UiText(
             'No release notes available for this release.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontStyle: FontStyle.italic,
-            ),
+            type: UiTextType.bodyMedium,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            style: const TextStyle(fontStyle: FontStyle.italic),
           )
         else
           for (var i = 0; i < lines.length; i++) _row(context, lines[i], i),
@@ -413,10 +413,10 @@ class _ChangelogCard extends StatelessWidget {
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
-              child: Text(
+              child: UiText(
                 heading.group(1)!,
-                style: Theme.of(context).textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w800),
+                type: UiTextType.titleSmall,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],
@@ -521,17 +521,16 @@ class _DownloadCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            UiText(
               'Downloading…',
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: scheme.onSurfaceVariant),
+              type: UiTextType.bodyMedium,
+              color: scheme.onSurfaceVariant,
             ),
-            Text(
+            UiText(
               '$percent%',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: scheme.primary,
-              ),
+              type: UiTextType.titleSmall,
+              fontWeight: FontWeight.w700,
+              color: scheme.primary,
             ),
           ],
         ),
@@ -563,10 +562,10 @@ class _ReadyCard extends StatelessWidget {
       children: [
         Icon(Icons.check_circle_rounded, color: scheme.primary, size: 64),
         const SizedBox(height: AppSpacing.md),
-        Text(
+        UiText(
           'The update is verified and ready to install.',
-          style: Theme.of(context).textTheme.bodyMedium
-              ?.copyWith(color: scheme.onSurfaceVariant),
+          type: UiTextType.bodyMedium,
+          color: scheme.onSurfaceVariant,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.huge),
@@ -638,13 +637,20 @@ class _InlineError extends StatelessWidget {
           Icon(Icons.error_outline_rounded, color: scheme.error),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Text(
+            child: UiText(
               message,
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: scheme.onErrorContainer),
+              type: UiTextType.bodyMedium,
+              color: scheme.onErrorContainer,
             ),
           ),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
+          TextButton(
+            onPressed: onRetry,
+            child: UiText(
+              'Retry',
+              type: UiTextType.labelLarge,
+              color: scheme.primary,
+            ),
+          ),
         ],
       ),
     );
@@ -679,10 +685,10 @@ class _Card extends StatelessWidget {
                 iconSize: AppIconSize.xl,
               ),
               const SizedBox(width: AppSpacing.md),
-              Text(
+              UiText(
                 title,
-                style: Theme.of(context).textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w700),
+                type: UiTextType.titleMedium,
+                fontWeight: FontWeight.w700,
               ),
             ],
           ),
