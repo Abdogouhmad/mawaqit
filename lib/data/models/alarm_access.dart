@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 ///
 /// Each entry is granted on its own screen, on its own release, and the OS
 /// revokes it silently: notifications can be off, exact alarms can fall back to
-/// "batched later", the lockscreen takeover can be off, and a phone in silent
+/// "batched later", the lockscreen takeover can be off, the app can be barred
+/// from taking the screen of an app you are already using, and a phone in silent
 /// or Do Not Disturb mode swallows the call. The model mirrors the native
 /// [`AlarmAccess`](../../android/app/src/main/kotlin/com/mawaqit/mawaqit/AlarmAccess.kt)
 /// status map so the settings UI can show — and fix — exactly what is missing.
@@ -31,11 +32,30 @@ enum AlarmPermission {
 
   /// Full-screen notifications (14+): what lets the alarm wake the display and
   /// take over the lockscreen instead of silently appearing in the shade.
+  ///
+  /// Locked phones only. Android deliberately refuses to launch a full-screen
+  /// intent while the screen is unlocked — it downgrades the card to a
+  /// heads-up notification — which is what [overlay] exists to cover.
   fullScreenIntent(
     key: 'fullScreenIntent',
     label: 'Full-screen notifications',
     icon: Icons.fullscreen_outlined,
     blurb: 'Wake the screen and take over the lockscreen',
+  ),
+
+  /// "Display over other apps": the one access that lifts Android's
+  /// background-activity-launch restriction, and therefore the only way the
+  /// adhan can take the screen while the phone is unlocked and the user is in
+  /// another app. Without it an in-use phone gets a heads-up card and nothing
+  /// more — which is what Google Clock does too.
+  ///
+  /// Opt-in, and the app is complete without it: every other alarm behaviour
+  /// (audio, timing, lockscreen takeover) is unaffected either way.
+  overlay(
+    key: 'overlay',
+    label: 'Display over other apps',
+    icon: Icons.picture_in_picture_alt_outlined,
+    blurb: 'Show the adhan full screen even while you are using the phone',
   ),
 
   /// "Do Not Disturb access": with it, a ringing adhan lifts silent mode for
@@ -83,6 +103,7 @@ class AlarmAccess {
     this.notifications = true,
     this.exactAlarms = true,
     this.fullScreenIntent = true,
+    this.overlay = true,
     this.policyAccess = true,
     this.battery = true,
   });
@@ -94,6 +115,7 @@ class AlarmAccess {
   final bool notifications;
   final bool exactAlarms;
   final bool fullScreenIntent;
+  final bool overlay;
   final bool policyAccess;
   final bool battery;
 
@@ -102,6 +124,7 @@ class AlarmAccess {
     AlarmPermission.notifications => notifications,
     AlarmPermission.exactAlarms => exactAlarms,
     AlarmPermission.fullScreenIntent => fullScreenIntent,
+    AlarmPermission.overlay => overlay,
     AlarmPermission.policyAccess => policyAccess,
     AlarmPermission.battery => battery,
   };
@@ -114,13 +137,20 @@ class AlarmAccess {
   /// the timing needs exact alarms, and the takeover needs full-screen.
   bool get canRingOnTime => notifications && exactAlarms && fullScreenIntent;
 
-  /// Whether the adhan can override a silenced phone.
-  bool get canForceAdhan => policyAccess;
+  /// Whether the adhan can reach the user whatever they are doing: audible
+  /// through silent mode (Do Not Disturb access) and on top of whatever app is
+  /// open ("Display over other apps").
+  bool get canForceAdhan => policyAccess && overlay;
+
+  /// Whether the adhan is guaranteed to take over the screen, on a locked
+  /// phone ([fullScreenIntent]) as well as one already in use ([overlay]).
+  bool get canAlwaysTakeOver => fullScreenIntent && overlay;
 
   AlarmAccess copyWith({
     bool? notifications,
     bool? exactAlarms,
     bool? fullScreenIntent,
+    bool? overlay,
     bool? policyAccess,
     bool? battery,
   }) {
@@ -128,6 +158,7 @@ class AlarmAccess {
       notifications: notifications ?? this.notifications,
       exactAlarms: exactAlarms ?? this.exactAlarms,
       fullScreenIntent: fullScreenIntent ?? this.fullScreenIntent,
+      overlay: overlay ?? this.overlay,
       policyAccess: policyAccess ?? this.policyAccess,
       battery: battery ?? this.battery,
     );
@@ -147,6 +178,7 @@ class AlarmAccess {
       notifications: read(AlarmPermission.notifications),
       exactAlarms: read(AlarmPermission.exactAlarms),
       fullScreenIntent: read(AlarmPermission.fullScreenIntent),
+      overlay: read(AlarmPermission.overlay),
       policyAccess: read(AlarmPermission.policyAccess),
       battery: read(AlarmPermission.battery),
     );
@@ -158,6 +190,7 @@ class AlarmAccess {
       other.notifications == notifications &&
       other.exactAlarms == exactAlarms &&
       other.fullScreenIntent == fullScreenIntent &&
+      other.overlay == overlay &&
       other.policyAccess == policyAccess &&
       other.battery == battery;
 
@@ -166,6 +199,7 @@ class AlarmAccess {
     notifications,
     exactAlarms,
     fullScreenIntent,
+    overlay,
     policyAccess,
     battery,
   );
@@ -173,6 +207,6 @@ class AlarmAccess {
   @override
   String toString() =>
       'AlarmAccess(notifications: $notifications, exactAlarms: $exactAlarms, '
-      'fullScreenIntent: $fullScreenIntent, policyAccess: $policyAccess, '
-      'battery: $battery)';
+      'fullScreenIntent: $fullScreenIntent, overlay: $overlay, '
+      'policyAccess: $policyAccess, battery: $battery)';
 }

@@ -11,6 +11,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-09-26
+
+New since v0.8.6.
+
+### Fixed
+
+- **The adhan no longer looks like you started playing music** — the ringing
+  adhan was carried by a media-playback service, so Android treated the call as
+  a track: the tray card grew playback controls, it turned up in the media
+  output switcher, and it took over the lockscreen as a media card. It is now an
+  ordinary alarm, which is what it always was.
+- **The full-screen adhan is no longer overwritten before it can appear** — the
+  alarm used to post its full-screen card and then be handed a second,
+  media-player-styled card under the same id a few milliseconds later, which
+  threw the full-screen request away and left the card as the only thing you
+  saw. There is now exactly one card for a ringing adhan, and it is the one that
+  asks for the screen.
+- **The adhan survives a reboot or an update** — Android clears every scheduled
+  alarm when the app is replaced, and nothing put them back until the next
+  12-hourly background run, so a phone that restarted in the morning could reach
+  the evening with no adhan scheduled at all. Today's adhans and reminders are
+  now re-armed as soon as the phone boots, and again after an in-app update.
+
+### Added
+
+- **"Display over other apps" in Alarm reliability** — a new row that lets the
+  adhan take the screen *while you are using the phone*, not just when it is
+  locked. Android deliberately downgrades a full-screen notification to a
+  heads-up card the moment the screen is unlocked, and blocks an app from
+  opening its own alarm screen from the background, so this is the one switch
+  that lets the adhan interrupt what you are doing. It is off by default, it is
+  never asked for on launch, and every other part of the alarm — the call, the
+  timing, the lockscreen takeover — works exactly as before without it.
+- **A more honest "Test adhan" message** — the test now says which of the two
+  takeovers the current setup can actually perform, and points at the new row
+  when the phone is in use.
+
 ## [0.8.6] - 2026-09-26
 
 New since v0.8.5.

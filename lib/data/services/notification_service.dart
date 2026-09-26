@@ -417,6 +417,13 @@ class NotificationService {
         'falls back to a heads-up card until it is granted in Settings.',
       );
     }
+    if (!_alarmAccess.overlay) {
+      debugPrint(
+        'Display over other apps was denied — while the phone is unlocked and '
+        'in use, the adhan can only appear as a heads-up card, until it is '
+        'granted in Settings.',
+      );
+    }
     return hasNotificationPermission;
   }
 
@@ -431,6 +438,12 @@ class NotificationService {
   /// explicitly revokes the access.
   bool get canUseFullScreenIntents =>
       !_isAndroid || _alarmAccess.fullScreenIntent;
+
+  /// Whether the adhan may take the screen of an app the user is already in
+  /// ("Display over other apps"). Without it Android downgrades the alarm to a
+  /// heads-up card whenever the phone is unlocked — see
+  /// `AdhanScheduler.forceShowAdhan`.
+  bool get canShowOverOtherApps => !_isAndroid || _alarmAccess.overlay;
 
   /// (Re)schedules all notifications for [day]. Always cancels what was left
   /// over from a previous run first so stale entries can never double-fire.

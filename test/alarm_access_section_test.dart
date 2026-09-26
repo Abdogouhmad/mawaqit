@@ -32,6 +32,7 @@ void main() {
               'notifications': true,
               'exactAlarms': true,
               'fullScreenIntent': true,
+              'overlay': true,
               'policyAccess': true,
               'batteryUnrestricted': true,
             }
@@ -54,6 +55,7 @@ void main() {
               'notifications': true,
               'exactAlarms': false,
               'fullScreenIntent': true,
+              'overlay': true,
               'policyAccess': false,
               'batteryUnrestricted': true,
             }
@@ -66,14 +68,15 @@ void main() {
     expect(find.text('Notifications'), findsOneWidget);
     expect(find.text('Alarms & reminders'), findsOneWidget);
     expect(find.text('Full-screen notifications'), findsOneWidget);
+    expect(find.text('Display over other apps'), findsOneWidget);
     expect(find.text('Do Not Disturb access'), findsOneWidget);
     expect(find.text('Unrestricted battery'), findsOneWidget);
 
-    // notifications, full-screen and battery are granted; exact alarms and
-    // Do Not Disturb access are not.
-    expect(find.text('Allowed'), findsNWidgets(3));
+    // notifications, full-screen, "display over other apps" and battery are
+    // granted; exact alarms and Do Not Disturb access are not.
+    expect(find.text('Allowed'), findsNWidgets(4));
     expect(find.text('Fix'), findsNWidgets(2));
-    expect(find.textContaining('2 of 5 accesses are off'), findsOneWidget);
+    expect(find.textContaining('2 of 6 accesses are off'), findsOneWidget);
 
     usePlatform(null);
   });
@@ -87,7 +90,7 @@ void main() {
 
     expect(find.text('All alarm accesses granted'), findsOneWidget);
     expect(find.text('Fix'), findsNothing);
-    expect(find.text('Allowed'), findsNWidgets(5));
+    expect(find.text('Allowed'), findsNWidgets(6));
 
     usePlatform(null);
   });

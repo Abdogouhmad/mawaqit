@@ -4,7 +4,6 @@ import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.MediaPlayer
-import android.media.session.MediaSession
 import android.os.Build
 import android.os.IBinder
 
@@ -16,39 +15,21 @@ import android.os.IBinder
  * or until the clip runs out, and finishing it tears the alarm down the same way
  * a dismissal does. Dismissal (volume keys, presenter Stop button, notification
  * Stop action, Flutter stop) funnels through [AdhanScheduler.stopActive].
+ *
+ * The service is declared `specialUse`, *not* `mediaPlayback`: a mediaPlayback
+ * service is classified as music by the platform, so the adhan used to be
+ * rendered as a media-player card (with a scrubber and playback controls, and
+ * listed in the media output switcher) instead of as an alarm. Dropping the
+ * type also drops the `MediaSession` that Android 15+ demanded for a media
+ * playback service, along with the crash risk that came with it.
  */
 class AdhanPlaybackService : Service() {
 
     private var player: MediaPlayer? = null
-    private var mediaSession: MediaSession? = null
 
     override fun onCreate() {
         super.onCreate()
         AdhanScheduler.ensureChannels(this)
-        ensureMediaSession()
-    }
-
-    /**
-     * Android 15+ requires an active `MediaSession` to run a foreground
-     * service of type `mediaPlayback` (the app targets SDK 36); without one
-     * the system throws `MediaPlaybackServiceWithoutMediaSessionException` and
-     * the whole process dies — no adhan, no full-screen alarm. A framework
-     * session is enough to satisfy the check; playback stays on [MediaPlayer].
-     */
-    private fun ensureMediaSession() {
-        if (mediaSession != null) return
-        mediaSession = MediaSession(this, "mawaqit-adhan").apply {
-            setCallback(object : MediaSession.Callback() {})
-            setActive(true)
-        }
-    }
-
-    private fun releaseMediaSession() {
-        mediaSession?.apply {
-            setActive(false)
-            release()
-        }
-        mediaSession = null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -82,21 +63,29 @@ class AdhanPlaybackService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    /**
+     * Mounts the alarm card. The *same* card carries the full-screen intent, so
+     * there is exactly one notification for a ringing adhan: it used to be
+     * posted twice under one id — once with the full-screen intent and once
+     * from `startForeground` — so the media-style card replaced the full-screen
+     * one within milliseconds of it being posted.
+     */
     private fun startForegroundCompat(id: Int, schedule: AdhanScheduler.Schedule) {
-        val notification = AdhanScheduler.buildAlarmNotification(
-            this,
-            schedule,
-            mediaSession?.sessionToken,
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        val notification = AdhanScheduler.buildAlarmNotification(this, schedule)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             // The typed overload can be rejected on the platform for reasons
-            // that vary by release (media-session enforcement, OEM strictness).
-            // Never let that crash the process: the full-screen alarm and the
-            // ringing adhan must survive it, so fall back to the plain overload
-            // (still a real foreground service, just without the declared type).
+            // that vary by release (OEM strictness). Never let that crash the
+            // process: the full-screen alarm and the ringing adhan must survive
+            // it, so fall back to the plain overload (still a real foreground
+            // service, just without the declared type). Below Android 14 the
+            // `specialUse` type does not exist yet and must not be passed.
             try {
-                startForeground(id, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
-            } catch (e: Exception) {
+                startForeground(
+                    id,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+                )
+            } catch (_: Exception) {
                 startForeground(id, notification)
             }
         } else {
@@ -133,7 +122,6 @@ class AdhanPlaybackService : Service() {
     }
 
     override fun onDestroy() {
-        releaseMediaSession()
         player?.release()
         player = null
         // Backstop: every dismissal already restores the interruption filter

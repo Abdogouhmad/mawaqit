@@ -103,5 +103,9 @@ flutter {
 
 dependencies {
     implementation("androidx.glance:glance-appwidget:1.2.0")
+    // The workmanager plugin keeps work-runtime to itself, so BootReceiver
+    // cannot enqueue the post-reboot re-arm without declaring it here. Pinned to
+    // the version the plugin resolves, so Gradle picks a single artifact.
+    implementation("androidx.work:work-runtime:2.10.2")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

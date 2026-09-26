@@ -8,6 +8,7 @@ void main() {
         'notifications': true,
         'exactAlarms': false,
         'fullScreenIntent': true,
+        'overlay': false,
         'policyAccess': false,
         'batteryUnrestricted': false,
       });
@@ -15,6 +16,7 @@ void main() {
       expect(access.notifications, isTrue);
       expect(access.exactAlarms, isFalse);
       expect(access.fullScreenIntent, isTrue);
+      expect(access.overlay, isFalse);
       expect(access.policyAccess, isFalse);
       expect(access.battery, isFalse);
     });
@@ -45,6 +47,7 @@ void main() {
         notifications: false,
         exactAlarms: true,
         fullScreenIntent: false,
+        overlay: false,
         policyAccess: false,
         battery: true,
       );
@@ -52,6 +55,7 @@ void main() {
       expect(access.missing, [
         AlarmPermission.notifications,
         AlarmPermission.fullScreenIntent,
+        AlarmPermission.overlay,
         AlarmPermission.policyAccess,
       ]);
     });
@@ -73,11 +77,39 @@ void main() {
         isTrue,
         reason: 'a silenced phone is a separate concern from timing',
       );
+      expect(
+        const AlarmAccess(overlay: false).canRingOnTime,
+        isTrue,
+        reason: 'the lockscreen takeover still works without it',
+      );
     });
 
-    test('canForceAdhan is the Do Not Disturb access', () {
+    test('canForceAdhan needs both the silent-mode and the screen access', () {
       expect(AlarmAccess.all.canForceAdhan, isTrue);
       expect(const AlarmAccess(policyAccess: false).canForceAdhan, isFalse);
+      expect(
+        const AlarmAccess(overlay: false).canForceAdhan,
+        isFalse,
+        reason: 'a phone in use is not reachable without the overlay access',
+      );
+    });
+
+    test('canAlwaysTakeOver separates the locked and in-use screens', () {
+      expect(AlarmAccess.all.canAlwaysTakeOver, isTrue);
+      expect(
+        const AlarmAccess(fullScreenIntent: false).canAlwaysTakeOver,
+        isFalse,
+      );
+      expect(
+        const AlarmAccess(overlay: false).canAlwaysTakeOver,
+        isFalse,
+        reason: 'an unlocked screen has no other route to the presenter',
+      );
+      expect(
+        const AlarmAccess(exactAlarms: false).canAlwaysTakeOver,
+        isTrue,
+        reason: 'taking the screen is independent of firing on time',
+      );
     });
 
     test('copyWith changes only what it is given', () {

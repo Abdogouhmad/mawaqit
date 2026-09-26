@@ -2,7 +2,6 @@ package com.mawaqit.mawaqit
 
 import android.app.ActivityManager
 import android.app.AlarmManager
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -21,11 +20,18 @@ import org.json.JSONObject
  *
  * Flutter computes the prayer times and hands each occurrence over here; this
  * object persists the schedule, arms an exact `AlarmManager` alarm and, when it
- * fires, distributes the work to [AdhanAlarmReceiver] (foreground service that
- * owns the audio + a launch of the shell, whose in-app presenter takes over the
- * lockscreen). The audio is deliberately NOT the notification-channel sound — a
- * dedicated [AdhanPlaybackService] plays the selected clip through `MediaPlayer`
- * on the alarm stream, so the call rings even when the Flutter process is dead.
+ * fires, distributes the work to [AdhanAlarmReceiver]: a [AdhanPlaybackService]
+ * that owns the audio *and* mounts the single alarm card, whose full-screen
+ * intent makes the system raise the shell's in-app presenter. The audio is
+ * deliberately NOT the notification-channel sound — the service plays the
+ * selected clip through `MediaPlayer` on the alarm stream, so the call rings
+ * even when the Flutter process is dead.
+ *
+ * The takeover has two halves, because the platform only ever allows one of
+ * them at a time: a locked (or off) screen is handed to the system through
+ * the card's full-screen intent, while an unlocked screen — where a full-screen
+ * intent is deliberately downgraded to a heads-up card — depends on
+ * [forceShowAdhan]. See [AlarmAccess] for the accesses both need.
  */
 object AdhanScheduler {
 
@@ -109,7 +115,11 @@ object AdhanScheduler {
 
     /**
      * Intent that raises the shell's own full-screen adhan presenter
-     * ([MainActivity] → `AdhanOverlayScreen` in Flutter) over the lockscreen.
+     * ([MainActivity] → `AdhanOverlayScreen` in Flutter).
+     *
+     * `REORDER_TO_FRONT` matters for [forceShowAdhan]: when Mawaqit is alive in
+     * the background, the existing task is brought forward with its Flutter
+     * engine and navigation state intact instead of being rebuilt.
      */
     fun showAdhanIntent(context: Context, id: Int, name: String): Intent =
         Intent(context, MainActivity::class.java)
@@ -117,7 +127,8 @@ object AdhanScheduler {
             .setFlags(
                 Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP,
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                    Intent.FLAG_ACTIVITY_REORDER_TO_FRONT,
             )
             .putExtra(EXTRA_ID, id)
             .putExtra(EXTRA_NAME, name)
@@ -128,6 +139,11 @@ object AdhanScheduler {
      * start restrictions that ban a naked `startActivity()` from a receiver
      * once the phone is locked or the app is killed — this is how the alarm
      * reliably wakes the display and presents over the lockscreen.
+     *
+     * The system only *launches* it while the screen is locked, off, or on
+     * always-on display; on an unlocked screen it downgrades the notification
+     * to a persistent heads-up card no matter how the alarm is configured.
+     * That case is [forceShowAdhan]'s job.
      */
     fun alarmActivityPendingIntent(context: Context, id: Int, name: String): PendingIntent =
         PendingIntent.getActivity(
@@ -308,11 +324,19 @@ object AdhanScheduler {
         return null
     }
 
-    /** Posts an on-going alarm card that routes dismissal through the service. */
+    /**
+     * The one card for a ringing adhan: an on-going alarm notification that
+     * carries the full-screen intent, so the system both wakes the display and
+     * launches the presenter (locked / off / AOD) and shows a stoppable
+     * heads-up card (unlocked).
+     *
+     * Deliberately no `MediaStyle` and no media session: a media-style card is
+     * what made the adhan look like a music player, with a scrubber and
+     * playback controls, in the shade and on the lockscreen.
+     */
     fun buildAlarmNotification(
         context: Context,
         schedule: Schedule,
-        mediaSessionToken: android.media.session.MediaSession.Token?,
     ): android.app.Notification {
         val stop = PendingIntent.getService(
             context,
@@ -322,7 +346,7 @@ object AdhanScheduler {
                 .putExtra(EXTRA_ID, schedule.id),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val builder = NotificationCompat.Builder(context, CHANNEL_ALARM)
+        return NotificationCompat.Builder(context, CHANNEL_ALARM)
             .setSmallIcon(R.drawable.ic_stat_mawaqit)
             .setContentTitle("Adhan — ${schedule.name}")
             .setContentText("It is now time for the ${schedule.name} prayer")
@@ -339,22 +363,22 @@ object AdhanScheduler {
                 "Stop",
                 stop,
             )
-        // Android 15+ mediaPlayback FGS enforcement accepts either an active
-        // media session OR a notification carrying the MediaStyle session
-        // token; some builds check only the token. Bind the live session to the
-        // card so every release passes — otherwise the process can crash the
-        // instant the alarm starts, killing the full-screen presenter before it
-        // renders. Intent is a framework-only MediaStyle: `NotificationCompat`
-        // refuses a framework style, so the freshly built card is re-wrapped
-        // through `Notification.Builder.recoverBuilder` (API 24+, guarded).
-        if (mediaSessionToken != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val replayed = Notification.Builder.recoverBuilder(context, builder.build())
-            replayed.setStyle(
-                Notification.MediaStyle().setMediaSession(mediaSessionToken),
-            )
-            return replayed.build()
+            .build()
+    }
+
+    /**
+     * Fallback for when the playback service cannot be started from the
+     * background: mounts the same card (full-screen intent included) directly,
+     * so the takeover still happens and only the audio is lost.
+     */
+    fun postAlarmCard(context: Context, schedule: Schedule) {
+        ensureChannels(context)
+        try {
+            NotificationManagerCompat.from(context)
+                .notify(schedule.id, buildAlarmNotification(context, schedule))
+        } catch (_: Exception) {
+            // POST_NOTIFICATIONS denied / OEM strictness — nothing to show.
         }
-        return builder.build()
     }
 
     /** Silently posts the muted card for an occurrence (no audio, no takeover). */
@@ -375,11 +399,55 @@ object AdhanScheduler {
         )
     }
 
-    /** Yields the louder-than-reminder audio usage used by the alarm channel. */
+    /**
+     * Yields the louder-than-reminder audio usage used by the alarm channel.
+     *
+     * `CONTENT_TYPE_SONIFICATION` rather than `CONTENT_TYPE_MUSIC`: the routing
+     * is decided by `USAGE_ALARM` either way, but music content type is what
+     * asks the platform's media stack to treat the clip as a track rather than
+     * as an alarm call.
+     */
     fun alarmAudioAttributes() = AudioAttributes.Builder()
         .setUsage(AudioAttributes.USAGE_ALARM)
-        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
         .build()
+
+    /**
+     * Puts the adhan presenter on screen.
+     *
+     * A full-screen intent is *not* enough once the phone is unlocked: Android
+     * refuses to launch one and downgrades the card to a heads-up notification,
+     * deliberately, so an alarm cannot hijack a screen the user is already
+     * using. The presenter is an ordinary activity, so bringing it up from a
+     * background receiver is a background-activity launch, which Android 10+
+     * blocks whenever another app is in the foreground.
+     *
+     * This is a no-throw best effort across the three cases that matter:
+     *  - Mawaqit is on screen → allowed outright, the presenter opens at once.
+     *  - "Display over other apps" is granted ([AlarmAccess.canDrawOverlays])
+     *    → the one user-grantable exemption from the restriction, so the
+     *      presenter takes the screen from whatever the user was doing.
+     *  - Otherwise → silently blocked by the platform, and the heads-up card
+     *    with its Stop action is all the user gets. Nothing is lost but the
+     *    takeover, so the failure is logged rather than surfaced.
+     */
+    fun forceShowAdhan(context: Context, schedule: Schedule) {
+        try {
+            context.startActivity(showAdhanIntent(context, schedule.id, schedule.name))
+        } catch (e: Exception) {
+            val hint = if (AlarmAccess.canDrawOverlays(context)) {
+                ""
+            } else {
+                " — grant \"Display over other apps\" in Settings → Alarm " +
+                    "reliability to force the full screen while the phone is in use."
+            }
+            Log.w(
+                "AdhanScheduler",
+                "Adhan presenter could not be raised " +
+                    "(${e.javaClass.simpleName})$hint",
+            )
+        }
+    }
 
     /**
      * Fires an occurrence immediately (muted → silent card; audible → foreground
@@ -428,15 +496,6 @@ object AdhanScheduler {
         // by [stopActive] on every teardown path.
         AlarmAccess.forceAdhanThroughDnd(context)
 
-        // 1) System full-screen-intent card FIRST. Notifying with an alarm
-        //    category + full-screen intent makes Android wake the display and
-        //    launch the shell itself over the lockscreen — a system-initiated
-        //    launch, so it is exempt from the background-activity start
-        //    restrictions that swallow a naked startActivity from a receiver
-        //    once the phone is locked / the app is killed. The intent carries
-        //    the occurrence so the shell raises its presenter as soon as
-        //    Flutter is up. The service below re-posts the same id with the
-        //    media-session style, replacing this card without re-alerting.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val nm = context.getSystemService(NotificationManager::class.java)
             if (nm != null && !nm.canUseFullScreenIntent()) {
@@ -447,39 +506,41 @@ object AdhanScheduler {
                 )
             }
         }
-        try {
-            NotificationManagerCompat.from(context)
-                .notify(effective.id, buildAlarmNotification(context, effective, null))
-        } catch (_: Exception) {
-            // POST_NOTIFICATIONS denied / OEM strictness — the audio service
-            // below still mounts the card through startForeground when it can.
-        }
 
-        // 2) The foreground service owns the audio. If its background start is
-        //    rejected on a strict OEM build, the card (and its full-screen
-        //    activity) above still takes over the screen — the call is simply
-        //    silent in that degraded case.
+        // 1) The foreground service owns both the audio *and* the one card for
+        //    this occurrence. The card carries the full-screen intent, so the
+        //    system itself wakes the display and launches the presenter while
+        //    the phone is locked, off, or on always-on display — a
+        //    system-initiated launch, exempt from the background-activity start
+        //    restrictions that ban a receiver from doing it itself.
+        //
+        //    There is deliberately no separate pre-posted card: it used to be
+        //    notified first under this same id and then replaced by the
+        //    service's `startForeground` a few milliseconds later, which threw
+        //    the full-screen intent away before the system could act on it and
+        //    left the user looking at a second, media-player-looking card.
         val serviceIntent = Intent(context, AdhanPlaybackService::class.java)
             .putExtra(EXTRA_ID, effective.id)
             .putExtra("name", effective.name)
             .putExtra("soundRaw", effective.soundRaw)
             .putExtra("soundUri", effective.soundUri)
+        var serviceStarted = true
         try {
             ContextCompat.startForegroundService(context, serviceIntent)
         } catch (_: Exception) {
-            // Background FGS start denied — see comment above.
+            // Background FGS start denied on a strict OEM build: no audio, but
+            // the takeover is still worth having.
+            serviceStarted = false
+        }
+        if (!serviceStarted) {
+            postAlarmCard(context, effective)
         }
 
-        // 3) Foreground best-effort launch. When the app is on screen this is
-        //    the instant path (SINGLE_TOP dedupes with the FSI launch); when it
-        //    is not, the system FSI from step 1 already covers the takeover.
-        //    Either way the shell raises the in-app presenter for this
-        //    occurrence — the Flutter design replaces the old native alarm UI.
-        val activityIntent = showAdhanIntent(context, effective.id, effective.name)
-        try {
-            context.startActivity(activityIntent)
-        } catch (_: Exception) {
-            // Background activity launch denied — the FSI above handles it.
-        }
+        // 2) Takeover on an *unlocked* screen, which a full-screen intent
+        //    never does. Covers Mawaqit being in the foreground (immediate) and
+        //    "Display over other apps" being granted (exempt from the
+        //    background-activity-launch restriction); otherwise the heads-up
+        //    card is all the platform allows.
+        forceShowAdhan(context, effective)
     }
 }

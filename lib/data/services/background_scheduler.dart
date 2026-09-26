@@ -14,6 +14,11 @@ import 'package:mawaqit/data/services/prayer_widget_service.dart';
 abstract final class BackgroundScheduler {
   static const String dailyRescheduleTask = 'com.mawaqit.dailyReschedule';
 
+  /// One-off task enqueued by the native `BootReceiver` after a reboot or an
+  /// in-place update. Must stay in step with `BootRescheduleWork.TASK_NAME`:
+  /// the isolate dispatches on the name it is handed.
+  static const String bootRescheduleTask = 'com.mawaqit.bootReschedule';
+
   static void initialize() {
     // WorkManager only exists on Android/iOS; it would throw on desktop.
     if (!_supportsWorkmanager) return;
@@ -99,7 +104,12 @@ abstract final class BackgroundScheduler {
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    if (task == BackgroundScheduler.dailyRescheduleTask) {
+    // Both tasks do the same thing — recompute today and re-arm it. The boot
+    // one is not a separate behaviour, only a separate reason to run: a reboot
+    // or an update empties AlarmManager, and this is the soonest chance to fill
+    // it back in (the periodic task can be half a day away).
+    if (task == BackgroundScheduler.dailyRescheduleTask ||
+        task == BackgroundScheduler.bootRescheduleTask) {
       return BackgroundScheduler.rescheduleAll();
     }
     return true;

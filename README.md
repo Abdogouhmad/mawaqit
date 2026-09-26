@@ -103,11 +103,16 @@ Native Android (`android/app/src/main/kotlin/com/mawaqit/mawaqit/`):
 - `PrayerReminderReceiver.kt` — renders the decorated collapsed and expanded cards + prayer-time flip card.
 - `MutePrayerReceiver.kt` — persists per-occurrence mutes from the card's action into shared preferences.
 - `AdhanScheduler.kt` / `AdhanAlarmReceiver.kt` — arms the exact per-prayer alarm and hands it to playback.
-- `AdhanPlaybackService.kt` — foreground playback of the adhan (one pass) at alarm volume.
+- `AdhanPlaybackService.kt` — foreground playback of the adhan (one pass) at alarm volume,
+  on a `specialUse` service (a `mediaPlayback` one made Android render the adhan as a
+  media-player card). The service also owns the single alarm card, which carries the
+  full-screen intent.
 - `AlarmAccess.kt` — every system access the adhan needs: read-only status for the
   Settings block, the deep link that grants it, and the Do Not Disturb lift that
   forces a ringing adhan through silent mode (restored on every teardown).
 - `MainActivity.kt` — also raises the in-app adhan presenter over the lockscreen when the alarm fires.
+- `BootReceiver.kt` / `BootRescheduleWork.kt` — re-arms the day after a reboot or an
+  in-place update, which clears every `AlarmManager` alarm.
 - `PrayerWidgetHomeWidget.kt` / `PrayerWidgetHomeWidgetReceiver.kt` — the Glance home-screen widget.
 
 Layout resources (`android/app/src/main/res/`):
@@ -131,3 +136,16 @@ permission. Mawaqit qualifies (an alarm app whose core function is a timed
 adhan), but the declaration form has to be filled in and the permission
 justification reviewed — it is only ever used for
 `Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` (see `AlarmAccess.kt`).
+Two more declarations came with 0.9.0 and need the same treatment:
+
+- `SYSTEM_ALERT_WINDOW` is a sensitive permission. It is only ever used to lift
+  Android's background-activity-launch restriction so the adhan can take the
+  screen while the phone is unlocked and in use (`AdhanScheduler.forceShowAdhan`),
+  never to draw an overlay. It is opt-in from the "Alarm reliability" block and
+  the app is complete without it.
+- `AdhanPlaybackService` is a `specialUse` foreground service (subtype
+  `prayer_adhan_call`) so the adhan is not treated as media playback. The
+  Play Console asks for a written justification of that subtype.
+
+`update_manifest.json` is rewritten by the release workflow (version, APK URL,
+fresh `sha256`, CHANGELOG notes) in a follow-up commit — never by hand.

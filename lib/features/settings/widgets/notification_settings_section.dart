@@ -260,7 +260,13 @@ class NotificationSettingsSection extends ConsumerWidget {
           content: Text(
             kind == NotificationKind.adhan
                 ? service.canUseFullScreenIntents
-                      ? 'Adhan alarm fires in 3 seconds — full-screen, over the lockscreen.'
+                      ? service.canShowOverOtherApps
+                            ? 'Adhan alarm fires in 3 seconds — full-screen, '
+                                  'over the lockscreen and over whatever you are using.'
+                            : 'Adhan fires in 3 seconds — full-screen over the '
+                                  'lockscreen. While you are using the phone it '
+                                  'stays a card: allow "Display over other apps" '
+                                  'in Alarm reliability to force it.'
                       : 'Adhan fires in 3 seconds (heads-up — full-screen '
                             'access is off in system Settings).'
                 : 'Pre-prayer reminder fires in 3 seconds — ${settings.notifTone(kind)} will play.',

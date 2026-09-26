@@ -16,11 +16,12 @@ import androidx.core.app.NotificationManagerCompat
  *
  * Android grants these in stages and behind separate screens, and every OEM
  * (and every release) drops a different one: `POST_NOTIFICATIONS` (13+), exact
- * alarms (12+), full-screen intents (14+), Do Not Disturb access (6+) and the
- * battery-optimisation exemption. Miss any of them and the adhan or the
- * pre-prayer card is silently deferred or dropped — the phone stays in Doze,
- * the alarm never becomes exact, or the call is swallowed by silent mode — so
- * the app asks for them explicitly and keeps the schedule honest.
+ * alarms (12+), full-screen intents (14+), Do Not Disturb access (6+), the
+ * battery-optimisation exemption and "display over other apps". Miss any of
+ * them and the adhan or the pre-prayer card is silently deferred or dropped —
+ * the phone stays in Doze, the alarm never becomes exact, the call is swallowed
+ * by silent mode, or the adhan stays a tray card because the screen was already
+ * unlocked — so the app asks for them explicitly and keeps the schedule honest.
  *
  * [status] is a *read*: it never shows UI, so it is safe from a receiver or the
  * WorkManager isolate. [request] opens the matching system screen and returns
@@ -37,6 +38,13 @@ object AlarmAccess {
 
     /** Battery-optimisation exemption — keeps exact alarms out of Doze delays. */
     const val KEY_BATTERY = "batteryUnrestricted"
+
+    /**
+     * "Display over other apps" — the exemption from the background-activity
+     * launch restriction that lets [AdhanScheduler.forceShowAdhan] put the
+     * adhan on an *unlocked* screen.
+     */
+    const val KEY_OVERLAY = "overlay"
 
     private const val PREFS = "mawaqit_alarm_access"
     private const val KEY_DND_PREV_FILTER = "dnd_prev_filter"
@@ -86,6 +94,19 @@ object AlarmAccess {
         return pm.isIgnoringBatteryOptimizations(context.packageName)
     }
 
+    /**
+     * Whether the app may draw over other apps, i.e. whether
+     * [AdhanScheduler.forceShowAdhan] can put the adhan presenter on screen
+     * while the user is in another app.
+     *
+     * `true` on every release without the special access, so the alarm behaves
+     * as it always did there and the Settings row is never shown as broken.
+     */
+    fun canDrawOverlays(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+        return Settings.canDrawOverlays(context)
+    }
+
     /** Every access above, as the plain map the Flutter side parses. */
     fun status(context: Context): Map<String, Boolean> = mapOf(
         KEY_NOTIFICATIONS to hasNotifications(context),
@@ -93,6 +114,7 @@ object AlarmAccess {
         KEY_FULL_SCREEN_INTENT to canUseFullScreenIntent(context),
         KEY_POLICY_ACCESS to hasPolicyAccess(context),
         KEY_BATTERY to isBatteryUnrestricted(context),
+        KEY_OVERLAY to canDrawOverlays(context),
     )
 
     // ── Requests ──────────────────────────────────────────────────────────────
@@ -110,6 +132,7 @@ object AlarmAccess {
             KEY_FULL_SCREEN_INTENT -> fullScreenIntentIntent(activity) ?: return false
             KEY_POLICY_ACCESS -> policyAccessIntent(activity) ?: return false
             KEY_BATTERY -> batteryIntent(activity) ?: return false
+            KEY_OVERLAY -> overlayIntent(activity) ?: return false
             else -> return false
         }
         return try {
@@ -163,6 +186,19 @@ object AlarmAccess {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return null
         return Intent(
             Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+            Uri.parse("package:${context.packageName}"),
+        )
+    }
+
+    /**
+     * Per-app "Display over other apps" toggle — the switch that lets the adhan
+     * take the screen while the phone is unlocked and in use. There is no
+     * runtime dialog for it: the user has to confirm on this settings page.
+     */
+    private fun overlayIntent(context: Context): Intent? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return null
+        return Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
             Uri.parse("package:${context.packageName}"),
         )
     }

@@ -22,14 +22,29 @@
          Both are requested explicitly from Settings — see AlarmAccess.kt. -->
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- "Force the adhan" while the phone is IN USE. Android deliberately
+         downgrades a full-screen intent to a heads-up card when the screen is
+         unlocked, and blocks a background startActivity() from the alarm
+         receiver when another app is in the foreground — so on an unlocked
+         phone the adhan would otherwise only ever be a tray card. "Display over
+         other apps" is the one user-grantable exemption from the
+         background-activity-launch restriction, which is what lets
+         AdhanScheduler.forceShowAdhan() put the presenter on screen from there.
+         Requested on demand as an "Alarm reliability" row; the app is fully
+         functional without it. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Native Adhan alarm engine: the foreground service owns the Adhan clip
-         (media playback type on Android 14+) so it keeps ringing after the
-         Flutter process is killed. -->
+         so it keeps ringing after the Flutter process is killed. It is declared
+         `specialUse` rather than `mediaPlayback` on purpose: a mediaPlayback
+         service is treated as music by the platform, which made the adhan show
+         up as a media-player card (with playback controls, and in the media
+         output switcher) instead of an alarm. The subtype below is the
+         justification shown in the Play Console. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <application
         android:label="@string/app_name"
         android:name="${applicationName}"
@@ -80,7 +95,25 @@
         <service
             android:name=".AdhanPlaybackService"
             android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="prayer_adhan_call" />
+        </service>
+        <!-- Re-arm today's adhans and reminders after a reboot or an app update:
+             AlarmManager drops every alarm when the package is replaced, and the
+             12-hourly WorkManager task can be up to half a day away from
+             re-arming them — which is how a phone comes back from a restart
+             with no adhan scheduled at all. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
         <!-- OTA update file provider (package installer handoff) -->
         <provider
             android:name=".OtaUpdateFileProvider"
