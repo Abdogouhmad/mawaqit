@@ -11,6 +11,7 @@ import 'package:mawaqit/core/navigation/app_navigator.dart';
 import 'package:mawaqit/core/audio/tone_catalog.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/core/utils/timezone_setup.dart';
+import 'package:mawaqit/data/models/alarm_access.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
@@ -231,14 +232,25 @@ class NotificationService {
   ({int id, String name})? _pendingNativeAdhan;
 
   bool _initialized = false;
-  bool _exactAlarmGranted = false;
-  bool _notificationsGranted = false;
-  bool _fullScreenGranted = false;
+
+  /// Latest read of the system accesses the adhan depends on. Starts
+  /// permissive so scheduling is never blocked on a failed read — the native
+  /// side degrades on its own when an access is genuinely missing.
+  AlarmAccess _alarmAccess = AlarmAccess.all;
+
+  /// Upper bound for a permission round-trip. A runtime dialog that never
+  /// returns (or an isolate with no activity behind it) must not stall `init()`
+  /// — and with it the entire day's schedule.
+  static const Duration _permissionDeadline = Duration(seconds: 20);
 
   static bool get _isAndroid => defaultTargetPlatform == TargetPlatform.android;
   static bool get _isLinux => defaultTargetPlatform == TargetPlatform.linux;
 
-  Future<void> init() async {
+  /// Current system access, as read from the platform. Only meaningful on
+  /// Android; elsewhere every access is reported as granted.
+  AlarmAccess get alarmAccess => _alarmAccess;
+
+  Future<void> init({bool allowPrompt = true}) async {
     if (_initialized) return;
     _initialized = true;
     await TimezoneSetup.ensureInitialized();
@@ -267,15 +279,35 @@ class NotificationService {
     }
 
     if (_isAndroid) {
-      // Runtime POST_NOTIFICATIONS (Android 13+) before the first schedule.
-      final android = _plugin
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >();
-      _notificationsGranted =
-          await android?.requestNotificationsPermission() ?? false;
-      _exactAlarmGranted =
-          await android?.requestExactAlarmsPermission() ?? false;
+      // Read the real system state *first*: it shows no UI, so it is safe from
+      // the WorkManager isolate, and it is the only trustworthy answer to
+      // "may we schedule exact alarms?" — the plugin's request call blocks on a
+      // settings round-trip that may never come back, which used to leave the
+      // exact-alarm flag stuck at false and silently downgrade every schedule.
+      await refreshAlarmAccess();
+
+      // POST_NOTIFICATIONS (13+) is the one access that is a plain runtime
+      // dialog; everything else is granted on a system screen the user opens
+      // from Settings. Skipped when [allowPrompt] is false (background isolate)
+      // and when the access is already there.
+      if (allowPrompt && !_alarmAccess.notifications) {
+        final android = _android;
+        final granted =
+            await _withinDeadline(
+              android?.requestNotificationsPermission() ??
+                  Future<bool?>.value(null),
+              'POST_NOTIFICATIONS',
+            ) ??
+            false;
+        if (granted) {
+          _alarmAccess = _alarmAccess.copyWith(notifications: true);
+        } else {
+          debugPrint(
+            'Notifications are denied — the adhan and the pre-prayer card will '
+            'not be shown. Settings → Alarm reliability can restore them.',
+          );
+        }
+      }
     }
 
     // A scheduled adhan that fired while the app was closed is opened via the
@@ -283,22 +315,103 @@ class NotificationService {
     await _awaitLaunchAdhan();
   }
 
-  /// Re-asks POST_NOTIFICATIONS and (API 31–32) exact-alarm access — surfaced
-  /// from Settings so a first-launch denial can be undone without reinstalling.
-  /// Also asks for full-screen-notification access on Android 14+, without
-  /// which the screen-off alarm can't take over the lockscreen.
+  AndroidFlutterLocalNotificationsPlugin? get _android => _plugin
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >();
+
+  /// Awaits a permission round-trip under a deadline, swallowing the failures
+  /// that a background isolate or an abandoned dialog produces. Returns null
+  /// when no answer arrived, so callers can distinguish "no" from "unknown".
+  static Future<T?> _withinDeadline<T>(Future<T?> request, String label) async {
+    try {
+      return await request.timeout(_permissionDeadline);
+    } catch (e) {
+      debugPrint('$label did not complete: $e');
+      return null;
+    }
+  }
+
+  /// Re-reads every system access behind the adhan from the platform.
+  ///
+  /// Purely a read — never opens a screen — so it is safe to call on resume,
+  /// after the user returns from a system settings page, and from the
+  /// background isolate.
+  Future<AlarmAccess> refreshAlarmAccess() async {
+    if (!_isAndroid) return _alarmAccess;
+    try {
+      final status = await _channel.invokeMapMethod<Object?, Object?>(
+        'alarmAccessStatus',
+      );
+      _alarmAccess = AlarmAccess.fromMap(status);
+    } on MissingPluginException {
+      // Dev host without the native side — keep the permissive default.
+    } catch (e) {
+      debugPrint('Alarm access read failed: $e');
+    }
+    return _alarmAccess;
+  }
+
+  /// Opens the system screen that grants [permission] (exact alarms,
+  /// full-screen notifications, Do Not Disturb access, battery, notifications).
+  /// Returns false when the release has no such screen or nothing can handle
+  /// it — the caller then just re-reads the state instead of nagging.
+  Future<bool> requestAlarmAccess(AlarmPermission permission) async {
+    if (!_isAndroid) return true;
+
+    if (permission == AlarmPermission.notifications) {
+      // A runtime dialog is friendlier than a settings screen for a first launch
+      // on 13+; a hard denial can only be undone in Settings, so fall through to
+      // the app's notification page when the dialog does not settle it.
+      final granted =
+          await _withinDeadline(
+            _android?.requestNotificationsPermission() ??
+                Future<bool?>.value(null),
+            'POST_NOTIFICATIONS',
+          ) ??
+          false;
+      if (granted) {
+        _alarmAccess = _alarmAccess.copyWith(notifications: true);
+        return true;
+      }
+    }
+
+    var opened = false;
+    try {
+      opened =
+          await _channel.invokeMethod<bool>('requestAlarmAccess', {
+            'key': permission.key,
+          }) ??
+          false;
+    } catch (e) {
+      debugPrint('Could not open ${permission.label} settings: $e');
+    }
+    return opened;
+  }
+
+  /// Re-asks POST_NOTIFICATIONS and re-reads every other access — surfaced from
+  /// Settings so a first-launch denial can be undone without reinstalling.
+  ///
+  /// Only the runtime dialog is re-asked here: the special-access states
+  /// (exact alarms, full-screen, DND, battery) are each granted on their own
+  /// system screen, which the "Alarm reliability" rows open on demand. A
+  /// dialog cannot move them, and asking for one would report a stale answer.
   Future<bool> ensurePermissions() async {
     if (!_isAndroid) return true;
-    final android = _plugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >();
-    _notificationsGranted =
-        await android?.requestNotificationsPermission() ?? false;
-    _exactAlarmGranted = await android?.requestExactAlarmsPermission() ?? false;
-    _fullScreenGranted =
-        await android?.requestFullScreenIntentPermission() ?? true;
-    if (!_fullScreenGranted) {
+    if (!_alarmAccess.notifications) {
+      final granted =
+          await _withinDeadline(
+            _android?.requestNotificationsPermission() ??
+                Future<bool?>.value(null),
+            'POST_NOTIFICATIONS',
+          ) ??
+          false;
+      if (granted) {
+        _alarmAccess = _alarmAccess.copyWith(notifications: true);
+      }
+    }
+    await refreshAlarmAccess();
+    if (!_alarmAccess.fullScreenIntent) {
       debugPrint(
         'Full-screen intent access was denied — the lockscreen adhan alarm '
         'falls back to a heads-up card until it is granted in Settings.',
@@ -307,13 +420,17 @@ class NotificationService {
     return hasNotificationPermission;
   }
 
-  bool get canUseExactAlarms => _isAndroid && _exactAlarmGranted;
-  bool get hasNotificationPermission => !_isAndroid || _notificationsGranted;
+  /// Whether `AlarmManager` currently allows exact alarms (Android only, and
+  /// `false` only when the platform says so — never guessed).
+  bool get canUseExactAlarms => !_isAndroid || _alarmAccess.exactAlarms;
+  bool get hasNotificationPermission =>
+      !_isAndroid || _alarmAccess.notifications;
 
   /// Android 14+: whether notification full-screen intents may launch the alarm
   /// presenter over the lockscreen. False on older Androids only if the user
   /// explicitly revokes the access.
-  bool get canUseFullScreenIntents => !_isAndroid || _fullScreenGranted;
+  bool get canUseFullScreenIntents =>
+      !_isAndroid || _alarmAccess.fullScreenIntent;
 
   /// (Re)schedules all notifications for [day]. Always cancels what was left
   /// over from a previous run first so stale entries can never double-fire.
@@ -323,10 +440,14 @@ class NotificationService {
     await _scheduleAdhanAlarms(day, settings);
     if (settings.leadMinutes <= 0 || !settings.prePrayerEnabled) return;
 
-    if (_isAndroid && canUseExactAlarms && hasNotificationPermission) {
-      // Preferred Android path: native decorated countdown card. Requires exact
-      // alarms (AlarmManager) and notification access; otherwise fall through
-      // to the plain-flutter reminders below.
+    // On Android the native engine owns the pre-prayer cards, and it takes care
+    // of degrading to an inexact alarm when the exact-alarm access is missing.
+    // The Dart side therefore does NOT gate this on the permission state: a
+    // stale "false" (a dialog that never returned, or a reschedule from the
+    // background isolate) used to skip the native cards entirely and fall back
+    // to a plugin timer the system is free to drop — which is exactly how the
+    // pre-prayer reminder went missing on strict devices.
+    if (_isAndroid) {
       try {
         await _channel.invokeMethod('scheduleReminders', {
           'reminders': _buildReminders(day, settings.leadMinutes),
@@ -812,7 +933,10 @@ class NotificationService {
       stoppedId = (arguments['id'] as num?)?.toInt();
     }
     final ringingId = _ringingNotificationId;
-    if (stoppedId != null && stoppedId != -1 && ringingId != null && stoppedId != ringingId) {
+    if (stoppedId != null &&
+        stoppedId != -1 &&
+        ringingId != null &&
+        stoppedId != ringingId) {
       return;
     }
     await stopAlarm(notificationId: ringingId);
@@ -1273,7 +1397,7 @@ class NotificationService {
         body: body,
         scheduledDate: tz.TZDateTime.from(at, tz.local),
         notificationDetails: details,
-        androidScheduleMode: _exactAlarmGranted
+        androidScheduleMode: canUseExactAlarms
             ? AndroidScheduleMode.exactAllowWhileIdle
             : AndroidScheduleMode.inexactAllowWhileIdle,
         payload: payload,

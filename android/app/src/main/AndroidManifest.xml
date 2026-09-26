@@ -15,6 +15,13 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- "Force the adhan": Do Not Disturb access lets a ringing call lift
+         silent mode (and it is restored the moment the adhan stops), while the
+         battery-optimisation exemption keeps AlarmManager out of the Doze
+         delays that swallow adhans and pre-prayer cards on stricter OEM builds.
+         Both are requested explicitly from Settings — see AlarmAccess.kt. -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />

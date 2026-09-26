@@ -12,6 +12,7 @@ class SettingsRow extends StatelessWidget {
     required this.icon,
     required this.title,
     this.subtitle,
+    this.subtitleColor,
     this.trailing,
     this.onTap,
     this.haptic = true,
@@ -20,6 +21,11 @@ class SettingsRow extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? subtitle;
+
+  /// Overrides the default accent [subtitle] colour — used to flag a row that
+  /// needs attention (e.g. a permission that is not granted yet).
+  final Color? subtitleColor;
+
   final Widget? trailing;
   final VoidCallback? onTap;
 
@@ -76,7 +82,7 @@ class SettingsRow extends StatelessWidget {
                       UiText(
                         subtitle!,
                         type: UiTextType.labelMedium,
-                        color: scheme.primary,
+                        color: subtitleColor ?? scheme.primary,
                         fontWeight: FontWeight.w500,
                       ),
                     ],

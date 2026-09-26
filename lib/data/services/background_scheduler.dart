@@ -45,7 +45,10 @@ abstract final class BackgroundScheduler {
 
       final day = _dayFor(cached, settings);
       final notifications = NotificationService.instance;
-      await notifications.init();
+      // Read-only: the background isolate has no activity behind it, so a
+      // permission dialog could stall (or throw) and take the whole reschedule
+      // down with it.
+      await notifications.init(allowPrompt: false);
       await notifications.scheduleDay(day, settings);
       await PrayerWidgetService.sync(
         day,
@@ -60,7 +63,8 @@ abstract final class BackgroundScheduler {
 
   /// Immediate recompute + reschedule used after a settings / mute change so
   /// the new lead-time, tone or mute state applies without waiting for the
-  /// next daily task.
+  /// next daily task — and after a system permission is granted, so the day's
+  /// alarms are armed with the access the user just enabled.
   static Future<bool> rescheduleNow(AppSettings settings) async {
     try {
       final cached = await LocationRepository.cached();
@@ -68,7 +72,7 @@ abstract final class BackgroundScheduler {
 
       final day = _dayFor(cached, settings);
       final notifications = NotificationService.instance;
-      await notifications.init();
+      await notifications.init(allowPrompt: false);
       await notifications.scheduleDay(day, settings);
       await PrayerWidgetService.sync(
         day,

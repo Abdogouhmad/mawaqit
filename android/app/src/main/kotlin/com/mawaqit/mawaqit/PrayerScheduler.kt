@@ -27,6 +27,17 @@ object PrayerScheduler {
     const val EXTRA_PRAYER_MS = "com.mawaqit.extra.PRAYER_MS"
     const val EXTRA_LEAD_MIN = "com.mawaqit.extra.LEAD_MIN"
 
+    /** Channel (and its sound) the card for one reminder was armed with. */
+    const val EXTRA_SOUND = "com.mawaqit.extra.SOUND"
+
+    /**
+     * Full reminder payload embedded in the alarm [android.app.PendingIntent].
+     * SharedPreferences writes are asynchronous, so a user swiping the app away
+     * right after a reschedule could leave the alarm with no stored entry — the
+     * receiver then falls back to this copy instead of dropping the card.
+     */
+    const val EXTRA_REMINDER = "com.mawaqit.extra.REMINDER_JSON"
+
     // Base pre-prayer alert channel id. The concrete id is derived from the
     // selected tone's raw resource (see channelIdFor), so each tone gets a
     // freshly created, sound-correct channel — Android freezes a channel's
@@ -92,30 +103,37 @@ object PrayerScheduler {
         ensureReminderChannel(context, channelSound)
 
         val editor = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-        reminders.forEach { r ->
-            val id = (r["id"] as? Number)?.toInt() ?: return@forEach
-            val name = r["name"] as? String ?: "Prayer"
-            val prayerId = r["prayerId"] as? String ?: ""
-            val leadMs = (r["timestampMs"] as? Number)?.toLong() ?: 0L
-            val prayerMs = (r["prayerTimestampMs"] as? Number)?.toLong() ?: 0L
-            val leadMin = (r["leadMinutes"] as? Number)?.toInt() ?: 10
-
-            editor.putString(
-                "reminder_$id",
-                JSONObject()
-                    .put(EXTRA_PRAYER_ID, prayerId)
-                    .put(EXTRA_NAME, name)
-                    .put(EXTRA_PRAYER_MS, prayerMs)
-                    .put(EXTRA_LEAD_MIN, leadMin)
-                    .toString(),
-            )
-            setAlarm(context, id, leadMs)
-        }
         editor.putLong(KEY_SUNRISE, sunriseMs)
         editor.putLong(KEY_FAJR, fajrMs)
         editor.putLong(KEY_SUNSET, sunsetMs)
         editor.putString(KEY_CHANNEL_SOUND, channelSound)
-        editor.apply()
+
+        // Collect every entry, persist them all, and only then arm the alarms.
+        // `commit()` (not `apply()`) on purpose: an alarm can fire with the
+        // process already swiped away, and an entry that never reached disk is
+        // a card that is silently never posted — the single most common way the
+        // pre-prayer reminder used to go missing.
+        val armed = mutableListOf<Triple<Int, Long, String>>()
+        reminders.forEach { r ->
+            val id = (r["id"] as? Number)?.toInt() ?: return@forEach
+            val name = (r["name"] as? String) ?: "Prayer"
+            val prayerId = (r["prayerId"] as? String) ?: ""
+            val leadMs = (r["timestampMs"] as? Number)?.toLong() ?: 0L
+            val prayerMs = (r["prayerTimestampMs"] as? Number)?.toLong() ?: 0L
+            val leadMin = (r["leadMinutes"] as? Number)?.toInt() ?: 10
+
+            val payload = JSONObject()
+                .put(EXTRA_PRAYER_ID, prayerId)
+                .put(EXTRA_NAME, name)
+                .put(EXTRA_PRAYER_MS, prayerMs)
+                .put(EXTRA_LEAD_MIN, leadMin)
+                .put(EXTRA_SOUND, channelSound)
+                .toString()
+            editor.putString("reminder_$id", payload)
+            armed += Triple(id, leadMs, payload)
+        }
+        editor.commit()
+        armed.forEach { (id, leadMs, payload) -> setAlarm(context, id, leadMs, payload) }
     }
 
     fun cancelAll(context: Context) {
@@ -130,13 +148,16 @@ object PrayerScheduler {
         prefs.edit().clear().apply()
     }
 
-    fun setAlarm(context: Context, id: Int, atEpochMs: Long) {
+    fun setAlarm(context: Context, id: Int, atEpochMs: Long, payloadJson: String? = null) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val pi = showPendingIntent(context, id)
+        val pi = showPendingIntent(context, id, payloadJson)
         val trigger = maxOf(atEpochMs, System.currentTimeMillis() + TICK_MS)
-        val exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
-            am.canScheduleExactAlarms()
-        if (exact) {
+        // Without the "Alarms & reminders" special access Android 12+ refuses
+        // exact alarms outright; `setAndAllowWhileIdle` still fires, only
+        // batched into the next maintenance window — a reminder the user may
+        // only see minutes late, which is why the app asks for the access
+        // (see [AlarmAccess.KEY_EXACT_ALARMS]) and shows it in Settings.
+        if (AlarmAccess.canScheduleExactAlarms(context)) {
             am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pi)
         } else {
             am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pi)
@@ -162,13 +183,14 @@ object PrayerScheduler {
             .edit().remove("reminder_$id").apply()
     }
 
-    fun showPendingIntent(context: Context, id: Int): PendingIntent =
+    fun showPendingIntent(context: Context, id: Int, payloadJson: String? = null) =
         PendingIntent.getBroadcast(
             context,
             REQ_SHOW + id,
             Intent(context, PrayerReminderReceiver::class.java)
                 .setAction(ACTION_SHOW)
-                .putExtra(EXTRA_ID, id),
+                .putExtra(EXTRA_ID, id)
+                .apply { if (payloadJson != null) putExtra(EXTRA_REMINDER, payloadJson) },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
@@ -185,13 +207,6 @@ object PrayerScheduler {
             .putExtra(EXTRA_ID, id),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
-
-    /** The channel the cards were scheduled on for the current pre-prayer sound. */
-    fun currentChannelId(context: Context): String {
-        val sound = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getString(KEY_CHANNEL_SOUND, "silent") ?: "silent"
-        return channelIdFor(sound)
-    }
 
     /** The occurrence id (`2026-09-21_maghrib`) backing the reminder card. */
     fun prayerId(context: Context, id: Int): String? {

@@ -3,6 +3,7 @@ package com.mawaqit.mawaqit
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
@@ -17,10 +18,7 @@ import kotlin.math.ceil
 class PrayerReminderReceiver : BroadcastReceiver() {
 
     companion object {
-        fun postReminder(context: Context, id: Int) {
-            val receiver = PrayerReminderReceiver()
-            receiver.handleShow(context, id)
-        }
+        private const val TAG = "PrayerReminder"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -32,7 +30,7 @@ class PrayerReminderReceiver : BroadcastReceiver() {
                 handleAction(context, id)
             else ->
                 if (intent.action == PrayerScheduler.ACTION_SHOW) {
-                    handleShow(context, id)
+                    handleShow(context, id, intent.getStringExtra(PrayerScheduler.EXTRA_REMINDER))
                 }
         }
     }
@@ -43,19 +41,54 @@ class PrayerReminderReceiver : BroadcastReceiver() {
         PrayerScheduler.removePref(context, id)
     }
 
-    fun handleShow(context: Context, id: Int) {
+    /**
+     * Posts the card for [id] and re-arms itself a minute later so the
+     * countdown keeps ticking.
+     *
+     * [payloadFallback] is the copy carried by the alarm intent: when the stored
+     * entry is gone (a reschedule whose async write never landed, or prefs
+     * cleared by a later schedule) the card is still shown instead of the
+     * occurrence being dropped silently.
+     */
+    fun handleShow(context: Context, id: Int, payloadFallback: String? = null) {
         val prefs = context.getSharedPreferences(PrayerScheduler.PREFS, Context.MODE_PRIVATE)
-        val raw = prefs.getString("reminder_$id", null) ?: return
-        val data = JSONObject(raw)
-        val name = data.getString(PrayerScheduler.EXTRA_NAME)
-        val prayerMs = data.getLong(PrayerScheduler.EXTRA_PRAYER_MS)
-        val leadMin = data.getInt(PrayerScheduler.EXTRA_LEAD_MIN)
+        val raw = prefs.getString("reminder_$id", null) ?: payloadFallback ?: return
+        val data = try {
+            JSONObject(raw)
+        } catch (_: Exception) {
+            return
+        }
+        val name = data.optString(PrayerScheduler.EXTRA_NAME, "Prayer")
+        val prayerMs = data.optLong(PrayerScheduler.EXTRA_PRAYER_MS, 0L)
+        if (prayerMs == 0L) return
+        val leadMin = data.optInt(PrayerScheduler.EXTRA_LEAD_MIN, 10)
         val now = System.currentTimeMillis()
+
+        // The channel is re-created from the payload rather than read from the
+        // shared prefs key: `notify()` on a channel that does not exist is a
+        // silent no-op, which is exactly how the pre-prayer card could vanish
+        // without a trace. Entries armed before this release carry no sound, so
+        // they fall back to the day-level choice instead of going mute.
+        val sound = data.optString(PrayerScheduler.EXTRA_SOUND).takeIf { it.isNotBlank() }
+            ?: prefs.getString(PrayerScheduler.KEY_CHANNEL_SOUND, "silent")
+            ?: "silent"
+        PrayerScheduler.ensureReminderChannel(context, sound)
+        val channelId = PrayerScheduler.channelIdFor(sound)
+
+        if (!AlarmAccess.hasNotifications(context)) {
+            Log.w(
+                TAG,
+                "Notifications are disabled for ${context.packageName} — " +
+                    "the pre-prayer card for $name cannot be posted.",
+            )
+            PrayerScheduler.cancelAlarm(context, id)
+            return
+        }
 
         if (now >= prayerMs) {
             PrayerScheduler.cancelAlarm(context, id)
             PrayerScheduler.removePref(context, id)
-            showPrayerTimeNotification(context, id, name, prayerMs)
+            showPrayerTimeNotification(context, id, channelId, name, prayerMs)
             return
         }
 
@@ -138,10 +171,7 @@ class PrayerReminderReceiver : BroadcastReceiver() {
             )
         }
 
-        val notification = NotificationCompat.Builder(
-            context,
-            PrayerScheduler.currentChannelId(context),
-        )
+        val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_stat_mawaqit)
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setCustomContentView(collapsedViews)
@@ -153,21 +183,23 @@ class PrayerReminderReceiver : BroadcastReceiver() {
             .setOnlyAlertOnce(true)
             .build()
 
-        NotificationManagerCompat.from(context).notify(id, notification)
-        PrayerScheduler.setAlarm(context, id, now + PrayerScheduler.TICK_MS)
+        try {
+            NotificationManagerCompat.from(context).notify(id, notification)
+        } catch (_: SecurityException) {
+            Log.w(TAG, "Posting the $name reminder was refused by the system.")
+        }
+        PrayerScheduler.setAlarm(context, id, now + PrayerScheduler.TICK_MS, raw)
     }
 
     private fun showPrayerTimeNotification(
         context: Context,
         id: Int,
+        channelId: String,
         name: String,
         prayerMs: Long,
     ) {
         val time = PrayerScheduler.timeLabel(prayerMs)
-        val notification = NotificationCompat.Builder(
-            context,
-            PrayerScheduler.currentChannelId(context),
-        )
+        val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_stat_mawaqit)
             .setContentTitle(context.getString(R.string.notif_prayer_time, name))
             .setContentText(context.getString(R.string.notif_prayer_time_body, time))

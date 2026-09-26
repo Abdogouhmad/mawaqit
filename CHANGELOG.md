@@ -11,6 +11,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.6] - 2026-09-26
+
+New since v0.8.5.
+
+### Added
+
+- **One-time ask to lift the battery restriction** — on first install and after
+  every update, Mawaqit explains that your phone freezes apps while the screen is
+  locked (the usual reason the adhan rings late or not at all) and offers to
+  switch off battery optimisation, which hands you the system dialog to confirm.
+  It asks once per version, never nags, and "Not now" leaves the row in
+  Settings → Alarm reliability waiting for you.
+- **Force the adhan through silent mode** — Mawaqit can now ask for *Do Not
+  Disturb access*: while an adhan rings, the phone is put in "alarms only" so
+  the call is still audible on a silenced device, and your own mode is restored
+  the moment the adhan stops (or the process dies mid-call).
+- **An "Alarm reliability" block in Settings** — one row per system access the
+  adhan needs (Notifications, Alarms & reminders, Full-screen notifications,
+  Do Not Disturb access, Unrestricted battery) with a live *Allowed* / *Fix*
+  state. Tapping a row opens the exact system screen that grants it, and when
+  you come back today's adhans and reminders are re-armed with the new access.
+- **Battery-optimisation exemption** — Settings can now offer Mawaqit an
+  exemption from Doze, which is what OEM power managers use to delay (or drop)
+  alarms on stricter phones.
+
+### Changed
+
+- **The home countdown card is rebuilt** — the "NEXT PRAYER" marker is now a
+  soft asymmetric badge, the prayer name sits on its own line above the numerals
+  with the clock and the elapsed-since-last-prayer line tucked into a chip
+  beneath it, and the day-progress bar lives in its own outlined surface with
+  quieter (and quicker) animation, so the time itself is the only thing that
+  moves.
+- **One row replaced a dialog** — the old "Notification Permission" row in
+  Settings is gone; the "Alarm reliability" block takes its place and reports
+  each access separately instead of asking for everything at once and reporting
+  a single verdict.
+
+### Fixed
+
+- **The pre-prayer reminder no longer goes missing** — the decorated countdown
+  card is now always armed through the native exact-alarm engine on Android
+  (which quietly falls back to an inexact alarm when needed) instead of being
+  skipped whenever a permission read came back late or unanswered, and its
+  settings are written to disk *before* the alarm is armed — a reschedule that
+  lost that write used to drop the card entirely, with no error anywhere.
+- **The card can no longer post into a channel that isn't there** — the channel
+  travels with the reminder itself and is (re)created at post time, so a missing
+  channel no longer swallows the notification silently.
+- **Permission prompts can no longer stall the scheduler** — a system dialog
+  whose result never arrives no longer leaves the day's notifications
+  unscheduled, and the background reschedule no longer prompts at all.
+- **A reminder that arrives without stored data still shows** — the alarm
+  carries its own copy of the reminder, so a card is posted even if the stored
+  entry is gone.
+
 ## [0.8.5] - 2026-09-25
 
 New since v0.8.4.
@@ -607,3 +663,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.8.3]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.2...v0.8.3
 [0.8.4]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.3...v0.8.4
 [0.8.5]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.4...v0.8.5
+[0.8.6]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.5...v0.8.6

@@ -136,6 +136,10 @@ class AdhanPlaybackService : Service() {
         releaseMediaSession()
         player?.release()
         player = null
+        // Backstop: every dismissal already restores the interruption filter
+        // through AdhanScheduler.stopActive, but a torn-down process must never
+        // leave the phone in "alarms only" either.
+        AlarmAccess.restoreDndFilter(this)
         super.onDestroy()
     }
 

@@ -10,6 +10,7 @@ import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
+import 'package:mawaqit/features/settings/widgets/alarm_access_section.dart';
 import 'package:mawaqit/features/settings/widgets/notification_settings_section.dart';
 import 'package:mawaqit/features/settings/widgets/update_section.dart';
 import 'package:mawaqit/providers/providers.dart';
@@ -193,15 +194,10 @@ class _SettingsBody extends ConsumerWidget {
           children: [
             NotificationSettingsSection(kind: NotificationKind.prePrayer),
             NotificationSettingsSection(kind: NotificationKind.adhan),
-            SettingsRow(
-              icon: Icons.verified_user_outlined,
-              title: 'Notification Permission',
-              subtitle: 'Notifications, exact alarms & full-screen wake access',
-              onTap: () => _requestPermissions(context, ref),
-              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
-            ),
           ],
         ),
+        const SizedBox(height: AppSpacing.huge),
+        const AlarmAccessSection(),
         const SizedBox(height: AppSpacing.mega),
 
         // Appearance
@@ -282,28 +278,6 @@ class _SettingsBody extends ConsumerWidget {
         _Footer(),
       ],
     );
-  }
-
-  Future<void> _requestPermissions(BuildContext context, WidgetRef ref) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final service = ref.read(notificationServiceProvider);
-    try {
-      final granted = await service.ensurePermissions();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            granted
-                ? 'Permissions OK — notifications enabled.'
-                : 'Permission denied — enable notifications in system '
-                      'settings, then tap again.',
-          ),
-        ),
-      );
-    } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Could not request permissions.')),
-      );
-    }
   }
 
   String _locationSubtitle(AppSettings settings) {

@@ -169,7 +169,7 @@ object AdhanScheduler {
         val trigger = maxOf(atEpochMs, System.currentTimeMillis())
         val am = alarmManager(context)
         val pi = pendingIntent(context, id, snapshot)
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms()) {
+        if (AlarmAccess.canScheduleExactAlarms(context)) {
             am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pi)
         } else {
             am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pi)
@@ -232,6 +232,10 @@ object AdhanScheduler {
      */
     fun stopActive(context: Context, notifyFlutter: Boolean = true) {
         context.stopService(Intent(context, AdhanPlaybackService::class.java))
+
+        // The call is over, so the phone goes back to the interruption mode the
+        // user had chosen (see [AlarmAccess.forceAdhanThroughDnd]).
+        AlarmAccess.restoreDndFilter(context)
 
         val activeId = prefs(context).getInt(KEY_ACTIVE_ID, -1)
         if (activeId != -1) {
@@ -417,6 +421,12 @@ object AdhanScheduler {
 
         markActive(context, effective.id)
         ensureChannels(context)
+
+        // "Force the adhan": with Do Not Disturb access granted, silent mode is
+        // lifted to "alarms only" for the duration of the call, so a phone that
+        // is silenced (or in DND) still rings the adhan at prayer time. Restored
+        // by [stopActive] on every teardown path.
+        AlarmAccess.forceAdhanThroughDnd(context)
 
         // 1) System full-screen-intent card FIRST. Notifying with an alarm
         //    category + full-screen intent makes Android wake the display and

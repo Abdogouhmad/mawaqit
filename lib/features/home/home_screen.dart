@@ -14,6 +14,7 @@ import 'package:mawaqit/shared/ui/app_card.dart';
 import 'package:mawaqit/shared/ui/pulse_dot.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 import 'package:mawaqit/features/home/home_controller.dart';
+import 'package:mawaqit/features/home/widgets/alarm_access_gate.dart';
 import 'package:mawaqit/features/home/widgets/countdown_hero.dart';
 import 'package:mawaqit/features/home/widgets/prayer_schedule_tile.dart';
 import 'package:mawaqit/features/home/widgets/solar_card.dart';
@@ -49,6 +50,11 @@ class HomeScreen extends ConsumerWidget {
                 error: (error, _) => _HomeError(message: error.toString()),
                 data: (data) => _HomeBody(state: data),
               ),
+              // Renders nothing: the one-time battery-optimisation ask. Mounted
+              // only once home data exists, which is also the point where the
+              // notification service has finished initialising and the system
+              // access state behind the question is a real read.
+              if (state != null) const AlarmAccessGate(),
               if (kDebugMode) ...[
                 const SizedBox(height: AppSpacing.tera),
                 _DevAdhanPreview(

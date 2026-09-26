@@ -14,6 +14,16 @@ adhan reminders and per-prayer mute.
   full-screen presenter takes over the lockscreen, whether the app is open,
   closed or swiped away. Silence it with the on-screen Stop button or either
   volume key.
+- **Alarm reliability you can see and fix** — on first install and after every
+  update, Mawaqit asks once to be exempted from battery optimisation (the OEM
+  power manager freezing the app as soon as the screen locks is the usual reason
+  the adhan never plays); Settings then lists every system access the adhan
+  depends on (Notifications, Alarms & reminders, Full-screen notifications,
+  Do Not Disturb access, Unrestricted battery) with a live *Allowed* / *Fix*
+  state, and tapping a row opens the matching system screen and re-arms today's
+  schedule. With Do Not Disturb access granted, a ringing adhan lifts silent mode
+  for the length of the call and restores your own mode right after, so the adhan
+  is still heard on a silenced phone.
 - **Pre-prayer alert + adhan** — two independent reminder channels with *separate*
   selectable sounds: the short pre-prayer chime and the full adhan call each have
   their own tone picker (built-in synthesised presets, custom adhans like **Adham Al
@@ -65,14 +75,17 @@ just widget
 lib/
   core/        design tokens, constants, audio/catalog, time helpers
   data/
-    models/        AppSettings, PrayerDay/PrayerTime
+    models/        AppSettings, PrayerDay/PrayerTime, AlarmAccess
     repositories/  settings, location, prayer-times (adhan_dart)
     services/      notification_service, background_scheduler,
+                   alarm_access_prompt (one-time battery ask),
                    prayer_widget_service, muted_prayers_store,
                    tone_preview_service
   features/
     home/          home screen + countdown controller
+                   (+ the one-time battery-exemption gate)
     settings/      settings screen + saved-state controller
+                   (+ the "Alarm reliability" access block)
   shared/
     components/    section headers, info rows, settings groups and rows
     ui/            AppButton, AppCard, AppPill, UiText, option sheet…
@@ -91,6 +104,9 @@ Native Android (`android/app/src/main/kotlin/com/mawaqit/mawaqit/`):
 - `MutePrayerReceiver.kt` — persists per-occurrence mutes from the card's action into shared preferences.
 - `AdhanScheduler.kt` / `AdhanAlarmReceiver.kt` — arms the exact per-prayer alarm and hands it to playback.
 - `AdhanPlaybackService.kt` — foreground playback of the adhan (one pass) at alarm volume.
+- `AlarmAccess.kt` — every system access the adhan needs: read-only status for the
+  Settings block, the deep link that grants it, and the Do Not Disturb lift that
+  forces a ringing adhan through silent mode (restored on every teardown).
 - `MainActivity.kt` — also raises the in-app adhan presenter over the lockscreen when the alarm fires.
 - `PrayerWidgetHomeWidget.kt` / `PrayerWidgetHomeWidgetReceiver.kt` — the Glance home-screen widget.
 
@@ -109,3 +125,9 @@ APKs with the release pipeline:
 ```sh
 ./build.sh --release-notes    # extracts the matching CHANGELOG section
 ```
+
+Note for a Play release: `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` is a restricted
+permission. Mawaqit qualifies (an alarm app whose core function is a timed
+adhan), but the declaration form has to be filled in and the permission
+justification reviewed — it is only ever used for
+`Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` (see `AlarmAccess.kt`).

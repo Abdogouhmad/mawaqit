@@ -154,6 +154,16 @@ class MainActivity : FlutterActivity() {
                         if (id >= 0) PrayerScheduler.cancelOne(activity, id)
                         result.success(true)
                     }
+                    // Read-only: every system access behind the adhan (notifications,
+                    // exact alarms, full-screen wake, DND access, battery). No UI, so
+                    // this is safe to call from any state, including a reschedule.
+                    "alarmAccessStatus" -> result.success(AlarmAccess.status(activity))
+                    // Opens the matching system screen; Flutter re-reads the status
+                    // when the app comes back to the foreground.
+                    "requestAlarmAccess" -> {
+                        val key = call.argument<String>("key") ?: ""
+                        result.success(AlarmAccess.request(activity, key))
+                    }
                     "listDeviceTones" -> result.success(listDeviceTones())
                     "previewDeviceTone" -> {
                         val uri = call.argument<String>("uri")
