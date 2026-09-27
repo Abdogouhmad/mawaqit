@@ -55,17 +55,24 @@ abstract final class AppTheme {
     error: AppColors.errorDark,
   );
 
-  static ThemeData light() => _build(_lightScheme, Brightness.light);
+  static ThemeData light({bool arabic = false}) =>
+      _build(_lightScheme, Brightness.light, arabic: arabic);
 
-  static ThemeData dark() => _build(_darkScheme, Brightness.dark);
+  static ThemeData dark({bool arabic = false}) =>
+      _build(_darkScheme, Brightness.dark, arabic: arabic);
 
-  static ThemeData _build(ColorScheme scheme, Brightness brightness) {
+  static ThemeData _build(
+    ColorScheme scheme,
+    Brightness brightness, {
+    bool arabic = false,
+  }) {
     final isLight = brightness == Brightness.light;
     final cardColor = isLight ? AppColors.cardLight : AppColors.cardDark;
     final primary = scheme.primary;
 
     final baseText = ThemeData(brightness: brightness).textTheme.apply(
       fontFamily: AppConstants.fontFamily,
+      fontFamilyFallback: AppConstants.fontFamilyFallback,
       bodyColor: scheme.onSurface,
       displayColor: scheme.onSurface,
     );
@@ -142,8 +149,13 @@ abstract final class AppTheme {
       colorScheme: scheme,
       brightness: brightness,
       scaffoldBackgroundColor: scheme.surface,
-      textTheme: textTheme,
+      textTheme: arabic ? _untacked(textTheme) : textTheme,
+      // Both, not just the text theme: widgets that build their own TextStyle
+      // from the ThemeData (and the default Material styles) still need the
+      // Arabic fallback, otherwise a stray `Text` renders Arabic in the system
+      // font while the rest of the screen is in Cairo.
       fontFamily: AppConstants.fontFamily,
+      fontFamilyFallback: AppConstants.fontFamilyFallback,
       splashFactory: InkSparkle.splashFactory,
     );
 
@@ -321,5 +333,35 @@ abstract final class AppTheme {
   static TextStyle numerals(TextStyle style) => style.copyWith(
     fontFeatures: const [FontFeature.tabularFigures()],
     fontVariations: const [FontVariation('wght', 300)],
+  );
+
+  /// Strips every `letterSpacing` from [theme].
+  ///
+  /// The tracking in this file is dialled in for Latin: negative on the large
+  /// display sizes, positive on the small uppercase-ish labels. None of it
+  /// transfers to Arabic. Arabic script joins its letters through contextual
+  /// forms, so inserting space between glyphs breaks the word into a row of
+  /// disconnected letters — it reads as broken rather than as "spaced out", which
+  /// is why Arabic typesetting guidance is to leave tracking at zero.
+  ///
+  /// Done as a post-pass over the finished theme rather than by branching at
+  /// each of the ten `letterSpacing` sites, so a new style cannot forget the
+  /// Arabic case.
+  static TextTheme _untacked(TextTheme theme) => theme.copyWith(
+    displayLarge: theme.displayLarge?.copyWith(letterSpacing: 0),
+    displayMedium: theme.displayMedium?.copyWith(letterSpacing: 0),
+    displaySmall: theme.displaySmall?.copyWith(letterSpacing: 0),
+    headlineLarge: theme.headlineLarge?.copyWith(letterSpacing: 0),
+    headlineMedium: theme.headlineMedium?.copyWith(letterSpacing: 0),
+    headlineSmall: theme.headlineSmall?.copyWith(letterSpacing: 0),
+    titleLarge: theme.titleLarge?.copyWith(letterSpacing: 0),
+    titleMedium: theme.titleMedium?.copyWith(letterSpacing: 0),
+    titleSmall: theme.titleSmall?.copyWith(letterSpacing: 0),
+    bodyLarge: theme.bodyLarge?.copyWith(letterSpacing: 0),
+    bodyMedium: theme.bodyMedium?.copyWith(letterSpacing: 0),
+    bodySmall: theme.bodySmall?.copyWith(letterSpacing: 0),
+    labelLarge: theme.labelLarge?.copyWith(letterSpacing: 0),
+    labelMedium: theme.labelMedium?.copyWith(letterSpacing: 0),
+    labelSmall: theme.labelSmall?.copyWith(letterSpacing: 0),
   );
 }

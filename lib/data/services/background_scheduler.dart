@@ -31,24 +31,47 @@ abstract final class BackgroundScheduler {
       defaultTargetPlatform == TargetPlatform.android ||
       defaultTargetPlatform == TargetPlatform.iOS;
 
+  /// Registers the periodic reschedule, at most once per process.
+  ///
+  /// `existingWorkPolicy: update` rewrites the stored schedule every time it
+  /// runs, and this used to be called on every Home rebuild — so a settings tap
+  /// would restart the 12h period from zero, which in practice meant the daily
+  /// reschedule could be starved indefinitely on a frequently-used phone.
+  /// `keep` is the correct policy anyway: the task is already registered with
+  /// the same name, frequency and constraints, so there is nothing to update.
+  ///
+  /// The guard is per-process on purpose. WorkManager persists the task across
+  /// launches, so re-registering on every cold start is pure churn.
+  static bool _dailyTaskRegistered = false;
+
   static Future<void> registerDailyReschedule() async {
-    await Workmanager().registerPeriodicTask(
-      dailyRescheduleTask,
-      dailyRescheduleTask,
-      frequency: const Duration(hours: 12),
-      existingWorkPolicy: ExistingPeriodicWorkPolicy.update,
-      constraints: Constraints(networkType: NetworkType.notRequired),
-    );
+    if (!_supportsWorkmanager) return;
+    if (_dailyTaskRegistered) return;
+    _dailyTaskRegistered = true;
+    try {
+      await Workmanager().registerPeriodicTask(
+        dailyRescheduleTask,
+        dailyRescheduleTask,
+        frequency: const Duration(hours: 12),
+        existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+        constraints: Constraints(networkType: NetworkType.notRequired),
+      );
+    } catch (error) {
+      // Allow a later attempt (e.g. a transient platform-channel failure)
+      // rather than leaving the app permanently unregistered for this process.
+      _dailyTaskRegistered = false;
+      debugPrint('registerDailyReschedule failed: $error');
+    }
   }
 
   /// Standalone recompute + reschedule run inside the background isolate.
   static Future<bool> rescheduleAll() async {
     try {
       final settings = await SettingsRepository().load();
-      final cached = await LocationRepository.cached();
-      if (cached == null) return false;
+      final location = await _resolveLocation(settings);
+      if (location == null) return false;
 
-      final day = _dayFor(cached, settings);
+      final day = _dayFor(location, settings);
       final notifications = NotificationService.instance;
       // Read-only: the background isolate has no activity behind it, so a
       // permission dialog could stall (or throw) and take the whole reschedule
@@ -58,7 +81,7 @@ abstract final class BackgroundScheduler {
       await PrayerWidgetService.sync(
         day,
         settings,
-        locationShort: cached.displayName,
+        locationShort: location.displayName,
       );
       return true;
     } catch (_) {
@@ -72,17 +95,17 @@ abstract final class BackgroundScheduler {
   /// alarms are armed with the access the user just enabled.
   static Future<bool> rescheduleNow(AppSettings settings) async {
     try {
-      final cached = await LocationRepository.cached();
-      if (cached == null) return false;
+      final location = await _resolveLocation(settings);
+      if (location == null) return false;
 
-      final day = _dayFor(cached, settings);
+      final day = _dayFor(location, settings);
       final notifications = NotificationService.instance;
       await notifications.init(allowPrompt: false);
       await notifications.scheduleDay(day, settings);
       await PrayerWidgetService.sync(
         day,
         settings,
-        locationShort: cached.displayName,
+        locationShort: location.displayName,
       );
       return true;
     } catch (_) {
@@ -90,11 +113,35 @@ abstract final class BackgroundScheduler {
     }
   }
 
-  static PrayerDay _dayFor(ResolvedLocation cached, AppSettings settings) {
+  /// Coordinates a reschedule should compute for.
+  ///
+  /// A chosen city always wins over the cached GPS fix. The cache is only ever
+  /// written on the GPS branch of `LocationRepository.resolve`, so this is the
+  /// difference between working and silently broken for two whole classes of
+  /// user: a city-only user has no cache at all (every reschedule used to bail
+  /// out with `false`, leaving no alarms after a reboot), and a city user who
+  /// once had a fix would otherwise have had alarms armed for wherever the phone
+  /// was, quietly disagreeing with the times on the home screen.
+  static Future<ResolvedLocation?> _resolveLocation(
+    AppSettings settings,
+  ) async {
+    final coordinates = settings.effectiveCoordinates;
+    if (coordinates != null) {
+      return ResolvedLocation(
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
+        displayName: settings.cityName ?? 'Selected city',
+        fromManual: true,
+      );
+    }
+    return LocationRepository.cached();
+  }
+
+  static PrayerDay _dayFor(ResolvedLocation location, AppSettings settings) {
     return PrayerTimesRepository().forDate(
       date: DateTime.now(),
-      latitude: cached.latitude,
-      longitude: cached.longitude,
+      latitude: location.latitude,
+      longitude: location.longitude,
       parameters: settings.parameters,
     );
   }

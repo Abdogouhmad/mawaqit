@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:mawaqit/core/utils/time_formatter.dart';
+import 'package:mawaqit/l10n/ambient_l10n.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/src/home_widget/prayer_widget.home_widget.dart';
@@ -38,11 +40,23 @@ abstract final class PrayerWidgetService {
       final remaining = next.time.difference(now);
       final nextIn = remaining.isNegative ? Duration.zero : remaining;
 
+      // This also runs from the WorkManager isolate, which has no widget tree
+      // and therefore never ran the app builder that normally records the
+      // locale. Re-apply the user's choice from [settings] here, or a user who
+      // picked a language different from the device's would get a widget in the
+      // device language. `TimeFormatter` needs the same nudge for its clock.
+      final locale = resolveAppLocale(
+        settings.language,
+        PlatformDispatcher.instance.locale,
+      );
+      AmbientL10n.locale = locale;
+      TimeFormatter.locale(locale.languageCode);
+      final l10n = AmbientL10n.instance;
       await PrayerWidgetHomeWidget.saveData(
         locationShort: _shorten(locationShort ?? settings.cityName),
-        nextPrayerName: next.kind.displayName,
+        nextPrayerName: next.kind.localized(l10n),
         nextPrayerTime: TimeFormatter.clock(next.time),
-        nextPrayerCountdown: 'in ${TimeFormatter.longCountdown(nextIn)}',
+        nextPrayerCountdown: l10n.widgetIn(TimeFormatter.longCountdown(nextIn)),
       );
       await PrayerWidgetHomeWidget.updateWidget();
     } catch (_) {

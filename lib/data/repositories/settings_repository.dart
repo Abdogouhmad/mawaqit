@@ -35,6 +35,7 @@ class SettingsRepository {
     'adhanDeviceToneName': s.adhanDeviceToneName,
     'preAlertTone': s.preAlertTone,
     'themeMode': s.themeMode.name,
+    'language': s.language.name,
     'locationMode': s.locationMode.name,
     'cityName': s.cityName,
     'cityLatitude': s.cityLatitude,
@@ -61,6 +62,12 @@ class SettingsRepository {
     themeMode: AppThemeMode.values.firstWhere(
       (e) => e.name == json['themeMode'],
       orElse: () => AppThemeMode.system,
+    ),
+    // `orElse: system` also covers a settings blob written before this field
+    // existed, and a value from a future version of the app.
+    language: AppLanguage.values.firstWhere(
+      (e) => e.name == json['language'],
+      orElse: () => AppLanguage.system,
     ),
     locationMode: LocationMode.values.firstWhere(
       (e) => e.name == json['locationMode'],

@@ -1,0 +1,784 @@
+{
+  "@@locale": "en",
+  "appTitle": "Mawaqit",
+  "@appTitle": {
+    "description": "Application name. Kept untranslated: it is the product's own name."
+  },
+  "actionBack": "Back",
+  "actionDone": "Done",
+  "actionClose": "Close",
+  "actionRetry": "Retry",
+  "actionAllow": "Allow",
+  "actionNotNow": "Not now",
+  "actionTryAgain": "Try again",
+  "actionSaveLocation": "Save location",
+  "actionInstallNow": "Install now",
+  "actionUpdateNow": "Update now",
+  "homeLocationUnavailable": "Location unavailable — tap to set one in Settings",
+  "@homeLocationUnavailable": {
+    "description": "Tooltip on the home header's location-warning icon."
+  },
+  "homeErrorTitle": "Could not determine prayer times",
+  "homeErrorBody": "Unable to load prayer times.",
+  "homeErrorHint": "Pull down to retry, or set a city or GPS in Settings.",
+  "homeDailySchedule": "Daily Schedule",
+  "homePrivacyNote": "Private & offline. No data leaves your device.",
+  "homeNextPrayer": "NEXT PRAYER",
+  "@homeNextPrayer": {
+    "description": "Badge above the countdown. Deliberately kept upper-case: it is a stylistic label, not a sentence."
+  },
+  "homeStart": "Start",
+  "homeSunsetAt": "Sunset {time}",
+  "@homeSunsetAt": {
+    "description": "Sunset has already passed; shows the clock time.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "6:42 PM"
+      }
+    }
+  },
+  "homeSunsetIn": "Sunset in {countdown}",
+  "@homeSunsetIn": {
+    "description": "Sunset is still ahead; shows the remaining time.",
+    "placeholders": {
+      "countdown": {
+        "type": "String",
+        "example": "1h 24m"
+      }
+    }
+  },
+  "homeDevOnly": "DEV ONLY",
+  "homePreviewAdhan": "Preview \"{prayer}\" adhan",
+  "@homePreviewAdhan": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Fajr"
+      }
+    }
+  },
+  "homeDevPreviewBody": "Pushes the real full-screen presenter. Stop and the volume keys behave exactly like a live alarm.",
+  "solarNoon": "Solar Noon",
+  "solarNoonDetail": "{time}  •  Day length {length}",
+  "@solarNoonDetail": {
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "12:18 PM"
+      },
+      "length": {
+        "type": "String",
+        "example": "11h 14m"
+      }
+    }
+  },
+  "sunset": "Sunset",
+  "prayerMuted": "Muted",
+  "prayerAdhanLabel": "{prayer} adhan",
+  "@prayerAdhanLabel": {
+    "description": "Screen-reader label for a prayer's mute toggle.",
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Fajr"
+      }
+    }
+  },
+  "prayerMuteHint": "Double tap to mute",
+  "prayerUnmuteHint": "Double tap to unmute",
+  "prayerTapToMute": "Tap to mute adhan",
+  "prayerTapToUnmute": "Tap to unmute adhan",
+  "adhanWord": "ADHAN",
+  "@adhanWord": {
+    "description": "Wordmark on the full-screen adhan presenter. Kept upper-case as a stylistic label."
+  },
+  "adhanItIsTimeFor": "IT IS TIME FOR",
+  "@adhanItIsTimeFor": {
+    "description": "Line above the prayer name on the presenter. Kept upper-case as a stylistic label."
+  },
+  "adhanNowPlaying": "The call to prayer is playing",
+  "adhanStop": "Stop Adhan",
+  "adhanStopping": "Silencing…",
+  "adhanVolumeHint": "Press a volume key to silence",
+  "settingsTitle": "Settings",
+  "settingsSubtitle": "Prayer times, reminders & appearance",
+  "settingsSectionLocationTiming": "Location & Timing",
+  "settingsCurrentLocation": "Current Location",
+  "settingsSectionCalculation": "Calculation Conventions",
+  "settingsCalculationMethod": "Calculation Method",
+  "settingsJuridicalMethod": "Juridical Method (Asr)",
+  "settingsSectionNotifications": "Notifications & Alerts",
+  "settingsSectionAppearance": "Appearance",
+  "settingsTheme": "Theme",
+  "settingsSectionAbout": "About & Update",
+  "settingsLocationTitle": "Location",
+  "settingsCitySearchHint": "e.g. London or Casablanca",
+  "settingsSearching": "Searching…",
+  "settingsSearchMinChars": "Type at least 3 characters to search.",
+  "settingsCoordinates": "{latitude}, {longitude}",
+  "@settingsCoordinates": {
+    "placeholders": {
+      "latitude": {
+        "type": "String",
+        "example": "51.507"
+      },
+      "longitude": {
+        "type": "String",
+        "example": "-0.128"
+      }
+    }
+  },
+  "settingsAboutTagline": "Prayer times, without the noise.",
+  "settingsAboutVersion": "v{version}  •  No accounts, no tracking",
+  "@settingsAboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.9.0"
+      }
+    }
+  },
+  "settingsLocationModeAuto": "Auto (GPS)",
+  "settingsLocationModeCity": "City",
+  "settingsThemeSystem": "System",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "notifToneTitle": "{kind} Tone",
+  "@notifToneTitle": {
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "Adhan"
+      }
+    }
+  },
+  "notifTestAction": "Test {kind}",
+  "@notifTestAction": {
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "Adhan"
+      }
+    }
+  },
+  "notifRemindMeBefore": "Remind me before",
+  "notifKindDisabledWarning": "{kind} notifications are off — flip the switch above, then try again.",
+  "@notifKindDisabledWarning": {
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "Adhan"
+      }
+    }
+  },
+  "notifAccessWarning": "Notification access is off — allow notifications for Mawaqit, then try again.",
+  "notifTestFailed": "{kind} test failed: {error}",
+  "@notifTestFailed": {
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "Adhan"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "notifPrayerAtTime": "It is now time for the {prayer} prayer · {time}",
+  "@notifPrayerAtTime": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Maghrib"
+      },
+      "time": {
+        "type": "String",
+        "example": "6:42 PM"
+      }
+    }
+  },
+  "notifReminderInOneMinute": "{prayer} in 1 minute",
+  "@notifReminderInOneMinute": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Asr"
+      }
+    }
+  },
+  "notifReminderInMinutes": "{prayer} in {minutes} minutes",
+  "@notifReminderInMinutes": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Asr"
+      },
+      "minutes": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "notifAdhanTitle": "Adhan — {prayer}",
+  "@notifAdhanTitle": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Isha"
+      }
+    }
+  },
+  "notifAdhanTitleName": "Adhan — {name}",
+  "@notifAdhanTitleName": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Test"
+      }
+    }
+  },
+  "notifUpdateAvailable": "Mawaqit {version} is available",
+  "@notifUpdateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.0"
+      }
+    }
+  },
+  "toneSheetPreviewHint": "Tap the speaker to preview a sound before choosing.",
+  "toneSheetBuiltIn": "Built-in tones",
+  "toneSheetDeviceSounds": "Device sounds",
+  "toneSheetDeviceNote": "Device sounds stay on this phone. If the file is moved or deleted, the adhan falls back to playing silently rather than staying stuck.",
+  "toneSheetReading": "Reading sounds on this device…",
+  "toneSheetUnavailable": "No device sounds are available.",
+  "toneSheetReadFailed": "Could not read device sounds.",
+  "toneSheetOnThisDevice": "On this device",
+  "toneSheetNoSound": "No sound",
+  "toneSheetTapToPreview": "Tap to preview",
+  "toneSheetPreviewUnavailableShort": "Preview unavailable",
+  "toneSheetPreviewTooltip": "Preview",
+  "toneSheetPreviewUnavailable": "Preview unavailable on this device.",
+  "accessKeepAdhanOnTime": "Keep the adhan on time",
+  "accessKeepAdhanBody": "Your phone freezes apps while the screen is locked, and that is what stops an adhan from ringing. These two permissions make it reliable.",
+  "accessReliability": "Alarm reliability",
+  "accessNotifications": "Notifications",
+  "accessAlarmsAndReminders": "Alarms & reminders",
+  "accessFullScreen": "Full-screen notifications",
+  "accessDisplayOverOtherApps": "Display over other apps",
+  "accessDndAccess": "Do Not Disturb access",
+  "accessUnrestrictedBattery": "Unrestricted battery",
+  "updateSoftwareUpdate": "Software Update",
+  "updateChecking": "Checking…",
+  "updateCheckFailed": "Check failed",
+  "updateAvailableTitle": "New update available",
+  "updateUpToDate": "You are up to date",
+  "updateLookingForVersions": "Looking for newer versions…",
+  "updateVersionDetails": "Version details",
+  "updateCurrentVersion": "Current version",
+  "updateLatestVersion": "Latest version",
+  "updateInstallType": "Install type",
+  "updateLastChecked": "Last checked",
+  "updateLastResult": "Last result",
+  "updateNoReleaseNotes": "No release notes available for this release.",
+  "updateDownloadingTitle": "Downloading update",
+  "updateDownloading": "Downloading…",
+  "updatePercent": "{percent}%",
+  "@updatePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int",
+        "example": "40"
+      }
+    }
+  },
+  "updateVerifiedReady": "The update is verified and ready to install.",
+  "updateBadge": "Update available",
+  "updateAboutMawaqit": "About Mawaqit",
+  "updateAboutBody": "No accounts, no tracking — prayer times at your side",
+  "updateVersionLabel": "Version {version}",
+  "@updateVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.9.0"
+      }
+    }
+  },
+  "updateAboutDescription": "A calm, focused prayer-times app with adhan reminders.",
+  "prayerFajr": "Fajr",
+  "prayerDhuhr": "Dhuhr",
+  "prayerAsr": "Asr",
+  "prayerMaghrib": "Maghrib",
+  "prayerIsha": "Isha",
+  "notifKindPrePrayer": "Pre-Prayer",
+  "notifKindAdhan": "Adhan",
+  "settingsLocationTimingDesc": "Where prayer times are computed for",
+  "@settingsLocationTimingDesc": {
+    "description": "Where prayer times are computed for"
+  },
+  "settingsCalculationDesc": "Method & Asr jurisprudence for the day",
+  "@settingsCalculationDesc": {
+    "description": "Method & Asr jurisprudence for the day"
+  },
+  "settingsNotificationsDesc": "Rings the adhan and pre-prayer countdowns",
+  "@settingsNotificationsDesc": {
+    "description": "Rings the adhan and pre-prayer countdowns"
+  },
+  "settingsAppearanceDesc": "Follow the phone or pick a fixed theme",
+  "@settingsAppearanceDesc": {
+    "description": "Follow the phone or pick a fixed theme"
+  },
+  "settingsCityName": "City name",
+  "@settingsCityName": {
+    "description": "City name"
+  },
+  "settingsNoCityFound": "No city found for \"{query}\". Try a larger area.",
+  "@settingsNoCityFound": {
+    "description": "No city found for \"{query}\". Try a larger area.",
+    "placeholders": {
+      "query": {}
+    }
+  },
+  "settingsSearchFailed": "Search failed: {error}",
+  "@settingsSearchFailed": {
+    "description": "Search failed: {error}",
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "settingsAutoGpsValue": "Automatic (GPS)",
+  "@settingsAutoGpsValue": {
+    "description": "Automatic (GPS)"
+  },
+  "settingsThemeSystemValue": "Follows the phone",
+  "@settingsThemeSystemValue": {
+    "description": "Follows the phone"
+  },
+  "madhabHanafi": "Hanafi",
+  "@madhabHanafi": {
+    "description": "Hanafi"
+  },
+  "madhabStandard": "Standard (Shafi'i, Maliki, Hanbali)",
+  "@madhabStandard": {
+    "description": "Standard (Shafi'i, Maliki, Hanbali)"
+  },
+  "notifTestAdhanSubtitle": "Fires the full-screen alarm in 3 seconds",
+  "@notifTestAdhanSubtitle": {
+    "description": "Fires the full-screen alarm in 3 seconds"
+  },
+  "notifTestPrePrayerSubtitle": "Fires the reminder in 3 seconds",
+  "@notifTestPrePrayerSubtitle": {
+    "description": "Fires the reminder in 3 seconds"
+  },
+  "notifEnabledPrePrayerHint": "Reminds you before each prayer",
+  "@notifEnabledPrePrayerHint": {
+    "description": "Reminds you before each prayer"
+  },
+  "notifEnabledAdhanHint": "Rings the adhan at prayer entry",
+  "@notifEnabledAdhanHint": {
+    "description": "Rings the adhan at prayer entry"
+  },
+  "notifDisabledPrePrayerNote": "Turn on to get countdown reminders before each prayer.",
+  "@notifDisabledPrePrayerNote": {
+    "description": "Turn on to get countdown reminders before each prayer."
+  },
+  "notifDisabledAdhanNote": "Turn on to make the full adhan ring at every prayer time.",
+  "@notifDisabledAdhanNote": {
+    "description": "Turn on to make the full adhan ring at every prayer time."
+  },
+  "notifTestAdhanFull": "Adhan alarm fires in 3 seconds — full-screen, over the lockscreen and over whatever you are using.",
+  "@notifTestAdhanFull": {
+    "description": "Adhan alarm fires in 3 seconds — full-screen, over the lockscreen and over whatever you are using."
+  },
+  "notifTestAdhanOverApps": "Adhan fires in 3 seconds — full-screen over the lockscreen. While you are using the phone it stays a card: allow \"Display over other apps\" in Alarm reliability to force it.",
+  "@notifTestAdhanOverApps": {
+    "description": "Adhan fires in 3 seconds — full-screen over the lockscreen. While you are using the phone it stays a card: allow \"Display over other apps\" in Alarm reliability to force it."
+  },
+  "notifTestAdhanHeadsUp": "Adhan fires in 3 seconds (heads-up — full-screen access is off in system Settings).",
+  "@notifTestAdhanHeadsUp": {
+    "description": "Adhan fires in 3 seconds (heads-up — full-screen access is off in system Settings)."
+  },
+  "notifTestPrePrayerTone": "Pre-prayer reminder fires in 3 seconds — {tone} will play.",
+  "@notifTestPrePrayerTone": {
+    "description": "Pre-prayer reminder fires in 3 seconds — {tone} will play.",
+    "placeholders": {
+      "tone": {}
+    }
+  },
+  "accessDoneAdhan": "Done — today’s adhan and reminders are re-armed.",
+  "@accessDoneAdhan": {
+    "description": "Done — today’s adhan and reminders are re-armed."
+  },
+  "accessDoneReminders": "Applied — today’s reminders are re-armed.",
+  "@accessDoneReminders": {
+    "description": "Applied — today’s reminders are re-armed."
+  },
+  "accessCanRingDescription": "The adhan can ring on time and wake your screen",
+  "@accessCanRingDescription": {
+    "description": "The adhan can ring on time and wake your screen"
+  },
+  "accessCannotRingDescription": "The adhan can be late or silent without these",
+  "@accessCannotRingDescription": {
+    "description": "The adhan can be late or silent without these"
+  },
+  "accessAllGranted": "All alarm accesses granted",
+  "@accessAllGranted": {
+    "description": "All alarm accesses granted"
+  },
+  "accessMissingSummary": "{missing} of {total} accesses are off — the adhan can ring late, stay silent, or not show at all. Tap a row to fix it.",
+  "@accessMissingSummary": {
+    "description": "{missing} of {total} accesses are off — the adhan can ring late, stay silent, or not show at all. Tap a row to fix it.",
+    "placeholders": {
+      "missing": {},
+      "total": {}
+    }
+  },
+  "accessAllowed": "Allowed",
+  "@accessAllowed": {
+    "description": "Allowed"
+  },
+  "accessFix": "Fix",
+  "@accessFix": {
+    "description": "Fix"
+  },
+  "accessBlurbNotifications": "Show the adhan and the pre-prayer card",
+  "@accessBlurbNotifications": {
+    "description": "Show the adhan and the pre-prayer card"
+  },
+  "accessBlurbAlarmsAndReminders": "Ring exactly at prayer time instead of minutes later",
+  "@accessBlurbAlarmsAndReminders": {
+    "description": "Ring exactly at prayer time instead of minutes later"
+  },
+  "accessBlurbFullScreen": "Wake the screen and take over the lockscreen",
+  "@accessBlurbFullScreen": {
+    "description": "Wake the screen and take over the lockscreen"
+  },
+  "accessBlurbOverApps": "Show the adhan full screen even while you are using the phone",
+  "@accessBlurbOverApps": {
+    "description": "Show the adhan full screen even while you are using the phone"
+  },
+  "accessBlurbDnd": "Ring the adhan even when the phone is on silent",
+  "@accessBlurbDnd": {
+    "description": "Ring the adhan even when the phone is on silent"
+  },
+  "accessBlurbBattery": "Stop the phone from delaying or dropping the adhan",
+  "@accessBlurbBattery": {
+    "description": "Stop the phone from delaying or dropping the adhan"
+  },
+  "@accessAlarmsAndReminders": {
+    "description": "Alarms & reminders"
+  },
+  "notifLeadShort": "{minutes} min",
+  "@notifLeadShort": {
+    "description": "{minutes} min",
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "notifOffPrePrayer": "No countdown reminders before prayers.",
+  "@notifOffPrePrayer": {
+    "description": "No countdown reminders before prayers."
+  },
+  "notifOffAdhan": "No adhan alarm at prayer entry.",
+  "@notifOffAdhan": {
+    "description": "No adhan alarm at prayer entry."
+  },
+  "updateErrorNoBuild": "This release has no APK to install.",
+  "@updateErrorNoBuild": {
+    "description": "This release has no APK to install."
+  },
+  "updateErrorDownload": "Could not download the update.{detail}",
+  "@updateErrorDownload": {
+    "description": "Could not download the update.{detail}",
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "updateErrorChecksum": "Checksum mismatch — the update was refused for your safety.",
+  "@updateErrorChecksum": {
+    "description": "Checksum mismatch — the update was refused for your safety."
+  },
+  "updateErrorInstall": "Android would not install the update.{detail}",
+  "@updateErrorInstall": {
+    "description": "Android would not install the update.{detail}",
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "updateErrorServer": "Could not reach the update server.",
+  "@updateErrorServer": {
+    "description": "Could not reach the update server."
+  },
+  "updateErrorGeneric": "Something went wrong.",
+  "@updateErrorGeneric": {
+    "description": "Something went wrong."
+  },
+  "updateStatusMandatory": "Mandatory update",
+  "@updateStatusMandatory": {
+    "description": "Mandatory update"
+  },
+  "updateNeverChecked": "Never checked",
+  "@updateNeverChecked": {
+    "description": "Never checked"
+  },
+  "updateNever": "Never",
+  "@updateNever": {
+    "description": "Never"
+  },
+  "updateJustNow": "Just now",
+  "@updateJustNow": {
+    "description": "Just now"
+  },
+  "updateUnknown": "Unknown",
+  "@updateUnknown": {
+    "description": "Unknown"
+  },
+  "updateUniversalApk": "Universal APK",
+  "@updateUniversalApk": {
+    "description": "Universal APK"
+  },
+  "updateWhatsNew": "What's new",
+  "@updateWhatsNew": {
+    "description": "What's new"
+  },
+  "updateCheckForUpdates": "Check for updates",
+  "@updateCheckForUpdates": {
+    "description": "Check for updates"
+  },
+  "updateRetry": "Retry",
+  "@updateRetry": {
+    "description": "Retry"
+  },
+  "updateMinutesAgo": "{minutes} min ago",
+  "@updateMinutesAgo": {
+    "description": "{minutes} min ago",
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "updateHoursAgo": "{hours} h ago",
+  "@updateHoursAgo": {
+    "description": "{hours} h ago",
+    "placeholders": {
+      "hours": {}
+    }
+  },
+  "updateUpToDateShort": "Up to date",
+  "@updateUpToDateShort": {
+    "description": "Up to date"
+  },
+  "channelAppUpdates": "App updates",
+  "@channelAppUpdates": {
+    "description": "Android notification channel: App updates"
+  },
+  "channelAppUpdatesDescription": "Alerts when a new Mawaqit version is available",
+  "@channelAppUpdatesDescription": {
+    "description": "Android notification channel: Alerts when a new Mawaqit version is available"
+  },
+  "channelPrePrayer": "Pre-prayer alert",
+  "@channelPrePrayer": {
+    "description": "Android notification channel: Pre-prayer alert"
+  },
+  "channelPrePrayerDescription": "Countdown reminder before each prayer",
+  "@channelPrePrayerDescription": {
+    "description": "Android notification channel: Countdown reminder before each prayer"
+  },
+  "channelAdhanMuted": "Prayer call (muted)",
+  "@channelAdhanMuted": {
+    "description": "Android notification channel: Prayer call (muted)"
+  },
+  "channelAdhanMutedDescription": "Adhan shown silently for a muted prayer occurrence",
+  "@channelAdhanMutedDescription": {
+    "description": "Android notification channel: Adhan shown silently for a muted prayer occurrence"
+  },
+  "channelAdhanTest": "Prayer call (test)",
+  "@channelAdhanTest": {
+    "description": "Android notification channel: Prayer call (test)"
+  },
+  "channelAdhanTestDescription": "Test adhan — sound is played by the app directly",
+  "@channelAdhanTestDescription": {
+    "description": "Android notification channel: Test adhan — sound is played by the app directly"
+  },
+  "channelPrePrayerTest": "Pre-prayer alert (test)",
+  "@channelPrePrayerTest": {
+    "description": "Android notification channel: Pre-prayer alert (test)"
+  },
+  "channelPrePrayerTestDescription": "Test pre-prayer — sound is played by the app directly",
+  "@channelPrePrayerTestDescription": {
+    "description": "Android notification channel: Test pre-prayer — sound is played by the app directly"
+  },
+  "testPrePrayerTitle": "Test — Pre-Prayer reminder",
+  "@testPrePrayerTitle": {
+    "description": "Test — Pre-Prayer reminder"
+  },
+  "testPrePrayerBodyAudible": "Countdown alerts {minutes} min before each prayer · Chime: {tone}",
+  "@testPrePrayerBodyAudible": {
+    "description": "Countdown alerts {minutes} min before each prayer · Chime: {tone}",
+    "placeholders": {
+      "minutes": {},
+      "tone": {}
+    }
+  },
+  "testPrePrayerBodySilent": "No chime selected (Silent) — the countdown card still appears.",
+  "@testPrePrayerBodySilent": {
+    "description": "No chime selected (Silent) — the countdown card still appears."
+  },
+  "testAdhanTitle": "Test — Adhan alarm",
+  "@testAdhanTitle": {
+    "description": "Test — Adhan alarm"
+  },
+  "testAdhanBodySoundOff": "Adhan sound is off — the full-screen card still appears silently.",
+  "@testAdhanBodySoundOff": {
+    "description": "Adhan sound is off — the full-screen card still appears silently."
+  },
+  "testAdhanBodySilentTone": "The selected tone is Silent — the full-screen card appears silently.",
+  "@testAdhanBodySilentTone": {
+    "description": "The selected tone is Silent — the full-screen card appears silently."
+  },
+  "testAdhanBodyAudible": "Rings at prayer entry and takes over the lockscreen like an alarm · Adhan: {tone}",
+  "@testAdhanBodyAudible": {
+    "description": "Rings at prayer entry and takes over the lockscreen like an alarm · Adhan: {tone}",
+    "placeholders": {
+      "tone": {}
+    }
+  },
+  "soundUnplayableBody": "The selected sound could not be played on this device.",
+  "@soundUnplayableBody": {
+    "description": "The selected sound could not be played on this device."
+  },
+  "chimeMuted": "Chime muted (Silent)",
+  "@chimeMuted": {
+    "description": "Chime muted (Silent)"
+  },
+  "notifReminderBodyWithTone": "Adhan follows at {time} · {chime}",
+  "@notifReminderBodyWithTone": {
+    "description": "Reminder body including the selected chime",
+    "placeholders": {
+      "time": {},
+      "chime": {}
+    }
+  },
+  "homeDayBeginsWith": "The day begins with {prayer}",
+  "@homeDayBeginsWith": {
+    "description": "The day begins with {prayer}",
+    "placeholders": {
+      "prayer": {}
+    }
+  },
+  "homePrayerEnded": "{prayer} ended {time}",
+  "@homePrayerEnded": {
+    "description": "{prayer} ended {time}",
+    "placeholders": {
+      "prayer": {},
+      "time": {}
+    }
+  },
+  "widgetIn": "in {countdown}",
+  "@widgetIn": {
+    "description": "Home widget countdown prefix",
+    "placeholders": {
+      "countdown": {}
+    }
+  },
+  "accessGrantedAutomatically": "{permission} is granted automatically on this Android version — nothing to do.",
+  "@accessGrantedAutomatically": {
+    "description": "Shown when a permission needs no action on this Android release",
+    "placeholders": {
+      "permission": {}
+    }
+  },
+  "hijriMonth1": "Muharram",
+  "@hijriMonth1": {
+    "description": "Hijri month name #1, index 0 = Muharram"
+  },
+  "hijriMonth2": "Safar",
+  "@hijriMonth2": {
+    "description": "Hijri month name #2, index 0 = Muharram"
+  },
+  "hijriMonth3": "Rabi' al-Awwal",
+  "@hijriMonth3": {
+    "description": "Hijri month name #3, index 0 = Muharram"
+  },
+  "hijriMonth4": "Rabi' al-Thani",
+  "@hijriMonth4": {
+    "description": "Hijri month name #4, index 0 = Muharram"
+  },
+  "hijriMonth5": "Jumada al-Awwal",
+  "@hijriMonth5": {
+    "description": "Hijri month name #5, index 0 = Muharram"
+  },
+  "hijriMonth6": "Jumada al-Thani",
+  "@hijriMonth6": {
+    "description": "Hijri month name #6, index 0 = Muharram"
+  },
+  "hijriMonth7": "Rajab",
+  "@hijriMonth7": {
+    "description": "Hijri month name #7, index 0 = Muharram"
+  },
+  "hijriMonth8": "Sha'ban",
+  "@hijriMonth8": {
+    "description": "Hijri month name #8, index 0 = Muharram"
+  },
+  "hijriMonth9": "Ramadan",
+  "@hijriMonth9": {
+    "description": "Hijri month name #9, index 0 = Muharram"
+  },
+  "hijriMonth10": "Shawwal",
+  "@hijriMonth10": {
+    "description": "Hijri month name #10, index 0 = Muharram"
+  },
+  "hijriMonth11": "Dhu al-Qi'dah",
+  "@hijriMonth11": {
+    "description": "Hijri month name #11, index 0 = Muharram"
+  },
+  "hijriMonth12": "Dhu al-Hijjah",
+  "@hijriMonth12": {
+    "description": "Hijri month name #12, index 0 = Muharram"
+  },
+  "unitDays": "d",
+  "@unitDays": {
+    "description": "Abbreviated unit suffix for days in compact durations"
+  },
+  "unitHours": "h",
+  "@unitHours": {
+    "description": "Abbreviated unit suffix for hours in compact durations"
+  },
+  "unitMinutes": "m",
+  "@unitMinutes": {
+    "description": "Abbreviated unit suffix for minutes in compact durations"
+  },
+  "unitSeconds": "s",
+  "@unitSeconds": {
+    "description": "Abbreviated unit suffix for seconds in compact durations"
+  },
+  "updateErrorAlreadyRunning": "An update is already in progress.",
+  "@updateErrorAlreadyRunning": {
+    "description": "Error shown on the OTA screen when an update cannot start."
+  },
+  "updateErrorPermissionDenied": "Permission to install apps was denied.",
+  "@updateErrorPermissionDenied": {
+    "description": "Error shown on the OTA screen when an update cannot start."
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Language selector in the Appearance section of settings."
+  },
+  "settingsLanguageSystem": "System default",
+  "@settingsLanguageSystem": {
+    "description": "Language selector in the Appearance section of settings."
+  },
+  "settingsLanguageEnglish": "English",
+  "@settingsLanguageEnglish": {
+    "description": "Language selector in the Appearance section of settings."
+  },
+  "settingsLanguageArabic": "Arabic",
+  "@settingsLanguageArabic": {
+    "description": "Language selector in the Appearance section of settings."
+  },
+  "testAdhanName": "Test",
+  "@testAdhanName": {
+    "description": "Short display name for the adhan test, used in the overlay and the notification body."
+  }
+}

@@ -1,16 +1,17 @@
 import 'package:adhan_dart/adhan_dart.dart';
 
 /// The five obligatory prayers plus auxiliary markers.
+///
+/// Deliberately carries **no** display name. Prayer labels are locale-dependent,
+/// so they live in `PrayerKindL10n` (lib/l10n/enum_localization.dart) rather than
+/// on the enum — putting an English `displayName` here is what previously forced
+/// the whole UI to English.
 enum PrayerKind {
-  fajr('Fajr'),
-  dhuhr('Dhuhr'),
-  asr('Asr'),
-  maghrib('Maghrib'),
-  isha('Isha');
-
-  const PrayerKind(this.displayName);
-
-  final String displayName;
+  fajr,
+  dhuhr,
+  asr,
+  maghrib,
+  isha;
 
   static const List<PrayerKind> five = [
     PrayerKind.fajr,

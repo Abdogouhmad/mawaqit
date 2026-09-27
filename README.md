@@ -46,6 +46,12 @@ adhan reminders and per-prayer mute.
 - **In-app updates** — Settings checks the release manifest, shows the installed vs
   latest version with the "What's new" notes, and downloads + verifies + installs the
   new APK; a tray notification announces every release once.
+- **English & Arabic, with proper type for each** — every string in the app is
+  translated (including the notification cards, the adhan screen and the
+  home-screen widget), the whole layout mirrors to RTL in Arabic, and a language
+  picker in Settings → Appearance picks System default / English / العربية. Times,
+  dates and the Hijri month names follow the chosen language, and the bundled
+  Cairo face supplies the Arabic glyphs Manrope doesn't have.
 - **Privacy-first** — no accounts, no tracking; all computation is on-device.
 
 ## Getting started
@@ -123,9 +129,9 @@ Layout resources (`android/app/src/main/res/`):
 
 ## Release
 
-Version tracks `version:` in `pubspec.yaml` (mirrored in `AppConstants.appVersion`;
-`CHANGELOG.md` is the single source of truth for release notes). Build and sign the
-APKs with the release pipeline:
+Version tracks `version:` in `pubspec.yaml` (read at runtime via
+`package_info_plus`; `CHANGELOG.md` is the single source of truth for release
+notes). Build and sign the APKs with the release pipeline:
 
 ```sh
 ./build.sh --release-notes    # extracts the matching CHANGELOG section
@@ -146,6 +152,10 @@ Two more declarations came with 0.9.0 and need the same treatment:
 - `AdhanPlaybackService` is a `specialUse` foreground service (subtype
   `prayer_adhan_call`) so the adhan is not treated as media playback. The
   Play Console asks for a written justification of that subtype.
+
+`android:localeConfig` (`res/xml/locales_config.xml`) is what makes Mawaqit show
+up in the per-app language picker on Android 13+; it lists `en` and `ar` and must
+stay in step with the catalogs in `lib/l10n/`.
 
 `update_manifest.json` is rewritten by the release workflow (version, APK URL,
 fresh `sha256`, CHANGELOG notes) in a follow-up commit — never by hand.

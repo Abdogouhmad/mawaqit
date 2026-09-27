@@ -39,6 +39,7 @@ class LocationRepository {
   static const String _latKey = 'resolved_latitude';
   static const String _lngKey = 'resolved_longitude';
   static const String _nameKey = 'resolved_location_name';
+  static const String _manualKey = 'resolved_location_manual';
 
   /// Searches for cities by name (e.g. "London", "Casablanca") and returns
   /// up to [limit] candidates with their coordinates.
@@ -142,25 +143,35 @@ class LocationRepository {
   }) async {
     if (settings.locationMode == LocationMode.city &&
         settings.hasCityCoordinates) {
-      return ResolvedLocation(
+      final city = ResolvedLocation(
         latitude: settings.cityLatitude!,
         longitude: settings.cityLongitude!,
         displayName: settings.cityName ?? 'City',
         fromManual: true,
       );
+      // Cached as well as returned: the background reschedulers and the home
+      // widget read this cache, and a city-only user used to leave it empty —
+      // which silently disabled every reschedule and left the widget blank.
+      await _cache(
+        city.latitude,
+        city.longitude,
+        city.displayName,
+        manual: true,
+      );
+      return city;
     }
 
     final permission = grantedPermission ?? await _ensurePermission();
     if (permission == LocationPermission.deniedForever ||
         permission == LocationPermission.denied) {
-      final cached = await _cached();
+      final cached = await _readCache();
       if (cached != null) return cached;
       throw LocationPermissionException(permission.toString());
     }
 
     final enabled = await Geolocator.isLocationServiceEnabled();
     if (!enabled) {
-      final cached = await _cached();
+      final cached = await _readCache();
       if (cached != null) return cached;
       throw const LocationServiceDisabledException();
     }
@@ -182,10 +193,12 @@ class LocationRepository {
         final city = (p.locality ?? p.subAdministrativeArea ?? '').trim();
         final country = (p.country ?? '').trim();
         name = [city, country].where((e) => e.isNotEmpty).join(', ');
-        if (name.isNotEmpty) _cache(pos.latitude, pos.longitude, name);
+        if (name.isNotEmpty) {
+          await _cache(pos.latitude, pos.longitude, name);
+        }
       }
     } catch (_) {
-      _cache(pos.latitude, pos.longitude, name);
+      await _cache(pos.latitude, pos.longitude, name);
     }
 
     return ResolvedLocation(
@@ -238,7 +251,14 @@ class LocationRepository {
   }
 
   /// Static, plugin-free read used by background isolates.
-  static Future<ResolvedLocation?> cached() async {
+  static Future<ResolvedLocation?> cached() => _readCache();
+
+  /// Reads the last resolved location.
+  ///
+  /// Requires all three primary fields: a partial write is treated as no cache
+  /// at all, which is the safe direction — the reschedulers bail out rather
+  /// than arming alarms from half a location.
+  static Future<ResolvedLocation?> _readCache() async {
     final prefs = await SharedPreferences.getInstance();
     final lat = prefs.getDouble(_latKey);
     final lng = prefs.getDouble(_lngKey);
@@ -248,30 +268,29 @@ class LocationRepository {
       latitude: lat,
       longitude: lng,
       displayName: name,
-      fromManual: false,
+      fromManual: prefs.getBool(_manualKey) ?? false,
     );
   }
 
-  Future<ResolvedLocation?> _cached() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lat = prefs.getDouble(_latKey);
-    final lng = prefs.getDouble(_lngKey);
-    final name = prefs.getString(_nameKey);
-    if (lat == null || lng == null || name == null) return null;
-    return ResolvedLocation(
-      latitude: lat,
-      longitude: lng,
-      displayName: name,
-      fromManual: false,
-    );
-  }
-
-  void _cache(double latitude, double longitude, String name) {
-    SharedPreferences.getInstance().then((prefs) {
-      prefs.setDouble(_latKey, latitude);
-      prefs.setDouble(_lngKey, longitude);
-      prefs.setString(_nameKey, name);
-    });
+  /// Persists the resolved location. Awaited by callers on purpose: the
+  /// background reschedulers treat a missing cache as "cannot schedule", so a
+  /// write that lands only partially (or after the isolate is torn down) turns
+  /// into a day with no alarms at all.
+  static Future<void> _cache(
+    double latitude,
+    double longitude,
+    String name, {
+    bool manual = false,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble(_latKey, latitude);
+      await prefs.setDouble(_lngKey, longitude);
+      await prefs.setString(_nameKey, name);
+      await prefs.setBool(_manualKey, manual);
+    } catch (_) {
+      // A cache miss only costs a reschedule; it must never fail the resolve.
+    }
   }
 }
 

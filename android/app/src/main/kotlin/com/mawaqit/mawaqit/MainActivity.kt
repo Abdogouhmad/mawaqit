@@ -182,6 +182,8 @@ class MainActivity : FlutterActivity() {
                         val soundRaw = call.argument<String>("soundRaw") ?: ""
                         val soundUri = call.argument<String>("soundUri") ?: ""
                         val isTest = call.argument<Boolean>("isTest") ?: false
+                        val title = call.argument<String>("title") ?: ""
+                        val body = call.argument<String>("body") ?: ""
                         if (id != -1) {
                             AdhanScheduler.schedule(
                                 context = activity,
@@ -193,6 +195,8 @@ class MainActivity : FlutterActivity() {
                                 soundRaw = soundRaw,
                                 soundUri = soundUri,
                                 isTest = isTest,
+                                title = title,
+                                body = body,
                             )
                         }
                         result.success(true)
@@ -217,6 +221,8 @@ class MainActivity : FlutterActivity() {
                         val soundRaw = call.argument<String>("soundRaw") ?: ""
                         val soundUri = call.argument<String>("soundUri") ?: ""
                         val isTest = call.argument<Boolean>("isTest") ?: false
+                        val title = call.argument<String>("title") ?: ""
+                        val body = call.argument<String>("body") ?: ""
                         if (id != -1) {
                             AdhanScheduler.fireNow(
                                 activity,
@@ -229,6 +235,8 @@ class MainActivity : FlutterActivity() {
                                     soundUri = soundUri,
                                     timestampMs = System.currentTimeMillis(),
                                     isTest = isTest,
+                                    title = title,
+                                    body = body,
                                 ),
                             )
                         }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Declares the languages this app ships so Android 13+ (API 33) can offer a
+  per-app language picker at Settings > Apps > Mawaqit > Language.
+
+  Without this, that screen lists nothing for this app and the only way to reach
+  Arabic is changing the whole device language. Flutter's `generate: true` builds
+  the Dart catalogs from lib/l10n/*.arb, so the two lists here and there must
+  stay in sync: en and ar.
+-->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="en"/>
+    <locale android:name="ar"/>
+</locale-config>

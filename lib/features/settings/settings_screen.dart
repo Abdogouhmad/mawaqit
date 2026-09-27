@@ -25,6 +25,8 @@ import 'package:mawaqit/shared/ui/segmented_control.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 import 'package:mawaqit/shared/ui/option_sheet.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -78,7 +80,7 @@ class _SettingsHeader extends StatelessWidget {
               onPressed: () => Navigator.of(context).maybePop(),
               icon: const Icon(Icons.arrow_back),
               color: scheme.onSecondaryContainer,
-              tooltip: 'Back',
+              tooltip: AppLocalizations.of(context).actionBack,
             ),
           ),
           const SizedBox(width: AppSpacing.xl),
@@ -87,14 +89,14 @@ class _SettingsHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 UiText(
-                  'Settings',
+                  AppLocalizations.of(context).settingsTitle,
                   type: UiTextType.titleLarge,
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.2,
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 UiText(
-                  'Prayer times, reminders & appearance',
+                  AppLocalizations.of(context).settingsSubtitle,
                   type: UiTextType.labelMedium,
                   color: scheme.onSurfaceVariant,
                 ),
@@ -104,7 +106,7 @@ class _SettingsHeader extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.of(context).maybePop(),
             child: UiText(
-              'Done',
+              AppLocalizations.of(context).actionDone,
               type: UiTextType.labelLarge,
               color: scheme.primary,
               fontWeight: FontWeight.w700,
@@ -124,7 +126,7 @@ class _SettingsBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.read(settingsProvider.notifier);
-    final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -135,9 +137,9 @@ class _SettingsBody extends ConsumerWidget {
       ),
       children: [
         // Location & timing
-        const SectionHeader(
-          label: 'Location & Timing',
-          description: 'Where prayer times are computed for',
+        SectionHeader(
+          label: AppLocalizations.of(context).settingsSectionLocationTiming,
+          description: l10n.settingsLocationTimingDesc,
           icon: Icons.near_me_outlined,
         ),
         AppCard(
@@ -147,25 +149,28 @@ class _SettingsBody extends ConsumerWidget {
           ),
           child: SettingsRow(
             icon: Icons.near_me_outlined,
-            title: 'Current Location',
-            subtitle: _locationSubtitle(settings),
+            title: AppLocalizations.of(context).settingsCurrentLocation,
+            subtitle: _locationSubtitle(context, settings),
             onTap: () => _openLocationSheet(context, ref, controller, settings),
-            trailing: AppPill(label: settings.locationMode.label, dense: true),
+            trailing: AppPill(
+              label: settings.locationMode.localized(l10n),
+              dense: true,
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.mega),
 
         // Calculation
-        const SectionHeader(
-          label: 'Calculation Conventions',
-          description: 'Method & Asr jurisprudence for the day',
+        SectionHeader(
+          label: AppLocalizations.of(context).settingsSectionCalculation,
+          description: l10n.settingsCalculationDesc,
           icon: Icons.calculate_outlined,
         ),
         SettingsGroup(
           children: [
             SettingsRow(
               icon: Icons.calculate_outlined,
-              title: 'Calculation Method',
+              title: AppLocalizations.of(context).settingsCalculationMethod,
               subtitle: settings.calculationMethod.displayName,
               onTap: () =>
                   _pickCalculationMethod(context, controller, settings),
@@ -173,10 +178,10 @@ class _SettingsBody extends ConsumerWidget {
             ),
             SettingsRow(
               icon: Icons.balance_outlined,
-              title: 'Juridical Method (Asr)',
+              title: l10n.settingsJuridicalMethod,
               subtitle: settings.madhab == Madhab.hanafi
-                  ? 'Hanafi'
-                  : "Standard (Shafi'i, Maliki, Hanbali)",
+                  ? l10n.madhabHanafi
+                  : l10n.madhabStandard,
               onTap: () => _pickMadhab(context, controller, settings),
               trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
             ),
@@ -185,9 +190,9 @@ class _SettingsBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.mega),
 
         // Notifications & audio
-        const SectionHeader(
-          label: 'Notifications & Alerts',
-          description: 'Rings the adhan and pre-prayer countdowns',
+        SectionHeader(
+          label: AppLocalizations.of(context).settingsSectionNotifications,
+          description: l10n.settingsNotificationsDesc,
           icon: Icons.notifications_none,
         ),
         SettingsGroup(
@@ -201,55 +206,40 @@ class _SettingsBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.mega),
 
         // Appearance
-        const SectionHeader(
-          label: 'Appearance',
-          description: 'Follow the phone or pick a fixed theme',
+        SectionHeader(
+          label: AppLocalizations.of(context).settingsSectionAppearance,
+          description: l10n.settingsAppearanceDesc,
           icon: Icons.palette_outlined,
         ),
         SettingsGroup(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xxxl,
-                AppSpacing.xxl,
-                AppSpacing.xxxl,
-                AppSpacing.md,
-              ),
-              child: Row(
-                children: [
-                  const IconBadge(icon: Icons.palette_outlined),
-                  const SizedBox(width: AppSpacing.xxl),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        UiText(
-                          'Theme',
-                          type: UiTextType.titleMedium,
-                          fontSize: AppFontSize.lg,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        UiText(
-                          _themeLabel(settings.themeMode),
-                          type: UiTextType.labelMedium,
-                          color: scheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ],
-                    ),
-                  ),
+            _SegmentedSettingRow<AppLanguage>(
+              icon: Icons.language,
+              title: l10n.settingsLanguage,
+              valueLabel: settings.language.localized(l10n),
+              control: SegmentedControl<AppLanguage>(
+                value: settings.language,
+                onChanged: (value) {
+                  HapticFeedback.selectionClick();
+                  controller.save(settings.copyWith(language: value));
+                },
+                icons: const [
+                  Icons.settings_suggest_outlined,
+                  Icons.abc_outlined,
+                  Icons.language,
+                ],
+                options: [
+                  (AppLanguage.system, l10n.settingsLanguageSystem),
+                  (AppLanguage.english, l10n.settingsLanguageEnglish),
+                  (AppLanguage.arabic, l10n.settingsLanguageArabic),
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xxxl,
-                0,
-                AppSpacing.xxxl,
-                AppSpacing.xxl,
-              ),
-              child: SegmentedControl<AppThemeMode>(
+            _SegmentedSettingRow<AppThemeMode>(
+              icon: Icons.palette_outlined,
+              title: l10n.settingsTheme,
+              valueLabel: _themeLabel(context, settings.themeMode),
+              control: SegmentedControl<AppThemeMode>(
                 value: settings.themeMode,
                 onChanged: (value) {
                   HapticFeedback.selectionClick();
@@ -260,10 +250,10 @@ class _SettingsBody extends ConsumerWidget {
                   Icons.light_mode_outlined,
                   Icons.dark_mode_outlined,
                 ],
-                options: const [
-                  (AppThemeMode.system, 'System'),
-                  (AppThemeMode.light, 'Light'),
-                  (AppThemeMode.dark, 'Dark'),
+                options: [
+                  (AppThemeMode.system, l10n.settingsThemeSystem),
+                  (AppThemeMode.light, l10n.settingsThemeLight),
+                  (AppThemeMode.dark, l10n.settingsThemeDark),
                 ],
               ),
             ),
@@ -272,7 +262,10 @@ class _SettingsBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.tera),
 
         // About & OTA updates
-        const SectionHeader(label: 'About & Update', icon: Icons.info_outline),
+        SectionHeader(
+          label: AppLocalizations.of(context).settingsSectionAbout,
+          icon: Icons.info_outline,
+        ),
         const UpdateSection(),
         const SizedBox(height: AppSpacing.tera),
         _Footer(),
@@ -280,19 +273,21 @@ class _SettingsBody extends ConsumerWidget {
     );
   }
 
-  String _locationSubtitle(AppSettings settings) {
+  String _locationSubtitle(BuildContext context, AppSettings settings) {
     if (settings.locationMode == LocationMode.city &&
         settings.hasCityCoordinates) {
       return '${settings.cityName} · ${settings.cityLatitude!.toStringAsFixed(2)}, '
           '${settings.cityLongitude!.toStringAsFixed(2)}';
     }
-    return 'Automatic (GPS)';
+    return AppLocalizations.of(context).settingsAutoGpsValue;
   }
 
-  String _themeLabel(AppThemeMode mode) => switch (mode) {
-    AppThemeMode.system => 'Follows the phone',
-    AppThemeMode.light => 'Light',
-    AppThemeMode.dark => 'Dark',
+  String _themeLabel(BuildContext context, AppThemeMode mode) => switch (mode) {
+    AppThemeMode.system => AppLocalizations.of(
+      context,
+    ).settingsThemeSystemValue,
+    AppThemeMode.light => AppLocalizations.of(context).settingsThemeLight,
+    AppThemeMode.dark => AppLocalizations.of(context).settingsThemeDark,
   };
 
   void _openLocationSheet(
@@ -338,7 +333,7 @@ class _SettingsBody extends ConsumerWidget {
     ];
     final selected = await showOptionSheet<CalculationMethod>(
       context: context,
-      title: 'Calculation Method',
+      title: AppLocalizations.of(context).settingsCalculationMethod,
       options: methods,
       label: (m) => m.displayName,
       current: settings.calculationMethod,
@@ -353,12 +348,13 @@ class _SettingsBody extends ConsumerWidget {
     SettingsController controller,
     AppSettings settings,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final selected = await showOptionSheet<Madhab>(
       context: context,
-      title: 'Juridical Method (Asr)',
+      title: l10n.settingsJuridicalMethod,
       options: Madhab.values,
       label: (m) =>
-          m == Madhab.hanafi ? 'Hanafi' : "Standard (Shafi'i, Maliki, Hanbali)",
+          m == Madhab.hanafi ? l10n.madhabHanafi : l10n.madhabStandard,
       current: settings.madhab,
     );
     if (selected != null) {
@@ -394,6 +390,10 @@ class _LocationSheetState extends State<_LocationSheet> {
   Timer? _debounce;
   int _searchId = 0;
 
+  /// `AppLocalizations.of` is a `Localizations.of` lookup under the hood, so
+  /// the async debounced search path can read it without a context of its own.
+  AppLocalizations get l10n => AppLocalizations.of(context);
+
   @override
   void dispose() {
     _debounce?.cancel();
@@ -427,7 +427,7 @@ class _LocationSheetState extends State<_LocationSheet> {
       if (!mounted || id != _searchId) return;
       setState(() {
         _searching = false;
-        _error = 'Search failed: $e';
+        _error = l10n.settingsSearchFailed(e);
       });
       return;
     }
@@ -435,9 +435,7 @@ class _LocationSheetState extends State<_LocationSheet> {
     setState(() {
       _searching = false;
       _results = found;
-      _error = found.isEmpty
-          ? 'No city found for "$query". Try a larger area.'
-          : null;
+      _error = found.isEmpty ? l10n.settingsNoCityFound(query) : null;
     });
   }
 
@@ -449,6 +447,7 @@ class _LocationSheetState extends State<_LocationSheet> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final query = _queryController.text.trim();
     final city = _draft.locationMode == LocationMode.city;
     final canSave = !city || _draft.hasCityCoordinates;
@@ -465,15 +464,15 @@ class _LocationSheetState extends State<_LocationSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            UiText('Location', type: UiTextType.titleLarge),
+            UiText(l10n.settingsLocationTitle, type: UiTextType.titleLarge),
             const SizedBox(height: AppSpacing.xxxl),
             SegmentedControl<LocationMode>(
               value: _draft.locationMode,
               onChanged: (mode) =>
                   setState(() => _draft = _draft.copyWith(locationMode: mode)),
-              options: const [
-                (LocationMode.autoGps, 'Auto (GPS)'),
-                (LocationMode.city, 'City'),
+              options: [
+                (LocationMode.autoGps, l10n.settingsLocationModeAuto),
+                (LocationMode.city, l10n.settingsLocationModeCity),
               ],
             ),
             if (city) ...[
@@ -488,8 +487,8 @@ class _LocationSheetState extends State<_LocationSheet> {
                   _search();
                 },
                 decoration: InputDecoration(
-                  labelText: 'City name',
-                  hintText: 'e.g. London or Casablanca',
+                  labelText: l10n.settingsCityName,
+                  hintText: AppLocalizations.of(context).settingsCitySearchHint,
                   suffixIcon: _searching
                       ? const Padding(
                           padding: EdgeInsets.all(AppSpacing.xl),
@@ -511,7 +510,7 @@ class _LocationSheetState extends State<_LocationSheet> {
               if (_searching) ...[
                 const SizedBox(height: AppSpacing.lg),
                 UiText(
-                  'Searching…',
+                  l10n.settingsSearching,
                   type: UiTextType.labelMedium,
                   color: scheme.onSurfaceVariant,
                 ),
@@ -521,7 +520,7 @@ class _LocationSheetState extends State<_LocationSheet> {
                   _error == null) ...[
                 const SizedBox(height: AppSpacing.lg),
                 UiText(
-                  'Type at least 3 characters to search.',
+                  l10n.settingsSearchMinChars,
                   type: UiTextType.labelMedium,
                   color: scheme.onSurfaceVariant,
                 ),
@@ -550,8 +549,10 @@ class _LocationSheetState extends State<_LocationSheet> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           subtitle: UiText(
-                            '${result.latitude.toStringAsFixed(3)}, '
-                            '${result.longitude.toStringAsFixed(3)}',
+                            l10n.settingsCoordinates(
+                              result.latitude.toStringAsFixed(3),
+                              result.longitude.toStringAsFixed(3),
+                            ),
                             type: UiTextType.bodyMedium,
                           ),
                           trailing: _draft.cityName == result.name
@@ -590,7 +591,7 @@ class _LocationSheetState extends State<_LocationSheet> {
             ],
             const SizedBox(height: AppSpacing.huge),
             AppButton(
-              label: 'Save location',
+              label: l10n.actionSaveLocation,
               icon: Icons.check_rounded,
               onPressed: canSave
                   ? () {
@@ -606,10 +607,73 @@ class _LocationSheetState extends State<_LocationSheet> {
   }
 }
 
+/// Label + current value + a segmented control, the shape both Appearance rows
+/// share. Extracted so the language and theme rows cannot drift apart.
+class _SegmentedSettingRow<T> extends StatelessWidget {
+  const _SegmentedSettingRow({
+    required this.icon,
+    required this.title,
+    required this.valueLabel,
+    required this.control,
+  });
+
+  final IconData icon;
+  final String title;
+  final String valueLabel;
+  final Widget control;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xxxl,
+        AppSpacing.xxl,
+        AppSpacing.xxxl,
+        AppSpacing.xxl,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              IconBadge(icon: icon),
+              const SizedBox(width: AppSpacing.xxl),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    UiText(
+                      title,
+                      type: UiTextType.titleMedium,
+                      fontSize: AppFontSize.lg,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    UiText(
+                      valueLabel,
+                      type: UiTextType.labelMedium,
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xxl),
+          control,
+        ],
+      ),
+    );
+  }
+}
+
 class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Icon(
@@ -618,13 +682,13 @@ class _Footer extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         UiText(
-          'Mawaqit',
+          l10n.appTitle,
           type: UiTextType.titleMedium,
           fontWeight: FontWeight.w700,
         ),
         const SizedBox(height: AppSpacing.xxs),
         UiText(
-          'Prayer times, without the noise.',
+          l10n.settingsAboutTagline,
           type: UiTextType.labelMedium,
           color: scheme.onSurfaceVariant,
         ),

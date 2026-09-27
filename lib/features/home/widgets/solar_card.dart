@@ -5,6 +5,7 @@ import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
 /// Quiet astronomical summary: solar noon, day length and sunset.
 class SolarCard extends StatelessWidget {
@@ -37,14 +38,16 @@ class SolarCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 UiText(
-                  'Solar Noon',
+                  AppLocalizations.of(context).solarNoon,
                   type: UiTextType.labelLarge,
                   fontWeight: FontWeight.w600,
                 ),
                 const SizedBox(height: AppSpacing.xxs),
                 UiText(
-                  '${TimeFormatter.clock(day.solarNoon)}  •  Day length '
-                  '${TimeFormatter.dayLength(dayLength)}',
+                  AppLocalizations.of(context).solarNoonDetail(
+                    TimeFormatter.clock(day.solarNoon),
+                    TimeFormatter.dayLength(dayLength),
+                  ),
                   type: UiTextType.labelSmall,
                   color: scheme.onSurfaceVariant,
                 ),
@@ -55,7 +58,7 @@ class SolarCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               UiText(
-                'Sunset',
+                AppLocalizations.of(context).sunset,
                 type: UiTextType.labelLarge,
                 fontWeight: FontWeight.w600,
               ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
 import 'package:mawaqit/features/settings/widgets/ota_update_screen.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
@@ -27,14 +28,14 @@ class UpdateSection extends ConsumerWidget {
       children: [
         SettingsRow(
           icon: Icons.system_update_alt_rounded,
-          title: 'Software Update',
+          title: AppLocalizations.of(context).updateSoftwareUpdate,
           subtitle: 'v${AppInfo.version}',
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(builder: (_) => const OtaUpdateScreen()),
           ),
           trailing: shouldHighlight
               ? AppPill(
-                  label: 'Update available',
+                  label: AppLocalizations.of(context).updateBadge,
                   icon: Icons.system_update_rounded,
                   dense: true,
                   color: scheme.primary,
@@ -43,8 +44,8 @@ class UpdateSection extends ConsumerWidget {
         ),
         SettingsRow(
           icon: Icons.info_outline_rounded,
-          title: 'About Mawaqit',
-          subtitle: 'No accounts, no tracking — prayer times at your side',
+          title: AppLocalizations.of(context).updateAboutMawaqit,
+          subtitle: AppLocalizations.of(context).updateAboutBody,
           onTap: () => _showAbout(context),
           trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
         ),
@@ -57,20 +58,23 @@ class UpdateSection extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const UiText('Mawaqit', type: UiTextType.titleLarge),
+        title: UiText(
+          AppLocalizations.of(context).appTitle,
+          type: UiTextType.titleLarge,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             UiText(
-              'Version ${AppInfo.version}',
+              AppLocalizations.of(context)
+                  .settingsAboutVersion(AppInfo.version),
               type: UiTextType.bodyMedium,
               color: scheme.primary,
             ),
             const SizedBox(height: AppSpacing.md),
-            const UiText(
-              'A calm, focused prayer-times app with adhan reminders. '
-              'No accounts, no tracking.',
+            UiText(
+              AppLocalizations.of(context).updateAboutDescription,
               type: UiTextType.bodyMedium,
             ),
           ],
@@ -79,7 +83,7 @@ class UpdateSection extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: UiText(
-              'Close',
+              AppLocalizations.of(context).actionClose,
               type: UiTextType.labelLarge,
               color: scheme.primary,
             ),

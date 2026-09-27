@@ -11,6 +11,7 @@ import 'package:mawaqit/shared/ui/app_pill.dart';
 import 'package:mawaqit/shared/ui/icon_badge.dart';
 import 'package:mawaqit/shared/components/info_row.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
 /// Full-page OTA update center, reachable from the settings "Update" entry.
 ///
@@ -52,7 +53,7 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
         backgroundColor: Colors.transparent,
         centerTitle: true,
         title: UiText(
-          'Software Update',
+          AppLocalizations.of(context).updateSoftwareUpdate,
           type: UiTextType.titleLarge,
           fontWeight: FontWeight.w700,
         ),
@@ -115,18 +116,18 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
   }
 
   static String _errorMessage(BuildContext context, UpdateState state) {
-    final detail = state.errorDetail;
+    final l10n = AppLocalizations.of(context);
+    final detail = state.errorDetail == null ? '' : ' ${state.errorDetail}';
     return switch (state.error) {
-      UpdateErrorCode.noBuild => 'This release has no APK to install.',
-      UpdateErrorCode.downloadFailed =>
-        'Could not download the update.${detail != null ? ' $detail' : ''}',
-      UpdateErrorCode.integrity =>
-        'Checksum mismatch — the update was refused for your safety.',
-      UpdateErrorCode.install =>
-        'Android would not install the update.${detail != null ? ' $detail' : ''}',
+      UpdateErrorCode.noBuild => l10n.updateErrorNoBuild,
+      UpdateErrorCode.downloadFailed => l10n.updateErrorDownload(detail),
+      UpdateErrorCode.integrity => l10n.updateErrorChecksum,
+      UpdateErrorCode.install => l10n.updateErrorInstall(detail),
+      UpdateErrorCode.alreadyRunning => l10n.updateErrorAlreadyRunning,
+      UpdateErrorCode.permissionDenied => l10n.updateErrorPermissionDenied,
       null => switch (state.checkResult) {
-        UpdateCheckResult.checkFailed => 'Could not reach the update server.',
-        _ => 'Something went wrong.',
+        UpdateCheckResult.checkFailed => l10n.updateErrorServer,
+        _ => l10n.updateErrorGeneric,
       },
     };
   }
@@ -165,24 +166,24 @@ class _StatusHeader extends StatelessWidget {
 
     final pill = checking
         ? AppPill(
-            label: 'Checking…',
+            label: AppLocalizations.of(context).updateChecking,
             color: scheme.primary,
             icon: Icons.sync_rounded,
           )
         : failed
         ? AppPill(
-            label: 'Check failed',
+            label: AppLocalizations.of(context).updateCheckFailed,
             color: scheme.error,
             icon: Icons.error_outline_rounded,
           )
         : update
         ? AppPill(
-            label: 'New update available',
+            label: AppLocalizations.of(context).updateAvailableTitle,
             color: scheme.primary,
             icon: Icons.system_update_alt_rounded,
           )
         : AppPill(
-            label: 'You are up to date',
+            label: AppLocalizations.of(context).updateUpToDate,
             color: scheme.primary,
             icon: Icons.check_circle_outline_rounded,
           );
@@ -253,7 +254,7 @@ class _CheckingCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.md),
               UiText(
-                'Looking for newer versions…',
+                AppLocalizations.of(context).updateLookingForVersions,
                 type: UiTextType.bodyMedium,
               ),
             ],
@@ -279,26 +280,26 @@ class _VersionCard extends ConsumerWidget {
 
   const _VersionCard({required this.state});
 
-  static String _formatChecked(DateTime? last) {
-    if (last == null) return 'Never';
+  static String _formatChecked(AppLocalizations l10n, DateTime? last) {
+    if (last == null) return l10n.updateNever;
     final now = DateTime.now();
     final diff = now.difference(last);
-    if (diff.inSeconds < 60) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
-    if (diff.inHours < 24) return '${diff.inHours} h ago';
+    if (diff.inSeconds < 60) return l10n.updateJustNow;
+    if (diff.inMinutes < 60) return l10n.updateMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.updateHoursAgo(diff.inHours);
     final local = last.toLocal();
     String two(int v) => v.toString().padLeft(2, '0');
     return '${two(local.day)}/${two(local.month)}/${local.year} '
         '${two(local.hour)}:${two(local.minute)}';
   }
 
-  static String _resultLabel(UpdateCheckResult? result) {
+  static String _resultLabel(AppLocalizations l10n, UpdateCheckResult? result) {
     return switch (result) {
-      UpdateCheckResult.upToDate => 'Up to date',
-      UpdateCheckResult.updateAvailable => 'Update available',
-      UpdateCheckResult.updateMandatory => 'Mandatory update',
-      UpdateCheckResult.checkFailed => 'Check failed',
-      null => 'Never checked',
+      UpdateCheckResult.upToDate => l10n.updateUpToDateShort,
+      UpdateCheckResult.updateAvailable => l10n.updateBadge,
+      UpdateCheckResult.updateMandatory => l10n.updateStatusMandatory,
+      UpdateCheckResult.checkFailed => l10n.updateCheckFailed,
+      null => l10n.updateNeverChecked,
     };
   }
 
@@ -310,38 +311,40 @@ class _VersionCard extends ConsumerWidget {
     final lastResult = ref.watch(lastUpdateCheckResultProvider);
 
     return _Card(
-      title: 'Version details',
+      title: AppLocalizations.of(context).updateVersionDetails,
       icon: Icons.smartphone_rounded,
       children: [
         InfoRow(
           icon: Icons.layers_rounded,
-          label: 'Current version',
-          value: 'v$current',
+          label: AppLocalizations.of(context).updateCurrentVersion,
+          value: AppLocalizations.of(context).updateVersionLabel(current),
         ),
         _divider(context),
         InfoRow(
           icon: Icons.new_releases_outlined,
-          label: 'Latest version',
-          value: latest == null ? 'Unknown' : 'v$latest',
+          label: AppLocalizations.of(context).updateLatestVersion,
+          value: latest == null
+              ? AppLocalizations.of(context).updateUnknown
+              : 'v$latest',
           highlight: state.hasUpdate,
         ),
         _divider(context),
-        const InfoRow(
+        InfoRow(
           icon: Icons.insert_drive_file_outlined,
-          label: 'Install type',
-          value: 'Universal APK',
+          label: AppLocalizations.of(context).updateInstallType,
+          value: AppLocalizations.of(context).updateUniversalApk,
         ),
         _divider(context),
         InfoRow(
           icon: Icons.schedule_rounded,
-          label: 'Last checked',
-          value: _formatChecked(lastChecked),
+          label: AppLocalizations.of(context).updateLastChecked,
+          value: _formatChecked(AppLocalizations.of(context), lastChecked),
         ),
         _divider(context),
         InfoRow(
           icon: Icons.rule_rounded,
-          label: 'Last result',
-          value: _resultLabel(lastResult),
+          label: AppLocalizations.of(context).updateLastResult,
+          value: _resultLabel(AppLocalizations.of(context), lastResult),
           highlight:
               lastResult == UpdateCheckResult.checkFailed ||
               lastResult == UpdateCheckResult.updateMandatory,
@@ -375,12 +378,12 @@ class _ChangelogCard extends StatelessWidget {
         .toList();
 
     return _Card(
-      title: 'What\'s new',
+      title: AppLocalizations.of(context).updateWhatsNew,
       icon: Icons.new_releases_outlined,
       children: [
         if (lines.isEmpty)
           UiText(
-            'No release notes available for this release.',
+            AppLocalizations.of(context).updateNoReleaseNotes,
             type: UiTextType.bodyMedium,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
             style: const TextStyle(fontStyle: FontStyle.italic),
@@ -512,22 +515,22 @@ class _DownloadCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final percent = ((progress * 100).clamp(0, 100)).toStringAsFixed(0);
+    final percent = (progress * 100).clamp(0, 100).toInt();
 
     return _Card(
-      title: 'Downloading update',
+      title: AppLocalizations.of(context).updateDownloadingTitle,
       icon: Icons.download_rounded,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             UiText(
-              'Downloading…',
+              AppLocalizations.of(context).updateDownloading,
               type: UiTextType.bodyMedium,
               color: scheme.onSurfaceVariant,
             ),
             UiText(
-              '$percent%',
+              AppLocalizations.of(context).updatePercent(percent),
               type: UiTextType.titleSmall,
               fontWeight: FontWeight.w700,
               color: scheme.primary,
@@ -563,14 +566,14 @@ class _ReadyCard extends StatelessWidget {
         Icon(Icons.check_circle_rounded, color: scheme.primary, size: 64),
         const SizedBox(height: AppSpacing.md),
         UiText(
-          'The update is verified and ready to install.',
+          AppLocalizations.of(context).updateVerifiedReady,
           type: UiTextType.bodyMedium,
           color: scheme.onSurfaceVariant,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.huge),
         AppButton(
-          label: 'Install now',
+          label: AppLocalizations.of(context).actionInstallNow,
           icon: Icons.download_done_rounded,
           onPressed: onChangePressed,
         ),
@@ -598,7 +601,7 @@ class _Actions extends StatelessWidget {
   Widget build(BuildContext context) {
     if (canUpdate) {
       return AppButton(
-        label: 'Update now',
+        label: AppLocalizations.of(context).actionUpdateNow,
         icon: Icons.download_rounded,
         onPressed: onDownload,
       );
@@ -606,7 +609,9 @@ class _Actions extends StatelessWidget {
 
     return Center(
       child: AppButton(
-        label: failed ? 'Try again' : 'Check for updates',
+        label: failed
+            ? AppLocalizations.of(context).actionRetry
+            : AppLocalizations.of(context).updateCheckForUpdates,
         icon: Icons.refresh_rounded,
         variant: AppButtonVariant.outlined,
         expanded: false,
@@ -646,7 +651,7 @@ class _InlineError extends StatelessWidget {
           TextButton(
             onPressed: onRetry,
             child: UiText(
-              'Retry',
+              AppLocalizations.of(context).updateRetry,
               type: UiTextType.labelLarge,
               color: scheme.primary,
             ),

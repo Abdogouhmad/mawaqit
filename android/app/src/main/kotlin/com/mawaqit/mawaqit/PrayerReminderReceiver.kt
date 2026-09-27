@@ -111,13 +111,13 @@ class PrayerReminderReceiver : BroadcastReceiver() {
             context.getString(R.string.notif_now, name)
         }
 
-        val time = PrayerScheduler.timeLabel(prayerMs)
+        val time = PrayerScheduler.timeLabel(context, prayerMs)
         val sunsetMs = prefs.getLong(PrayerScheduler.KEY_SUNSET, 0L)
         val subtitle = if (name.equals("Maghrib", ignoreCase = true) && sunsetMs > 0L) {
             context.getString(
                 R.string.notif_subtitle_with_sunset,
                 time,
-                PrayerScheduler.timeLabel(sunsetMs),
+                PrayerScheduler.timeLabel(context, sunsetMs),
             )
         } else {
             context.getString(R.string.notif_subtitle, time)
@@ -143,7 +143,7 @@ class PrayerReminderReceiver : BroadcastReceiver() {
                     R.id.notif_sunrise,
                     context.getString(
                         R.string.notif_sunrise,
-                        PrayerScheduler.timeLabel(sunriseMs),
+                        PrayerScheduler.timeLabel(context, sunriseMs),
                     ),
                 )
             }
@@ -152,7 +152,7 @@ class PrayerReminderReceiver : BroadcastReceiver() {
                     R.id.notif_fajr,
                     context.getString(
                         R.string.notif_fajr,
-                        PrayerScheduler.timeLabel(fajrMs),
+                        PrayerScheduler.timeLabel(context, fajrMs),
                     ),
                 )
             }
@@ -198,7 +198,7 @@ class PrayerReminderReceiver : BroadcastReceiver() {
         name: String,
         prayerMs: Long,
     ) {
-        val time = PrayerScheduler.timeLabel(prayerMs)
+        val time = PrayerScheduler.timeLabel(context, prayerMs)
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_stat_mawaqit)
             .setContentTitle(context.getString(R.string.notif_prayer_time, name))

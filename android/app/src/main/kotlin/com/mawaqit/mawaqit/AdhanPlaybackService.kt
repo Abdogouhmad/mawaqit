@@ -5,7 +5,9 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.MediaPlayer
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 
 /**
  * Foreground service that owns the Adhan audio. Started by [AdhanAlarmReceiver]
@@ -26,6 +28,14 @@ import android.os.IBinder
 class AdhanPlaybackService : Service() {
 
     private var player: MediaPlayer? = null
+
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var maxDurationRunnable: Runnable? = null
+
+    /** Generous ceiling; a real adhan is a few minutes. See [armMaxDuration]. */
+    private companion object {
+        const val MAX_DURATION_MS = 10L * 60L * 1000L
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -95,9 +105,19 @@ class AdhanPlaybackService : Service() {
 
     private fun startPlayback(schedule: AdhanScheduler.Schedule) {
         player?.release()
-        // No resolvable audio (silent tone / missing device URI): the alarm is
-        // already up — full-screen presenter + vibrating card — just stay quiet.
-        val uri = AdhanScheduler.soundUri(this, schedule) ?: return
+        // No resolvable audio (silent tone / missing device URI). This used to
+        // `return` with the alarm already up — foreground service, full-screen
+        // presenter and the Do Not Disturb lift all engaged — and nothing left
+        // to ever tear them down: with no MediaPlayer there is no completion and
+        // no error callback. That is an orphan alarm that holds the lockscreen
+        // and keeps forcing DND off until the user dismissed it by hand.
+        // Dart now routes every known-unplayable source to a quiet Flutter card
+        // instead of arming native at all, so this is the last-resort backstop:
+        // treat it exactly like a playback error and tear the alarm down.
+        val uri = AdhanScheduler.soundUri(this, schedule) ?: run {
+            stopAdhan()
+            return
+        }
         try {
             val mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(AdhanScheduler.alarmAudioAttributes())
@@ -116,12 +136,33 @@ class AdhanPlaybackService : Service() {
                 prepareAsync()
             }
             player = mediaPlayer
+            armMaxDuration()
         } catch (_: Exception) {
             stopAdhan()
         }
     }
 
+    /**
+     * Ceiling on how long one alarm may hold the service, the presenter and the
+     * DND lift. A normal adhan reports completion in a few minutes, so this only
+     * ever fires when that report never comes — a device tone backed by a live
+     * stream, a source the platform accepted but never decoded. The Dart
+     * watchdog in `NotificationService` cannot cover this: when an alarm is
+     * fired with the Flutter process dead there is no Dart isolate to run it.
+     */
+    private fun armMaxDuration() {
+        cancelMaxDuration()
+        maxDurationRunnable = Runnable { stopAdhan() }
+        mainHandler.postDelayed(maxDurationRunnable, MAX_DURATION_MS)
+    }
+
+    private fun cancelMaxDuration() {
+        maxDurationRunnable?.let { mainHandler.removeCallbacks(it) }
+        maxDurationRunnable = null
+    }
+
     override fun onDestroy() {
+        cancelMaxDuration()
         player?.release()
         player = null
         // Backstop: every dismissal already restores the interruption filter
@@ -133,6 +174,7 @@ class AdhanPlaybackService : Service() {
 
     /** Stops playback and tears down the alarm (also clears the presenter via broadcast). */
     fun stopAdhan() {
+        cancelMaxDuration()
         try {
             // release() is valid in every player state — unlike stop(), it can
             // never throw while prepareAsync is still in flight — and it frees

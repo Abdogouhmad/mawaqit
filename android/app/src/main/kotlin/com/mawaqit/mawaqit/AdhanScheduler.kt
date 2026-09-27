@@ -53,6 +53,8 @@ object AdhanScheduler {
 
     const val PREFS = "mawaqit_adhans"
     private const val KEY_NAME = "name"
+    private const val KEY_TITLE = "title"
+    private const val KEY_BODY = "body"
     private const val KEY_PRAYER_ID = "prayer_id"
     private const val KEY_MUTED = "muted"
     private const val KEY_IS_TEST = "is_test"
@@ -76,6 +78,14 @@ object AdhanScheduler {
         val soundRaw: String,
         val soundUri: String,
         val timestampMs: Long,
+        /**
+         * Pre-localized notification copy from Dart. Empty when the caller could
+         * not resolve a locale, in which case the English fallbacks below are
+         * composed from [name] instead. Keeping both means the native side never
+         * has to know about ARB catalogs.
+         */
+        val title: String = "",
+        val body: String = "",
         /** Debug test from Settings: always takes over the screen, even muted. */
         val isTest: Boolean = false,
     )
@@ -164,9 +174,13 @@ object AdhanScheduler {
         soundRaw: String,
         soundUri: String,
         isTest: Boolean = false,
+        title: String = "",
+        body: String = "",
     ) {
         val snapshot = JSONObject()
             .put(KEY_NAME, name)
+            .put(KEY_TITLE, title)
+            .put(KEY_BODY, body)
             .put(KEY_PRAYER_ID, prayerId)
             .put(KEY_MUTED, muted)
             .put(KEY_IS_TEST, isTest)
@@ -228,6 +242,8 @@ object AdhanScheduler {
             soundRaw = data.optString(KEY_SOUND_RAW, ""),
             soundUri = data.optString(KEY_SOUND_URI, ""),
             timestampMs = data.optLong(KEY_TIMESTAMP, 0L),
+            title = data.optString(KEY_TITLE, ""),
+            body = data.optString(KEY_BODY, ""),
             isTest = data.optBoolean(KEY_IS_TEST, false),
         )
     }
@@ -348,8 +364,8 @@ object AdhanScheduler {
         )
         return NotificationCompat.Builder(context, CHANNEL_ALARM)
             .setSmallIcon(R.drawable.ic_stat_mawaqit)
-            .setContentTitle("Adhan — ${schedule.name}")
-            .setContentText("It is now time for the ${schedule.name} prayer")
+            .setContentTitle(schedule.title.ifEmpty { "Adhan — ${schedule.name}" })
+            .setContentText(schedule.body.ifEmpty { "It is now time for the ${schedule.name} prayer" })
             .setContentIntent(openAppPendingIntent(context, schedule.id, schedule.name))
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -388,8 +404,8 @@ object AdhanScheduler {
             schedule.id,
             NotificationCompat.Builder(context, CHANNEL_SILENT)
                 .setSmallIcon(R.drawable.ic_stat_mawaqit)
-                .setContentTitle("Adhan — ${schedule.name}")
-                .setContentText("It is now time for the ${schedule.name} prayer")
+                .setContentTitle(schedule.title.ifEmpty { "Adhan — ${schedule.name}" })
+                .setContentText(schedule.body.ifEmpty { "It is now time for the ${schedule.name} prayer" })
                 .setContentIntent(openAppPendingIntent(context, schedule.id))
                 .setCategory(NotificationCompat.CATEGORY_ALARM)
                 .setPriority(NotificationCompat.PRIORITY_MIN)

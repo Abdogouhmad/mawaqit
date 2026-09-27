@@ -10,25 +10,23 @@ import 'package:flutter/material.dart';
 /// or Do Not Disturb mode swallows the call. The model mirrors the native
 /// [`AlarmAccess`](../../android/app/src/main/kotlin/com/mawaqit/mawaqit/AlarmAccess.kt)
 /// status map so the settings UI can show — and fix — exactly what is missing.
+///
+/// [key] is the wire name shared with Kotlin and must stay in sync. The row
+/// title and description are locale-dependent display copy and are deliberately
+/// *not* stored here — see `AlarmPermissionL10n` in
+/// lib/l10n/enum_localization.dart.
 enum AlarmPermission {
   /// `POST_NOTIFICATIONS` (13+) / the per-app notifications toggle: without it
   /// no card is posted at all, however well the alarms are scheduled.
   notifications(
     key: 'notifications',
-    label: 'Notifications',
     icon: Icons.notifications_active_outlined,
-    blurb: 'Show the adhan and the pre-prayer card',
   ),
 
   /// "Alarms & reminders" special access (12+). Without it Android batches
   /// exact alarms into the next maintenance window, so the adhan lands minutes
   /// — or hours — late.
-  exactAlarms(
-    key: 'exactAlarms',
-    label: 'Alarms & reminders',
-    icon: Icons.alarm_on_outlined,
-    blurb: 'Ring exactly at prayer time instead of minutes later',
-  ),
+  exactAlarms(key: 'exactAlarms', icon: Icons.alarm_on_outlined),
 
   /// Full-screen notifications (14+): what lets the alarm wake the display and
   /// take over the lockscreen instead of silently appearing in the shade.
@@ -36,12 +34,7 @@ enum AlarmPermission {
   /// Locked phones only. Android deliberately refuses to launch a full-screen
   /// intent while the screen is unlocked — it downgrades the card to a
   /// heads-up notification — which is what [overlay] exists to cover.
-  fullScreenIntent(
-    key: 'fullScreenIntent',
-    label: 'Full-screen notifications',
-    icon: Icons.fullscreen_outlined,
-    blurb: 'Wake the screen and take over the lockscreen',
-  ),
+  fullScreenIntent(key: 'fullScreenIntent', icon: Icons.fullscreen_outlined),
 
   /// "Display over other apps": the one access that lifts Android's
   /// background-activity-launch restriction, and therefore the only way the
@@ -51,50 +44,27 @@ enum AlarmPermission {
   ///
   /// Opt-in, and the app is complete without it: every other alarm behaviour
   /// (audio, timing, lockscreen takeover) is unaffected either way.
-  overlay(
-    key: 'overlay',
-    label: 'Display over other apps',
-    icon: Icons.picture_in_picture_alt_outlined,
-    blurb: 'Show the adhan full screen even while you are using the phone',
-  ),
+  overlay(key: 'overlay', icon: Icons.picture_in_picture_alt_outlined),
 
   /// "Do Not Disturb access": with it, a ringing adhan lifts silent mode for
   /// the length of the call (and the phone goes back to the user's own mode
   /// right after). This is the "force the adhan" switch.
-  policyAccess(
-    key: 'policyAccess',
-    label: 'Do Not Disturb access',
-    icon: Icons.do_not_disturb_on_outlined,
-    blurb: 'Ring the adhan even when the phone is on silent',
-  ),
+  policyAccess(key: 'policyAccess', icon: Icons.do_not_disturb_on_outlined),
 
   /// Battery-optimisation exemption: without it the OEM's power manager can
   /// doze the app and defer the alarm — the classic "no adhan on my phone".
   battery(
     key: 'batteryUnrestricted',
-    label: 'Unrestricted battery',
     icon: Icons.battery_charging_full_outlined,
-    blurb: 'Stop the phone from delaying or dropping the adhan',
   );
 
-  const AlarmPermission({
-    required this.key,
-    required this.label,
-    required this.icon,
-    required this.blurb,
-  });
+  const AlarmPermission({required this.key, required this.icon});
 
   /// Key used by the native status map.
   final String key;
 
-  /// Row title in Settings.
-  final String label;
-
   /// Row icon in Settings.
   final IconData icon;
-
-  /// One line on what this access buys the user.
-  final String blurb;
 }
 
 /// Immutable snapshot of [AlarmPermission] grants, read from the platform.

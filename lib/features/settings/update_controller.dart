@@ -36,6 +36,12 @@ enum UpdateErrorCode {
 
   /// The system package installer rejected the APK.
   install,
+
+  /// Another install/update was already running when this one started.
+  alreadyRunning,
+
+  /// The user declined the "install unknown apps" system prompt.
+  permissionDenied,
 }
 
 /// The update state surfaced to the UI.
@@ -72,6 +78,7 @@ class UpdateState {
     bool clearError = false,
     bool clearManifest = false,
     bool clearCheckResult = false,
+    bool clearErrorDetail = false,
   }) {
     return UpdateState(
       status: status ?? this.status,
@@ -79,7 +86,12 @@ class UpdateState {
       checkResult: clearCheckResult ? null : checkResult ?? this.checkResult,
       progress: progress ?? this.progress,
       error: clearError ? null : error ?? this.error,
-      errorDetail: clearError ? null : errorDetail ?? this.errorDetail,
+      // A `null` argument means "leave it alone", so switching to an error code
+      // that renders its own sentence has to drop a detail left over from a
+      // previous failure — otherwise a stale native exception string rides along.
+      errorDetail: (clearError || clearErrorDetail)
+          ? null
+          : errorDetail ?? this.errorDetail,
     );
   }
 }
@@ -254,17 +266,20 @@ class UpdateNotifier extends Notifier<UpdateState> {
             clearManifest: true,
             clearCheckResult: true,
           );
+        // Both of these get their own error code rather than an English
+        // `errorDetail`: the screen renders `errorDetail` straight into a
+        // localized sentence, so prose here would leak into the Arabic UI.
         case OtaStatus.ALREADY_RUNNING_ERROR:
           state = state.copyWith(
             status: UpdateStatus.error,
-            error: UpdateErrorCode.downloadFailed,
-            errorDetail: 'An update is already in progress.',
+            error: UpdateErrorCode.alreadyRunning,
+            clearErrorDetail: true,
           );
         case OtaStatus.PERMISSION_NOT_GRANTED_ERROR:
           state = state.copyWith(
             status: UpdateStatus.error,
-            error: UpdateErrorCode.install,
-            errorDetail: 'Permission to install apps was denied.',
+            error: UpdateErrorCode.permissionDenied,
+            clearErrorDetail: true,
           );
         case OtaStatus.CHECKSUM_ERROR:
           state = state.copyWith(

@@ -4,14 +4,34 @@ import 'package:mawaqit/data/models/notification_kind.dart';
 
 enum AppThemeMode { system, light, dark }
 
-/// Where prayer times derive coordinates from.
-enum LocationMode {
-  autoGps('Auto (GPS)'),
-  city('City');
+/// UI language override.
+///
+/// `system` means "follow the device", which is what most users want and what
+/// the app did before this setting existed. The other two pin the app to a
+/// language regardless of the device — a real need for a bilingual user who
+/// reads Arabic prayers but wants an English system, or vice versa.
+///
+/// No display label: see [AppLanguageL10n] in lib/l10n/enum_localization.dart.
+enum AppLanguage { system, english, arabic }
 
-  const LocationMode(this.label);
-  final String label;
+extension AppLanguageCode on AppLanguage {
+  /// BCP-47 code, or `null` to follow the device locale.
+  ///
+  /// Deliberately a `String` rather than a `Locale` so this model stays free of
+  /// `dart:ui`; the widget layer turns it into a `Locale` and narrows
+  /// unsupported values.
+  String? get languageCode => switch (this) {
+    AppLanguage.system => null,
+    AppLanguage.english => 'en',
+    AppLanguage.arabic => 'ar',
+  };
 }
+
+/// Where prayer times derive coordinates from.
+/// Where prayer times are computed from.
+///
+/// No display label: see [LocationModeL10n] in lib/l10n/enum_localization.dart.
+enum LocationMode { autoGps, city }
 
 /// Persisted user preferences (domain model).
 class AppSettings {
@@ -26,6 +46,7 @@ class AppSettings {
     this.adhanDeviceToneName,
     this.preAlertTone = 'Silent',
     this.themeMode = AppThemeMode.system,
+    this.language = AppLanguage.system,
     this.locationMode = LocationMode.autoGps,
     this.cityName,
     this.cityLatitude,
@@ -48,6 +69,10 @@ class AppSettings {
   final String preAlertTone;
 
   final AppThemeMode themeMode;
+
+  /// UI language. [AppLanguage.system] defers to the device locale.
+  final AppLanguage language;
+
   final LocationMode locationMode;
   final String? cityName;
   final double? cityLatitude;
@@ -99,6 +124,7 @@ class AppSettings {
     bool clearDeviceTone = false,
     String? preAlertTone,
     AppThemeMode? themeMode,
+    AppLanguage? language,
     LocationMode? locationMode,
     String? cityName,
     double? cityLatitude,
@@ -119,6 +145,7 @@ class AppSettings {
           : (adhanDeviceToneName ?? this.adhanDeviceToneName),
       preAlertTone: preAlertTone ?? this.preAlertTone,
       themeMode: themeMode ?? this.themeMode,
+      language: language ?? this.language,
       locationMode: locationMode ?? this.locationMode,
       cityName: cityName ?? this.cityName,
       cityLatitude: cityLatitude ?? this.cityLatitude,

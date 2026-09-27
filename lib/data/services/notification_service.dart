@@ -13,6 +13,8 @@ import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/core/utils/timezone_setup.dart';
 import 'package:mawaqit/data/models/alarm_access.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
+import 'package:mawaqit/l10n/ambient_l10n.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/services/muted_prayers_store.dart';
@@ -103,8 +105,13 @@ class NotificationService {
   /// unlocking the phone first.
   static const String _testAdhanPayload = '${_liveAdhanPrefix}test';
 
-  /// Tray label for the adhan test (parsed back out of [_testAdhanPayload]).
-  static const String _testAdhanLabel = 'Test';
+  /// Display name for the adhan test, in the active language.
+  ///
+  /// This was a hardcoded 'Test' constant, which leaked straight into the
+  /// Arabic overlay title and the "Adhan — Test" notification body. It is only
+  /// ever display copy — the test is identified by [_testAdhanPayload] and the
+  /// separate `isTest` flag — so localizing it is safe.
+  static String get _testAdhanName => AmbientL10n.instance.testAdhanName;
 
   /// Id for the OTA "new release available" notification. Must stay below
   /// 2^31-1 (Android's signed-int id cap) and clear of the native card bucket.
@@ -120,69 +127,83 @@ class NotificationService {
   /// Channel for "a new Mawaqit version is available" alerts, fired once per
   /// release when an update check discovers something newer than the installed
   /// build (brewline-style OTA push notification).
-  static const AndroidNotificationChannel updateChannel =
-      AndroidNotificationChannel(
-        'ota_new_release',
-        'App updates',
-        description: 'Alerts when a new Mawaqit version is available',
-        importance: Importance.high,
-        playSound: true,
-      );
+  /// Channel definitions are built per-access rather than declared `const` so
+  /// their user-visible names follow the device locale. The *ids* stay fixed:
+  /// they are the keys Android uses to keep per-channel user preferences, so
+  /// only the labels move.
+  static AndroidNotificationChannel get updateChannel {
+    final l10n = AmbientL10n.instance;
+    return AndroidNotificationChannel(
+      'ota_new_release',
+      l10n.channelAppUpdates,
+      description: l10n.channelAppUpdatesDescription,
+      importance: Importance.high,
+      playSound: true,
+    );
+  }
 
   /// Pre-prayer alert channel: audible countdown card shown `leadMinutes`
   /// early. Restored "as before" (0.3.x): the pre-prayer alert rings with the
   /// selected tone instead of being a silent card by design.
-  static const AndroidNotificationChannel preAlertChannel =
-      AndroidNotificationChannel(
-        'pre_prayer_alert_v2',
-        'Pre-prayer alert',
-        description: 'Countdown reminder before each prayer',
-        importance: Importance.high,
-        playSound: true,
-        sound: UriAndroidNotificationSound(
-          'android.resource://com.mawaqit.mawaqit/raw/pre_alert',
-        ),
-        audioAttributesUsage: AudioAttributesUsage.alarm,
-      );
+  static AndroidNotificationChannel get preAlertChannel {
+    final l10n = AmbientL10n.instance;
+    return AndroidNotificationChannel(
+      'pre_prayer_alert_v2',
+      l10n.channelPrePrayer,
+      description: l10n.channelPrePrayerDescription,
+      importance: Importance.high,
+      playSound: true,
+      sound: UriAndroidNotificationSound(
+        'android.resource://com.mawaqit.mawaqit/raw/pre_alert',
+      ),
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+    );
+  }
 
   /// Channel used for a muted adhan: the notification still appears but is
   /// silent (product default: show, don't play).
-  static const AndroidNotificationChannel silentAdhanChannel =
-      AndroidNotificationChannel(
-        'prayer_adhan_silent_v2',
-        'Prayer call (muted)',
-        description: 'Adhan shown silently for a muted prayer occurrence',
-        importance: Importance.low,
-        playSound: false,
-      );
+  static AndroidNotificationChannel get silentAdhanChannel {
+    final l10n = AmbientL10n.instance;
+    return AndroidNotificationChannel(
+      'prayer_adhan_silent_v2',
+      l10n.channelAdhanMuted,
+      description: l10n.channelAdhanMutedDescription,
+      importance: Importance.low,
+      playSound: false,
+    );
+  }
 
   /// Channel for the debug adhan trigger — and the silent fallback any
   /// non-muted adhan card routed through the plugin uses. Audible adhans are
   /// owned by the native alarm engine ([`AdhanScheduler`]), so this channel
   /// only ever carries a silent full-screen card.
-  static const AndroidNotificationChannel adhanTestChannel =
-      AndroidNotificationChannel(
-        'prayer_adhan_test',
-        'Prayer call (test)',
-        description: 'Test adhan — sound is played by the app directly',
-        importance: Importance.max,
-        playSound: false,
-        audioAttributesUsage: AudioAttributesUsage.alarm,
-      );
+  static AndroidNotificationChannel get adhanTestChannel {
+    final l10n = AmbientL10n.instance;
+    return AndroidNotificationChannel(
+      'prayer_adhan_test',
+      l10n.channelAdhanTest,
+      description: l10n.channelAdhanTestDescription,
+      importance: Importance.max,
+      playSound: false,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+    );
+  }
 
   /// Channel for the debug pre-prayer trigger. Same principle as
   /// [`adhanTestChannel`]: the pre-prayer chime is played directly by the app
   /// ([`playPreAlertNow`]) so *nothing* depends on a channel sound that Android
   /// freezes after creation. `importance: max` makes the tray card a heads-up.
-  static const AndroidNotificationChannel preAlertTestChannel =
-      AndroidNotificationChannel(
-        'pre_prayer_alert_test',
-        'Pre-prayer alert (test)',
-        description: 'Test pre-prayer — sound is played by the app directly',
-        importance: Importance.max,
-        playSound: false,
-        audioAttributesUsage: AudioAttributesUsage.alarm,
-      );
+  static AndroidNotificationChannel get preAlertTestChannel {
+    final l10n = AmbientL10n.instance;
+    return AndroidNotificationChannel(
+      'pre_prayer_alert_test',
+      l10n.channelPrePrayerTest,
+      description: l10n.channelPrePrayerTestDescription,
+      importance: Importance.max,
+      playSound: false,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+    );
+  }
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -210,6 +231,21 @@ class NotificationService {
 
   /// Tray notification (if any) to dismiss together with a ringing alarm.
   int? _ringingNotificationId;
+
+  /// Hard ceiling on how long a single alarm may hold the screen, the native
+  /// foreground playback service and the Do Not Disturb lift.
+  ///
+  /// The normal teardown is the clip running out ([`_onAdhanFinished`]), but
+  /// that signal never arrives when the resolved source turns out to be
+  /// unplayable at fire time — a `content://` device tone whose grant was
+  /// revoked, a clip the platform refuses to decode, a silent tone that reached
+  /// the native engine as an audible alarm. Without this backstop such an alarm
+  /// would hold the lockscreen and keep forcing DND off until the user found it
+  /// by hand. A real adhan is a few minutes, so this ceiling is generous.
+  static const Duration _alarmMaxDuration = Duration(minutes: 10);
+
+  /// Armed whenever the alarm starts ringing, cancelled by every teardown.
+  Timer? _alarmWatchdog;
 
   /// Emits when the alarm is stopped from outside the overlay — currently the
   /// device volume/side buttons routed through [`NotificationService._onNativeCall`].
@@ -250,9 +286,17 @@ class NotificationService {
   /// Android; elsewhere every access is reported as granted.
   AlarmAccess get alarmAccess => _alarmAccess;
 
-  Future<void> init({bool allowPrompt = true}) async {
+  Future<void> init({bool allowPrompt = true, Locale? locale}) async {
     if (_initialized) return;
     _initialized = true;
+    // Notification channels and shade copy are built outside the widget tree, so
+    // pin the locale here — the first frame may not have run yet, and
+    // `init()` is also reached from the WorkManager isolate where it never will.
+    // [locale] carries the resolved AppLanguage so a user who picked a language
+    // different from the device's does not get device-language notifications
+    // until the next rebuild; the setter narrows anything unsupported.
+    AmbientL10n.locale =
+        locale ?? WidgetsBinding.instance.platformDispatcher.locale;
     await TimezoneSetup.ensureInitialized();
 
     await _plugin.initialize(
@@ -384,7 +428,7 @@ class NotificationService {
           }) ??
           false;
     } catch (e) {
-      debugPrint('Could not open ${permission.label} settings: $e');
+      debugPrint('Could not open ${permission.name} settings: $e');
     }
     return opened;
   }
@@ -577,25 +621,31 @@ class NotificationService {
     if (audible) await playPreAlertNow(settings);
     await _plugin.show(
       id: _testNotificationId,
-      title: 'Test — Pre-Prayer reminder',
+      title: AmbientL10n.instance.testPrePrayerTitle,
       body: audible
-          ? 'Countdown alerts ${settings.leadMinutes} min before each prayer · '
-                'Chime: ${tone.name}'
-          : 'No chime selected (Silent) — the countdown card still appears.',
+          ? AmbientL10n.instance.testPrePrayerBodyAudible(
+              settings.leadMinutes,
+              tone.name,
+            )
+          : AmbientL10n.instance.testPrePrayerBodySilent,
       notificationDetails: details,
       payload: '${_preAlertPrefix}test',
     );
   }
 
   Future<void> _fireAdhanTest(AppSettings settings) async {
-    // A disabled adhan sound still tests the full-screen alarm silently.
-    final muted = !settings.adhanSoundEnabled;
+    // A disabled adhan sound — and a selected "Silent" tone — still test the
+    // full-screen card silently. Both resolve to the same muted treatment, so
+    // neither can leave a presenter up with nothing playing behind it.
+    final muted = !adhanIsAudible(settings);
     final tone = ToneCatalog.byName(settings.adhanTone);
-    final title = 'Test — Adhan alarm';
-    final body = muted
-        ? 'Adhan sound is off — the full-screen alarm still rings silently.'
-        : 'Rings at prayer entry and takes over the lockscreen like an alarm · '
-              'Adhan: ${tone.silent ? 'Silent' : tone.name}';
+    final l10n = AmbientL10n.instance;
+    final title = l10n.testAdhanTitle;
+    final body = !settings.adhanSoundEnabled
+        ? l10n.testAdhanBodySoundOff
+        : tone.silent
+        ? l10n.testAdhanBodySilentTone
+        : l10n.testAdhanBodyAudible(tone.name);
 
     // Android tests are armed natively at tap time (see
     // `scheduleTestNotification`) and never reach this timer path — this is
@@ -614,9 +664,24 @@ class NotificationService {
       );
       return;
     }
-    await playAdhanNow(settings);
+    if (!await playAdhanNow(settings)) {
+      // The source was playable-looking but the engine refused it. Show the
+      // quiet card instead of an alarm that owns the screen and sounds nothing.
+      await _plugin.show(
+        id: _testNotificationId,
+        title: title,
+        body: AmbientL10n.instance.soundUnplayableBody,
+        notificationDetails: _detailsFor(
+          NotificationType.adhan,
+          settings: settings,
+          muted: true,
+        ),
+        payload: _testAdhanPayload,
+      );
+      return;
+    }
     showAdhanOverlay(
-      title: _testAdhanLabel,
+      title: _testAdhanName,
       notificationId: _testNotificationId,
     );
     await _plugin.show(
@@ -646,20 +711,30 @@ class NotificationService {
     required PrayerTime prayer,
     required AppSettings settings,
   }) async {
-    if (!settings.adhanSoundEnabled) return;
     final index = day.prayers.indexWhere((p) => p.kind == prayer.kind);
     if (index < 0) return;
     final id = _adhanId(day.date, index);
 
-    final title = 'Adhan — ${prayer.kind.displayName}';
+    final l10n = AmbientL10n.instance;
+    final prayerName = prayer.kind.localized(l10n);
+    final title = l10n.notifAdhanTitle(prayerName);
     final payload = '$_liveAdhanPrefix${prayer.kind.name}';
-    final body =
-        'It is now time for the ${prayer.kind.displayName} prayer · '
-        '${TimeFormatter.clock(prayer.time)}';
-    final muted = (await _mutedStore.load()).contains(
+    final body = l10n.notifPrayerAtTime(
+      prayerName,
+      TimeFormatter.clock(prayer.time),
+    );
+    final occurrenceMuted = (await _mutedStore.load()).contains(
       prayerIdFor(day.date, prayer.kind),
     );
-    if (muted) {
+
+    // A muted occurrence, and every occurrence with nothing playable to ring
+    // (the "Silent" tone, or a device tone that no longer resolves), posts a
+    // quiet card and stops there. The previous guard only checked the
+    // adhan-sound switch, so a Silent tone fell through to the audible path:
+    // playback started nothing, the presenter went up, and nothing was ever
+    // going to dismiss either of them.
+    final audible = adhanIsAudible(settings);
+    if (occurrenceMuted || !audible) {
       await _plugin.show(
         id: id,
         title: title,
@@ -678,7 +753,12 @@ class NotificationService {
       try {
         await _channel.invokeMethod('cancelAdhan', {'id': id});
       } catch (_) {}
-      await _fireNativeAdhanNow(id, prayer.kind.displayName, settings);
+      await _fireNativeAdhanNow(
+        id,
+        prayerName,
+        settings,
+        prayerTime: prayer.time,
+      );
       return;
     }
 
@@ -686,8 +766,21 @@ class NotificationService {
       await _plugin.cancel(id: id);
     } catch (_) {}
 
-    await playAdhanNow(settings);
-    showAdhanOverlay(title: prayer.kind.displayName, notificationId: id);
+    if (!await playAdhanNow(settings)) {
+      await _plugin.show(
+        id: id,
+        title: title,
+        body: AmbientL10n.instance.soundUnplayableBody,
+        notificationDetails: _detailsFor(
+          NotificationType.adhan,
+          settings: settings,
+          muted: true,
+        ),
+        payload: payload,
+      );
+      return;
+    }
+    showAdhanOverlay(title: prayerName, notificationId: id);
     await _plugin.show(
       id: id,
       title: title,
@@ -718,9 +811,11 @@ class NotificationService {
     final index = day.prayers.indexWhere((p) => p.kind == prayer.kind);
     if (index < 0) return;
 
-    // Cancel the scheduled occurrence before ringing so the native card and the
-    // direct chime can never double-fire (the card, if already posted, is also
-    // removed by the native cancel).
+    // Cancel the scheduled occurrence before ringing, in whichever id space
+    // that occurrence was scheduled into (see [_buildReminders]): the native
+    // AlarmManager card on Android, the plugin's `zonedSchedule` entry
+    // everywhere else. Cancelling an id that was never posted is a no-op, so
+    // both are safe to issue unconditionally.
     final nativeId = _nativeCardId(day.date, index);
     try {
       if (_isAndroid) {
@@ -738,14 +833,17 @@ class NotificationService {
 
     // Silent tray card on the same channel the debug trigger uses — the chime
     // already rang directly, a second channel sound would echo on top.
+    final l10n = AmbientL10n.instance;
+    final prayerName = prayer.kind.localized(l10n);
     await _plugin.show(
       id: reminderId,
-      title:
-          '${prayer.kind.displayName} in ${settings.leadMinutes} '
-          '${settings.leadMinutes == 1 ? 'minute' : 'minutes'}',
-      body:
-          'Adhan follows at ${TimeFormatter.clock(prayer.time)} · '
-          '${audible ? tone.name : 'Chime muted (Silent)'}',
+      title: settings.leadMinutes == 1
+          ? l10n.notifReminderInOneMinute(prayerName)
+          : l10n.notifReminderInMinutes(prayerName, settings.leadMinutes),
+      body: l10n.notifReminderBodyWithTone(
+        TimeFormatter.clock(prayer.time),
+        audible ? tone.name : l10n.chimeMuted,
+      ),
       notificationDetails: _isAndroid
           ? _preAlertTestDetails()
           : _detailsFor(
@@ -753,7 +851,10 @@ class NotificationService {
               settings: settings,
               muted: true,
             ),
-      payload: prayer.kind.displayName,
+      // Opaque identifier; nothing parses it (only `adhan:`-prefixed payloads
+      // are acted on). Using the enum name rather than the display label keeps it
+      // locale-independent.
+      payload: prayer.kind.name,
     );
   }
 
@@ -766,10 +867,17 @@ class NotificationService {
   /// Android channel sound can. On Android the native alarm engine owns audio,
   /// so this only runs as the desktop stand-in (a muted adhan never starts —
   /// `adhanSoundEnabled` guard).
-  Future<void> playAdhanNow(AppSettings settings, {int? notificationId}) async {
-    if (!settings.adhanSoundEnabled) return;
+  ///
+  /// Returns whether playback actually started. Callers must not raise the
+  /// full-screen presenter on a `false`: the source can be accepted by the
+  /// setting yet rejected by the platform — a device sound whose file has been
+  /// moved or whose URI grant was revoked, or a codec the engine won't decode —
+  /// and a presenter over silence is the same orphan alarm as a silent tone
+  /// reaching the native engine.
+  Future<bool> playAdhanNow(AppSettings settings, {int? notificationId}) async {
+    if (!settings.adhanSoundEnabled) return false;
     final source = _adhanSource(settings);
-    if (source == null) return;
+    if (source == null) return false;
     try {
       if (!_adhanAudioContextSet) {
         // Alarm usage: rings on the alarm stream and takes transient audio
@@ -791,10 +899,13 @@ class NotificationService {
       await _adhanPlayer.setReleaseMode(ReleaseMode.release);
       await _adhanPlayer.play(source);
       _alarmRinging = true;
+      _armAlarmWatchdog();
       _ringingNotificationId = notificationId ?? _ringingNotificationId;
       await _setAlarmActive(true);
+      return true;
     } catch (e) {
       debugPrint('Adhan playback failed: $e');
+      return false;
     }
   }
 
@@ -834,6 +945,25 @@ class NotificationService {
     }
   }
 
+  /// Starts the ceiling on how long this alarm may live. Re-arms on every
+  /// occurrence, so a second adhan gets a full window rather than inheriting
+  /// the previous one's remaining time.
+  void _armAlarmWatchdog() {
+    _alarmWatchdog?.cancel();
+    _alarmWatchdog = Timer(_alarmMaxDuration, () {
+      debugPrint(
+        'Adhan exceeded the maximum alarm duration — stopping it so it cannot '
+        'hold the screen and the Do Not Disturb lift indefinitely.',
+      );
+      unawaited(_onAdhanFinished());
+    });
+  }
+
+  void _disarmAlarmWatchdog() {
+    _alarmWatchdog?.cancel();
+    _alarmWatchdog = null;
+  }
+
   /// Stops the ringing adhan and, when given, dismisses the mirroring tray
   /// notification. Used by the full-screen presenter's Stop control, by the
   /// native volume-button dismissal path and by the end-of-clip teardown.
@@ -842,6 +972,7 @@ class NotificationService {
     // completion, the native stop broadcast) is ignored instead of re-entering.
     final wasRinging = _alarmRinging;
     _alarmRinging = false;
+    _disarmAlarmWatchdog();
     await stopAdhanPlayback();
     if (_isAndroid) {
       // Tear down any native alarm (foreground service + shell takeover)
@@ -884,6 +1015,7 @@ class NotificationService {
       _ringingNotificationId = notificationId;
       unawaited(_setAlarmActive(true));
       _alarmRinging = true;
+      _armAlarmWatchdog();
     }
     final previous = _overlayRoute;
     if (previous != null) {
@@ -1098,7 +1230,7 @@ class NotificationService {
     await _ensurePostable();
     await _plugin.show(
       id: _updateNotificationId,
-      title: 'Mawaqit $version is available',
+      title: AmbientL10n.instance.notifUpdateAvailable(version),
       body: _updateSummary(releaseNotes),
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
@@ -1151,29 +1283,72 @@ class NotificationService {
     return '${date.year}-$m-${d}_${kind.name}';
   }
 
+  /// Whether the adhan is genuinely audible for [settings].
+  ///
+  /// The single source of truth for "does this occurrence make a sound", used by
+  /// the live path, the scheduled path and the native hand-off. A `Silent` tone
+  /// — or a device-tone URI that no longer resolves to anything playable — must
+  /// take the *muted* path end to end: a quiet card, no full-screen takeover,
+  /// no native foreground playback service and no Do Not Disturb lift.
+  ///
+  /// This matters because the native engine treats `muted: false` as "an
+  /// audible alarm": it arms `AlarmManager`, starts the playback service and
+  /// forces silent mode off, then relies on playback reporting completion to
+  /// tear all of that down. With no playable source that completion never
+  /// arrives, so the alarm simply never dismisses itself.
+  static bool adhanIsAudible(AppSettings settings) {
+    if (!settings.adhanSoundEnabled) return false;
+    if (settings.usesDeviceTone &&
+        (settings.adhanDeviceToneUri?.isNotEmpty ?? false)) {
+      return true;
+    }
+    final tone = ToneCatalog.byName(settings.adhanTone);
+    return !tone.silent &&
+        tone.androidRawResource.isNotEmpty &&
+        tone.assetPath.isNotEmpty;
+  }
+
   Future<void> _scheduleAdhanAlarms(PrayerDay day, AppSettings settings) async {
     if (!settings.adhanSoundEnabled) return;
     if (!hasNotificationPermission) return;
 
     final muted = await _mutedStore.load();
     final now = DateTime.now();
-    for (var i = 0; i < day.prayers.length; i++) {
-      final p = day.prayers[i];
+    final audible = adhanIsAudible(settings);
+
+    // Today, plus tomorrow's Fajr: without it the whole Isha → Fajr window runs
+    // unarmed whenever the app is not opened, and Fajr is the one prayer a user
+    // is most likely to sleep through. Ids stay in tomorrow's own day bucket so
+    // the next daily recompute re-arms this same occurrence rather than adding
+    // a duplicate.
+    final occurrences = <({PrayerTime prayer, DateTime date, int index})>[
+      for (var i = 0; i < day.prayers.length; i++)
+        (prayer: day.prayers[i], date: day.date, index: i),
+      (
+        prayer: PrayerTime(kind: PrayerKind.fajr, time: day.nextDayFajr),
+        date: day.date.add(const Duration(days: 1)),
+        index: 0,
+      ),
+    ];
+
+    for (final occurrence in occurrences) {
+      final p = occurrence.prayer;
       if (!p.time.isAfter(now)) continue;
 
-      final id = _adhanId(day.date, i);
-      final prayerId = prayerIdFor(day.date, p.kind);
+      final id = _adhanId(occurrence.date, occurrence.index);
+      final prayerId = prayerIdFor(occurrence.date, p.kind);
       final isMuted = muted.contains(prayerId);
 
       // Audible occurrences on Android are owned by the native alarm engine
       // (AlarmManager → foreground service + shell launch), so the call
       // rings even when this process is dead and never double-plays with a
-      // channel sound. Muted occurrences keep the silent Flutter card.
-      if (_isAndroid && !isMuted) {
+      // channel sound. Muted occurrences — and every occurrence with nothing
+      // playable to ring — keep the silent Flutter card.
+      if (_isAndroid && !isMuted && audible) {
         await _scheduleNativeAdhan(
           id: id,
           at: p.time,
-          name: p.kind.displayName,
+          name: p.kind.localized(AmbientL10n.instance),
           prayerId: prayerId,
           settings: settings,
         );
@@ -1182,14 +1357,17 @@ class NotificationService {
 
       await _postAt(
         id: id,
-        title: 'Adhan — ${p.kind.displayName}',
-        body:
-            'It is now time for the ${p.kind.displayName} prayer · '
-            '${TimeFormatter.clock(p.time)}',
+        title: AmbientL10n.instance.notifAdhanTitle(
+          p.kind.localized(AmbientL10n.instance),
+        ),
+        body: AmbientL10n.instance.notifPrayerAtTime(
+          p.kind.localized(AmbientL10n.instance),
+          TimeFormatter.clock(p.time),
+        ),
         at: p.time,
         type: NotificationType.adhan,
         settings: settings,
-        muted: isMuted,
+        muted: isMuted || !audible,
         payload: '$_liveAdhanPrefix${p.kind.name}',
       );
     }
@@ -1212,8 +1390,18 @@ class NotificationService {
         'id': id,
         'timestampMs': at.millisecondsSinceEpoch,
         'name': name,
+        // Native would otherwise compose "Adhan — <name>" in English.
+        'title': AmbientL10n.instance.notifAdhanTitle(name),
+        'body': AmbientL10n.instance.notifPrayerAtTime(
+          name,
+          TimeFormatter.clock(at),
+        ),
         'prayerId': prayerId,
-        'muted': false,
+        // Resolved here rather than trusting the caller: `muted: false` on an
+        // unplayable source is what leaves the engine's foreground service,
+        // full-screen intent and DND lift engaged with no completion to retire
+        // them.
+        'muted': !adhanIsAudible(settings),
         'soundRaw': sound.raw,
         'soundUri': sound.uri,
       });
@@ -1262,7 +1450,9 @@ class NotificationService {
       'timestampMs': DateTime.now()
           .add(const Duration(seconds: 3))
           .millisecondsSinceEpoch,
-      'name': _testAdhanLabel,
+      'name': _testAdhanName,
+      'title': AmbientL10n.instance.testAdhanTitle,
+      'body': AmbientL10n.instance.notifAdhanTitleName(_testAdhanName),
       'prayerId': '',
       'muted': !settings.adhanSoundEnabled,
       'isTest': true,
@@ -1282,7 +1472,7 @@ class NotificationService {
           try {
             await _fireNativeAdhanNow(
               _testNotificationId,
-              _testAdhanLabel,
+              _testAdhanName,
               settings,
               isTest: true,
             );
@@ -1305,13 +1495,19 @@ class NotificationService {
     String name,
     AppSettings settings, {
     bool isTest = false,
+    DateTime? prayerTime,
   }) async {
     final sound = _androidAdhanSound(settings);
     try {
       await _channel.invokeMethod('fireAdhanNow', {
         'id': id,
         'name': name,
-        'muted': !settings.adhanSoundEnabled,
+        'title': AmbientL10n.instance.notifAdhanTitle(name),
+        'body': AmbientL10n.instance.notifPrayerAtTime(
+          name,
+          TimeFormatter.clock(prayerTime ?? DateTime.now()),
+        ),
+        'muted': !adhanIsAudible(settings),
         'isTest': isTest,
         'soundRaw': sound.raw,
         'soundUri': sound.uri,
@@ -1335,19 +1531,44 @@ class NotificationService {
     return (raw: tone.androidRawResource, uri: '');
   }
 
+  /// Builds the reminder entries shared by the native decorated-card path and
+  /// the plain-Flutter fallback.
+  ///
+  /// Each entry carries **two** ids, because the two delivery paths schedule
+  /// into different Android id spaces: [`_nativeCardId`] for the native
+  /// `AlarmManager` PendingIntent and its RemoteViews card, and
+  /// [`_reminderId`] for the plugin's `zonedSchedule`. `firePrayerReminder`
+  /// cancels the one matching the path it is about to deliver, and
+  /// `_cancelFlutterDayRange` sweeps both — so a live chime can no longer ring
+  /// on top of a scheduled card it meant to replace.
+  ///
+  /// Tomorrow's Fajr is included for the same reason the adhan arms it: without
+  /// it the lead time before the next day's first prayer is the one reminder
+  /// that only exists if the app happens to be open.
   List<Map<String, dynamic>> _buildReminders(PrayerDay day, int leadMinutes) {
     final result = <Map<String, dynamic>>[];
-    for (var i = 0; i < day.prayers.length; i++) {
-      final p = day.prayers[i];
+    final occurrences = <({PrayerTime prayer, DateTime date, int index})>[
+      for (var i = 0; i < day.prayers.length; i++)
+        (prayer: day.prayers[i], date: day.date, index: i),
+      (
+        prayer: PrayerTime(kind: PrayerKind.fajr, time: day.nextDayFajr),
+        date: day.date.add(const Duration(days: 1)),
+        index: 0,
+      ),
+    ];
+
+    for (final occurrence in occurrences) {
+      final p = occurrence.prayer;
       // Offset is SUBTRACTED from the prayer time — the only place the lead is
       // applied, so rescheduling (daily task or settings change) can never
       // double-apply it.
       final at = p.time.subtract(Duration(minutes: leadMinutes));
       if (at.isAfter(DateTime.now())) {
         result.add({
-          'id': _nativeCardId(day.date, i),
-          'prayerId': prayerIdFor(day.date, p.kind),
-          'name': p.kind.displayName,
+          'id': _nativeCardId(occurrence.date, occurrence.index),
+          'flutterId': _reminderId(occurrence.date, occurrence.index),
+          'prayerId': prayerIdFor(occurrence.date, p.kind),
+          'name': p.kind.localized(AmbientL10n.instance),
           'timestampMs': at.millisecondsSinceEpoch,
           'prayerTimestampMs': p.time.millisecondsSinceEpoch,
           'leadMinutes': leadMinutes,
@@ -1373,8 +1594,12 @@ class NotificationService {
       );
       final name = r['name'] as String;
       final lead = (r['leadMinutes'] as int?) ?? settings?.leadMinutes ?? 10;
+      // The plugin id space, *not* the native card id — see [_buildReminders].
+      // The `flutterId` fallback keeps this resilient to a reminder map that
+      // predates the split.
+      final id = (r['flutterId'] as int?) ?? r['id'] as int;
       await _postAt(
-        id: r['id'] as int,
+        id: id,
         title: lead == 1 ? '$name in 1 minute' : '$name in $lead minutes',
         body:
             'Adhan follows at ${TimeFormatter.clock(prayerTime)} '
@@ -1560,21 +1785,24 @@ class NotificationService {
     return day.nextDayFajr;
   }
 
+  /// Cancels every *scheduled* alert so a recompute can re-arm the day from
+  /// scratch without stale entries double-firing.
+  ///
+  /// Deliberately leaves a ringing adhan alone. A reschedule is triggered by
+  /// entirely ordinary events — a settings change, a mute toggle, a GPS refresh,
+  /// the prayer rollover itself — and none of them is a reason to cut a call off
+  /// mid-way. A ringing alarm owns its own lifetime: it ends when the clip
+  /// finishes, when the user stops it from the presenter, a volume key or the
+  /// tray card, or at [_alarmMaxDuration].
   Future<void> cancelAll() async {
-    await stopAdhanPlayback();
-    _ringingNotificationId = null;
-    if (_alarmRinging) {
-      _alarmRinging = false;
-      await _setAlarmActive(false);
-    }
     _timers.forEach((_, timer) => timer.cancel());
     _timers.clear();
 
     if (!_isAndroid) return;
     await _cancelFlutterDayRange();
-    try {
-      await _channel.invokeMethod('stopAdhan');
-    } catch (_) {}
+    // `cancelAdhans` / `cancelReminders` only drop *pending* AlarmManager
+    // entries on the native side — neither touches the active alarm, so the
+    // call keeps ringing through the reschedule.
     try {
       await _channel.invokeMethod('cancelAdhans');
     } catch (_) {}
@@ -1584,21 +1812,26 @@ class NotificationService {
   }
 
   /// Cancels every pending Flutter alert for today and its neighbours so a
-  /// stale recompute can never leave a double-firing notification behind.
-  /// Only today is ever scheduled, so a ±1-day window covers every id that
-  /// can exist. All cancels run concurrently — the plugin round-trip dominates
-  /// and there is no ordering dependency between ids.
+  /// stale recompute can never leave a double-firing notification behind. The
+  /// ±1-day window covers every id that can exist now that tomorrow's Fajr is
+  /// armed alongside today's. All cancels run concurrently — the plugin
+  /// round-trip dominates and there is no ordering dependency between ids.
+  ///
+  /// The tray card mirroring a *ringing* adhan is spared: cancelling it would
+  /// leave the call playing with no notification and no visible Stop control.
   Future<void> _cancelFlutterDayRange() async {
     final today = DateTime.now();
-    final cancels = <Future<void>>[
+    final keep = _ringingNotificationId;
+    final ids = <int>[
       for (var offset = -1; offset <= 1; offset++)
         for (var i = 0; i < PrayerKind.five.length; i++) ...[
-          _plugin.cancel(id: _adhanId(today.add(Duration(days: offset)), i)),
-          _plugin.cancel(id: _reminderId(today.add(Duration(days: offset)), i)),
+          _adhanId(today.add(Duration(days: offset)), i),
+          _reminderId(today.add(Duration(days: offset)), i),
         ],
-      _plugin.cancel(id: _testNotificationId),
+      _testNotificationId,
     ];
-    await Future.wait(cancels);
+    final doomed = ids.where((id) => id != keep).toList(growable: false);
+    await Future.wait(doomed.map((id) => _plugin.cancel(id: id)));
   }
 
   static int _idFor(DateTime date, int prayerIndex, int bucket) {

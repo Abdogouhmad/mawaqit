@@ -59,10 +59,20 @@ object PrayerScheduler {
     private const val REQ_MUTE = 5000
     private const val REQ_DISMISS = 6000
 
-    private fun timeFormatter(): SimpleDateFormat =
-        SimpleDateFormat("h:mm a", Locale.US)
-
-    fun timeLabel(epochMs: Long): String = timeFormatter().format(Date(epochMs))
+    /**
+     * Formats an epoch in the device's own clock convention.
+     *
+     * Read live from the system rather than persisted when the reminder was
+     * armed: these alarms are scheduled hours ahead, and a user who switches
+     * their phone to 24-hour in between should not get a card that disagrees
+     * with every other clock in the app. `Locale.getDefault()` (rather than a
+     * pinned `Locale.US`) keeps the same convention for non-English locales.
+     */
+    fun timeLabel(context: Context, epochMs: Long): String =
+        SimpleDateFormat(
+            if (android.text.format.DateFormat.is24HourFormat(context)) "HH:mm" else "h:mm a",
+            Locale.getDefault(),
+        ).format(Date(epochMs))
 
     fun channelIdFor(sound: String): String =
         if (sound == "silent") "${CHANNEL_REMINDERS}_silent" else "${CHANNEL_REMINDERS}_$sound"

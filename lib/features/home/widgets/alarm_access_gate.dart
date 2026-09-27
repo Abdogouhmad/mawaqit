@@ -12,6 +12,7 @@ import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
 /// Asks once per build (so: on first install and after every update) for the
 /// battery-optimisation exemption, and nothing else.
@@ -95,28 +96,28 @@ class _AlarmAccessGateState extends ConsumerState<AlarmAccessGate> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         icon: Icon(Icons.battery_charging_full_outlined, color: scheme.primary),
-        title: const UiText(
-          'Keep the adhan on time',
+        title: UiText(
+          AppLocalizations.of(dialogContext).accessKeepAdhanOnTime,
           type: UiTextType.titleLarge,
         ),
-        content: const UiText(
-          'Your phone freezes apps while the screen is locked, and that is '
-          'usually why the adhan rings late — or not at all. Allowing Mawaqit '
-          'to ignore battery optimisation keeps the adhan playing at prayer '
-          'time, even in your pocket.',
+        content: UiText(
+          AppLocalizations.of(dialogContext).accessKeepAdhanBody,
           type: UiTextType.bodyMedium,
         ),
         actions: [
           TextButton(
             key: const Key('battery-exemption-later'),
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const UiText('Not now', type: UiTextType.labelLarge),
+            child: UiText(
+              AppLocalizations.of(dialogContext).actionNotNow,
+              type: UiTextType.labelLarge,
+            ),
           ),
           TextButton(
             key: const Key('battery-exemption-allow'),
             onPressed: () => Navigator.of(dialogContext).pop(true),
             child: UiText(
-              'Allow',
+              AppLocalizations.of(dialogContext).actionAllow,
               type: UiTextType.labelLarge,
               fontWeight: FontWeight.w700,
               color: scheme.primary,

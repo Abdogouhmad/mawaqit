@@ -11,6 +11,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-09-27
+
+New since v0.9.0.
+
+### Added
+
+- **Arabic, properly** — the whole app is now translated: home, Settings, the
+  adhan screen, the update screen, the notification cards and the home-screen
+  widget. Arabic mirrors the entire layout right-to-left, and the clock, the
+  Gregorian and Hijri dates and the countdown units all follow the chosen
+  language instead of staying in English.
+- **A language picker** — Settings → Appearance chooses *System default*,
+  English or العربية, so you no longer have to change the whole phone's
+  language to read the app in Arabic. Notifications and the home-screen widget
+  follow the choice too, even on a phone whose system language is different.
+  On Android 13+ the app also shows up in the system's own per-app language
+  picker.
+
+### Changed
+
+- **Arabic is typeset in a real Arabic typeface** — the app's Latin font has no
+  Arabic letters at all, so every Arabic string had been quietly rendered in
+  whatever font your phone happened to use, which clashed with the rest of the
+  screen. A proper Arabic companion face now ships with the app, and the
+  letter-spacing tuned for Latin is dropped in Arabic, where spacing between
+  letters breaks the way Arabic words join together.
+
+### Fixed
+
+- **Times follow your phone's clock setting** — every time in the app was
+  hardcoded to a 12-hour `h:mm a`, so an 18:30 Isha showed as "6:30 PM"
+  everywhere on a phone set to 24-hour, including in the notification text.
+- **A failed settings write no longer lies to you** — a setting was shown as
+  saved before the write to disk had actually succeeded, so a phone that ran out
+  of space (or had storage permission revoked) silently reverted it on the next
+  start. The new value is only shown once it is really stored.
+- **A phone set to a language Mawaqit doesn't ship no longer risks a crash** —
+  anything outside English and Arabic now falls back to the nearest supported
+  language instead of failing.
+- **Tomorrow's Fajr is scheduled** — the day's alarms stopped at Isha, so the
+  first prayer of the next morning was missing until something else rescheduled.
+- **Your chosen city is used for background alarms** — alarms armed while the
+  app was closed calculated from GPS instead of the city you picked in Settings.
+- **A test adhan can't ring alongside a real one** — the two shared a
+  notification id, so firing a test could silence or replace a scheduled prayer.
+- **Device tones can be previewed before you pick them**, and a preview that
+  fails to play now falls back to a silent card instead of leaving you guessing.
+- **The "Test" label on a test adhan is translated**, instead of appearing in
+  English inside an Arabic notification.
+
 ## [0.9.0] - 2026-09-26
 
 New since v0.8.6.
@@ -701,3 +751,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.8.4]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.3...v0.8.4
 [0.8.5]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.4...v0.8.5
 [0.8.6]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.5...v0.8.6
+[0.10.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.9.0...v0.10.0

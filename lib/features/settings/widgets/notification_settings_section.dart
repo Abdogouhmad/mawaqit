@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
+import 'package:mawaqit/data/services/notification_service.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/features/settings/widgets/tone_sheet.dart';
 import 'package:mawaqit/providers/providers.dart';
@@ -12,6 +13,8 @@ import 'package:mawaqit/shared/ui/icon_badge.dart';
 import 'package:mawaqit/shared/ui/segmented_control.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 import 'package:mawaqit/shared/components/settings_row.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
 
 /// One reusable section for a notification type — **Pre-Prayer** and **Adhan**
 /// both render this exact component parameterized by [kind], so the kill
@@ -26,11 +29,9 @@ class NotificationSettingsSection extends ConsumerWidget {
 
   final NotificationKind kind;
 
-  static const List<(int, String)> _leadOptions = [
-    (5, '5 min'),
-    (10, '10 min'),
-    (15, '15 min'),
-  ];
+  /// The minute counts are fixed, but their labels are built per-build so they
+  /// can follow the locale.
+  static const List<int> _leadMinutes = [5, 10, 15];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,12 +65,14 @@ class NotificationSettingsSection extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     UiText(
-                      kind.label,
+                      kind.localized(AppLocalizations.of(context)),
                       type: UiTextType.titleMedium,
                       fontWeight: FontWeight.w700,
                     ),
                     UiText(
-                      enabled ? _enabledHint : kind.offHint,
+                      enabled
+                          ? _enabledHint(context)
+                          : kind.localizedOffHint(AppLocalizations.of(context)),
                       type: UiTextType.labelMedium,
                       color: scheme.onSurfaceVariant,
                     ),
@@ -109,7 +112,8 @@ class NotificationSettingsSection extends ConsumerWidget {
             ),
           SettingsRow(
             icon: Icons.music_note_outlined,
-            title: '${kind.label} Tone',
+            title: AppLocalizations.of(context)
+                .notifToneTitle(kind.localized(AppLocalizations.of(context))),
             subtitle: settings.notifTone(kind),
             onTap: () => _openToneSheet(context, controller, settings),
             trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
@@ -123,10 +127,11 @@ class NotificationSettingsSection extends ConsumerWidget {
           ),
           SettingsRow(
             icon: Icons.campaign_outlined,
-            title: 'Test ${kind.label}',
+            title: AppLocalizations.of(context)
+                .notifTestAction(kind.localized(AppLocalizations.of(context))),
             subtitle: kind == NotificationKind.adhan
-                ? 'Fires the full-screen alarm in 3 seconds'
-                : 'Fires the reminder in 3 seconds',
+                ? AppLocalizations.of(context).notifTestAdhanSubtitle
+                : AppLocalizations.of(context).notifTestPrePrayerSubtitle,
             onTap: () => _fireTest(context, ref, settings),
             trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
           ),
@@ -135,15 +140,16 @@ class NotificationSettingsSection extends ConsumerWidget {
     );
   }
 
-  String get _enabledHint => kind == NotificationKind.prePrayer
-      ? 'Reminds you before each prayer'
-      : 'Rings the adhan at prayer entry';
+  String _enabledHint(BuildContext context) =>
+      kind == NotificationKind.prePrayer
+      ? AppLocalizations.of(context).notifEnabledPrePrayerHint
+      : AppLocalizations.of(context).notifEnabledAdhanHint;
 
   Widget _disabledNote(BuildContext context) {
     return UiText(
       kind == NotificationKind.prePrayer
-          ? 'Turn on to get countdown reminders before each prayer.'
-          : 'Turn on to make the full adhan ring at every prayer time.',
+          ? AppLocalizations.of(context).notifDisabledPrePrayerNote
+          : AppLocalizations.of(context).notifDisabledAdhanNote,
       type: UiTextType.labelMedium,
       color: Theme.of(context).colorScheme.onSurfaceVariant,
       style: const TextStyle(fontStyle: FontStyle.italic),
@@ -163,7 +169,7 @@ class NotificationSettingsSection extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             UiText(
-              'Remind me before',
+              AppLocalizations.of(context).notifRemindMeBefore,
               type: UiTextType.titleMedium,
               fontSize: AppFontSize.lg,
             ),
@@ -198,7 +204,10 @@ class NotificationSettingsSection extends ConsumerWidget {
             HapticFeedback.selectionClick();
             controller.save(settings.copyWith(leadMinutes: value));
           },
-          options: _leadOptions,
+          options: [
+            for (final m in _leadMinutes)
+              (m, AppLocalizations.of(context).notifLeadShort(m)),
+          ],
         ),
       ],
     );
@@ -226,15 +235,14 @@ class NotificationSettingsSection extends ConsumerWidget {
     AppSettings settings,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    // Resolved before the first await: the callbacks below run after the
+    // scheduler round trip, where `context` may no longer be valid.
+    final l10n = AppLocalizations.of(context);
+    final kindLabel = kind.localized(l10n);
     final service = ref.read(notificationServiceProvider);
     if (!settings.notifEnabled(kind)) {
       messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            '${kind.label} notifications are off — flip the switch above then '
-            'tap again.',
-          ),
-        ),
+        SnackBar(content: Text(l10n.notifKindDisabledWarning(kindLabel))),
       );
       return;
     }
@@ -246,38 +254,33 @@ class NotificationSettingsSection extends ConsumerWidget {
       );
       if (!armed) {
         messenger.showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Notification access is off — allow notifications for Mawaqit '
-              'in system Settings, then tap again.',
-            ),
-          ),
+          SnackBar(content: Text(l10n.notifAccessWarning)),
         );
         return;
       }
       messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            kind == NotificationKind.adhan
-                ? service.canUseFullScreenIntents
-                      ? service.canShowOverOtherApps
-                            ? 'Adhan alarm fires in 3 seconds — full-screen, '
-                                  'over the lockscreen and over whatever you are using.'
-                            : 'Adhan fires in 3 seconds — full-screen over the '
-                                  'lockscreen. While you are using the phone it '
-                                  'stays a card: allow "Display over other apps" '
-                                  'in Alarm reliability to force it.'
-                      : 'Adhan fires in 3 seconds (heads-up — full-screen '
-                            'access is off in system Settings).'
-                : 'Pre-prayer reminder fires in 3 seconds — ${settings.notifTone(kind)} will play.',
-          ),
-        ),
+        SnackBar(content: Text(_testConfirmation(l10n, service, settings))),
       );
     } catch (e, st) {
-      debugPrint('${kind.label} test failed: $e\n$st');
+      debugPrint('$kindLabel test failed: $e\n$st');
       messenger.showSnackBar(
-        SnackBar(content: Text('${kind.label} test failed: $e')),
+        SnackBar(content: Text(l10n.notifTestFailed(kindLabel, '$e'))),
       );
     }
+  }
+
+  /// Which visual treatment the user is about to get, spelled out up front so a
+  /// card-when-in-use result is not mistaken for the test having failed.
+  String _testConfirmation(
+    AppLocalizations l10n,
+    NotificationService service,
+    AppSettings settings,
+  ) {
+    if (kind == NotificationKind.prePrayer) {
+      return l10n.notifTestPrePrayerTone(settings.notifTone(kind));
+    }
+    if (!service.canUseFullScreenIntents) return l10n.notifTestAdhanHeadsUp;
+    if (!service.canShowOverOtherApps) return l10n.notifTestAdhanOverApps;
+    return l10n.notifTestAdhanFull;
   }
 }

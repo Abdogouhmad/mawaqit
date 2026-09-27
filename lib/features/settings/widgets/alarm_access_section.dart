@@ -15,6 +15,8 @@ import 'package:mawaqit/shared/components/settings_row.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
 import 'package:mawaqit/shared/ui/icon_badge.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
 
 /// "Alarm reliability" — the system accesses the adhan and the pre-prayer card
 /// depend on, each with its own grant screen.
@@ -78,16 +80,18 @@ class _AlarmAccessSectionState extends ConsumerState<AlarmAccessSection>
       if (settings == null) return;
       await BackgroundScheduler.rescheduleNow(settings);
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
       _toast(
-        after.canRingOnTime
-            ? 'Done — today’s adhan and reminders are re-armed.'
-            : 'Applied — today’s reminders are re-armed.',
+        after.canRingOnTime ? l10n.accessDoneAdhan : l10n.accessDoneReminders,
       );
     }
   }
 
   Future<void> _request(AlarmPermission permission) async {
     final messenger = ScaffoldMessenger.of(context);
+    // Resolved before the await: the settings-screen round trip below outlives
+    // the widget if it is popped mid-flight.
+    final l10n = AppLocalizations.of(context);
     final opened = await ref
         .read(notificationServiceProvider)
         .requestAlarmAccess(permission);
@@ -97,8 +101,7 @@ class _AlarmAccessSectionState extends ConsumerState<AlarmAccessSection>
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            '${permission.label} is granted automatically on this Android '
-            'version — nothing to do.',
+            l10n.accessGrantedAutomatically(permission.localized(l10n)),
           ),
         ),
       );
@@ -124,10 +127,10 @@ class _AlarmAccessSectionState extends ConsumerState<AlarmAccessSection>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(
-          label: 'Alarm reliability',
+          label: AppLocalizations.of(context).accessReliability,
           description: access.canRingOnTime
-              ? 'The adhan can ring on time and wake your screen'
-              : 'The adhan can be late or silent without these',
+              ? AppLocalizations.of(context).accessCanRingDescription
+              : AppLocalizations.of(context).accessCannotRingDescription,
           icon: Icons.shield_moon_outlined,
         ),
         SettingsGroup(
@@ -156,11 +159,11 @@ class _AlarmAccessSectionState extends ConsumerState<AlarmAccessSection>
                   Expanded(
                     child: UiText(
                       missing.isEmpty
-                          ? 'All alarm accesses granted'
-                          : '${missing.length} of ${AlarmPermission.values.length} '
-                                'accesses are off — the adhan can ring late, '
-                                'stay silent, or not show at all. Tap a row to '
-                                'fix it.',
+                          ? AppLocalizations.of(context).accessAllGranted
+                          : AppLocalizations.of(context).accessMissingSummary(
+                              missing.length,
+                              AlarmPermission.values.length,
+                            ),
                       type: UiTextType.labelMedium,
                       color: missing.isEmpty
                           ? scheme.onSurfaceVariant
@@ -173,8 +176,10 @@ class _AlarmAccessSectionState extends ConsumerState<AlarmAccessSection>
             for (final permission in AlarmPermission.values)
               SettingsRow(
                 icon: permission.icon,
-                title: permission.label,
-                subtitle: permission.blurb,
+                title: permission.localized(AppLocalizations.of(context)),
+                subtitle: permission.localizedBlurb(
+                  AppLocalizations.of(context),
+                ),
                 subtitleColor: access.granted(permission)
                     ? scheme.primary
                     : scheme.error,
@@ -192,7 +197,9 @@ class _AlarmAccessSectionState extends ConsumerState<AlarmAccessSection>
     final scheme = Theme.of(context).colorScheme;
     final granted = access.granted(permission);
     return AppPill(
-      label: granted ? 'Allowed' : 'Fix',
+      label: granted
+          ? AppLocalizations.of(context).accessAllowed
+          : AppLocalizations.of(context).accessFix,
       icon: granted ? Icons.check_circle_outline : Icons.open_in_new,
       dense: true,
       color: granted ? scheme.primary : scheme.error,

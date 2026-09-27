@@ -4,8 +4,10 @@ import 'package:mawaqit/core/theme/app_theme.dart';
 import 'package:mawaqit/core/theme/tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/ui/pulse_dot.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
 
 /// Lightweight M3 Expressive countdown hero.
 ///
@@ -45,10 +47,14 @@ class CountdownHero extends StatelessWidget {
 
     final countdown = TimeFormatter.countdown(nextIn);
 
+    final l10n = AppLocalizations.of(context);
+    final nextName = next.kind.localized(l10n);
     final subtitle = currentPrayer == null
-        ? 'The day begins with ${next.kind.displayName}'
-        : '${currentPrayer!.kind.displayName} ended '
-              '${TimeFormatter.clock(currentPrayer!.time)}';
+        ? l10n.homeDayBeginsWith(nextName)
+        : l10n.homePrayerEnded(
+            currentPrayer!.kind.localized(l10n),
+            TimeFormatter.clock(currentPrayer!.time),
+          );
 
     final startTime = currentPrayer?.time;
     final endTime = next.time;
@@ -62,7 +68,7 @@ class CountdownHero extends StatelessWidget {
 
         /// Main countdown.
         _CountdownText(
-          prayerName: next.kind.displayName,
+          prayerName: nextName,
           countdown: countdown,
           textTheme: textTheme,
           scheme: scheme,
@@ -116,7 +122,7 @@ class _NextPrayerBadge extends StatelessWidget {
           PulseDot(color: scheme.primary, size: 7, glow: false),
           const SizedBox(width: 8),
           UiText(
-            'NEXT PRAYER',
+            AppLocalizations.of(context).homeNextPrayer,
             type: UiTextType.labelMedium,
             color: scheme.onPrimaryContainer,
             fontWeight: FontWeight.w800,
@@ -295,7 +301,9 @@ class _PrayerProgress extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 UiText(
-                  startTime == null ? 'Start' : TimeFormatter.clock(startTime!),
+                  startTime == null
+                      ? AppLocalizations.of(context).homeStart
+                      : TimeFormatter.clock(startTime!),
                   type: UiTextType.labelSmall,
                   color: scheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,

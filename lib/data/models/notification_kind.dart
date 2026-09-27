@@ -6,17 +6,9 @@ enum NotificationKind {
   prePrayer,
 
   /// The full adhan call at prayer entry (full-screen alarm behaviour).
-  adhan;
+  adhan,
 
-  /// Settings/tab label for this kind.
-  String get label => switch (this) {
-    NotificationKind.prePrayer => 'Pre-Prayer',
-    NotificationKind.adhan => 'Adhan',
-  };
-
-  /// Settings row subtitle when this kind is switched off.
-  String get offHint => switch (this) {
-    NotificationKind.prePrayer => 'No countdown reminders before prayers.',
-    NotificationKind.adhan => 'No adhan alarm at prayer entry.',
-  };
+  // No `label` / `offHint` here on purpose: both are locale-dependent display
+  // copy and now live in `NotificationKindL10n`
+  // (lib/l10n/enum_localization.dart). See [PrayerKind] for the same reasoning.
 }

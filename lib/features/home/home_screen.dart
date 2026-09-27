@@ -18,6 +18,8 @@ import 'package:mawaqit/features/home/widgets/alarm_access_gate.dart';
 import 'package:mawaqit/features/home/widgets/countdown_hero.dart';
 import 'package:mawaqit/features/home/widgets/prayer_schedule_tile.dart';
 import 'package:mawaqit/features/home/widgets/solar_card.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -46,6 +48,12 @@ class HomeScreen extends ConsumerWidget {
             children: [
               _HomeHeader(locationMissing: locationMissing),
               asyncState.when(
+                // Keep the current day on screen while a refresh or a settings
+                // change recomputes it. The RefreshIndicator already shows the
+                // pull, so swapping the whole body for a spinner here is a
+                // regression, not feedback. A genuinely first load still has no
+                // previous value and falls through to `loading` below.
+                skipLoadingOnReload: true,
                 loading: () => const _HomeLoading(),
                 error: (error, _) => _HomeError(message: error.toString()),
                 data: (data) => _HomeBody(state: data),
@@ -58,9 +66,7 @@ class HomeScreen extends ConsumerWidget {
               if (kDebugMode) ...[
                 const SizedBox(height: AppSpacing.tera),
                 _DevAdhanPreview(
-                  title:
-                      state?.nextPrayer?.kind.displayName ??
-                      PrayerKind.maghrib.displayName,
+                  prayer: state?.nextPrayer?.kind ?? PrayerKind.maghrib,
                 ),
               ],
             ],
@@ -101,7 +107,7 @@ class _HomeHeader extends StatelessWidget {
           if (locationMissing) ...[
             const SizedBox(width: AppSpacing.md),
             Tooltip(
-              message: 'Location unavailable — tap to set one in Settings',
+              message: AppLocalizations.of(context).homeLocationUnavailable,
               child: InkResponse(
                 key: const Key('location-missing-indicator'),
                 onTap: () => Navigator.of(context).pushNamed('/settings'),
@@ -122,7 +128,7 @@ class _HomeHeader extends StatelessWidget {
             onPressed: () => Navigator.of(context).pushNamed('/settings'),
             icon: const Icon(Icons.settings_outlined),
             color: scheme.onSurfaceVariant,
-            tooltip: 'Settings',
+            tooltip: AppLocalizations.of(context).settingsTitle,
           ),
         ],
       ),
@@ -138,11 +144,14 @@ class _HomeBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final day = state.day;
     final mutedIds = ref.watch(mutedPrayersProvider).value ?? const <String>{};
 
     if (day == null) {
-      return _HomeError(message: state.error ?? 'Unable to load prayer times.');
+      return _HomeError(
+        message: state.error ?? AppLocalizations.of(context).homeErrorBody,
+      );
     }
 
     final now = state.now;
@@ -200,7 +209,7 @@ class _HomeBody extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.emphasis),
         SectionHeader(
-          label: 'Daily Schedule',
+          label: l10n.homeDailySchedule,
           trailing: UiText(
             day.methodName,
             type: UiTextType.labelSmall,
@@ -247,8 +256,10 @@ class _HomeBody extends ConsumerWidget {
             const SizedBox(width: AppSpacing.sm),
             UiText(
               (sunsetIn.isNegative
-                      ? 'Sunset ${TimeFormatter.clock(sunset)}'
-                      : 'Sunset in ${TimeFormatter.longCountdown(sunsetIn)}')
+                      ? l10n.homeSunsetAt(TimeFormatter.clock(sunset))
+                      : l10n.homeSunsetIn(
+                          TimeFormatter.longCountdown(sunsetIn),
+                        ))
                   .toUpperCase(),
               type: UiTextType.labelSmall,
               letterSpacing: 0.8,
@@ -267,7 +278,7 @@ class _HomeBody extends ConsumerWidget {
             ),
             const SizedBox(width: AppSpacing.sm),
             UiText(
-              'Private & offline. No data leaves your device.',
+              l10n.homePrivacyNote,
               type: UiTextType.labelSmall,
               color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
               letterSpacing: 0.2,
@@ -304,13 +315,15 @@ class _HomeBody extends ConsumerWidget {
 /// iterated on without waiting for a prayer time or granting permissions.
 /// The whole widget is behind `kDebugMode`, so release builds never see it.
 class _DevAdhanPreview extends ConsumerWidget {
-  const _DevAdhanPreview({required this.title});
+  const _DevAdhanPreview({required this.prayer});
 
-  final String title;
+  final PrayerKind prayer;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
+    final title = prayer.localized(l10n);
 
     return AppCard(
       ambient: false,
@@ -327,7 +340,7 @@ class _DevAdhanPreview extends ConsumerWidget {
               ),
               const SizedBox(width: AppSpacing.md),
               UiText(
-                'DEV ONLY',
+                l10n.homeDevOnly,
                 type: UiTextType.labelSmall,
                 color: scheme.tertiary,
                 letterSpacing: 1.4,
@@ -336,7 +349,7 @@ class _DevAdhanPreview extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           AppButton(
-            label: 'Preview "$title" adhan',
+            label: l10n.homePreviewAdhan(title),
             icon: Icons.notifications_active_outlined,
             variant: AppButtonVariant.outlined,
             expanded: false,
@@ -348,8 +361,7 @@ class _DevAdhanPreview extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           UiText(
-            'Pushes the real full-screen presenter. Stop and the volume keys '
-            'behave exactly like a live alarm.',
+            l10n.homeDevPreviewBody,
             type: UiTextType.labelSmall,
             textAlign: TextAlign.center,
             color: scheme.onSurfaceVariant,
@@ -390,7 +402,7 @@ class _HomeError extends StatelessWidget {
         child: Column(
           children: [
             UiText(
-              'Could not determine prayer times',
+              AppLocalizations.of(context).homeErrorTitle,
               type: UiTextType.titleMedium,
               textAlign: TextAlign.center,
             ),
@@ -405,7 +417,7 @@ class _HomeError extends StatelessWidget {
             PulseDot(color: scheme.primary, size: AppSpacing.sm),
             const SizedBox(height: AppSpacing.md),
             UiText(
-              'Pull down to retry, or set a city or GPS in Settings.',
+              AppLocalizations.of(context).homeErrorHint,
               type: UiTextType.labelSmall,
               textAlign: TextAlign.center,
               color: scheme.onSurfaceVariant,

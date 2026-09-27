@@ -1,0 +1,18 @@
+# Localization configuration.
+#
+# Output goes to `lib/l10n/gen` so the generated Dart is a real part of `lib/`
+# (greppable, and reachable by a plain `package:mawaqit/...` import). Regenerate
+# with `flutter gen-l10n`; `generate: true` in pubspec.yaml also runs it on build.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+output-dir: lib/l10n/gen
+
+# `AppLocalizations.of(context)` returns non-null, so call sites do not need a
+# `!` on every lookup.
+nullable-getter: false
+
+# Keys present in the template but missing from a translation get written here
+# instead of being silently inherited from English.
+untranslated-messages-file: build/l10n_untranslated.json

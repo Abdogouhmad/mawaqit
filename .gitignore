@@ -37,6 +37,10 @@ analysis_benchmark.json
 .flutter-plugins
 .flutter-plugins-dependencies
 **/generated_plugin_registrant.dart
+
+# Generated from lib/l10n/*.arb by `flutter gen-l10n` (see l10n.yaml). Rebuilt on
+# every build, so it is not worth versioning.
+lib/l10n/gen/
 .packages
 .pub-preload-cache/
 .pub/

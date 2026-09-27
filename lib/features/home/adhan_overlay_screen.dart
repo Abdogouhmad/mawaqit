@@ -7,6 +7,7 @@ import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
 import 'package:mawaqit/shared/ui/app_button.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
 class AdhanOverlayScreen extends StatefulWidget {
   const AdhanOverlayScreen({
@@ -138,7 +139,7 @@ class _Header extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               UiText(
-                'ADHAN',
+                AppLocalizations.of(context).adhanWord,
                 type: UiTextType.labelLarge,
                 color: scheme.onSecondaryContainer,
                 fontWeight: FontWeight.w700,
@@ -170,7 +171,7 @@ class _Content extends StatelessWidget {
           SizedBox(height: compact ? AppSpacing.lg : AppSpacing.xl),
 
           UiText(
-            'IT IS TIME FOR',
+            AppLocalizations.of(context).adhanItIsTimeFor,
             type: UiTextType.labelMedium,
             color: scheme.primary,
             fontWeight: FontWeight.w700,
@@ -191,7 +192,7 @@ class _Content extends StatelessWidget {
           const SizedBox(height: 8),
 
           UiText(
-            'The call to prayer is playing',
+            AppLocalizations.of(context).adhanNowPlaying,
             type: UiTextType.bodyMedium,
             textAlign: TextAlign.center,
             color: scheme.onSurfaceVariant,
@@ -342,10 +343,10 @@ class _BottomAction extends StatelessWidget {
     return Column(
       children: [
         AppButton(
-          label: 'Stop Adhan',
+          label: AppLocalizations.of(context).adhanStop,
           icon: Icons.stop_rounded,
           loading: stopping,
-          loadingLabel: 'Silencing…',
+          loadingLabel: AppLocalizations.of(context).adhanStopping,
           onPressed: onStop,
           expanded: false,
           minHeight: compact ? 56 : 60,
@@ -365,7 +366,7 @@ class _BottomAction extends StatelessWidget {
             ),
             const SizedBox(width: 5),
             UiText(
-              'Press a volume key to silence',
+              AppLocalizations.of(context).adhanVolumeHint,
               type: UiTextType.bodySmall,
               color: scheme.onSurfaceVariant,
             ),

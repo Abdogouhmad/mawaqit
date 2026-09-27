@@ -1,7 +1,9 @@
 import 'package:adhan_dart/adhan_dart.dart';
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/repositories/settings_repository.dart';
+import 'package:mawaqit/l10n/ambient_l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -94,5 +96,70 @@ void main() {
     );
     expect(device.usesDeviceTone, isTrue);
     expect(device.adhanLabel, 'Chime');
+  });
+
+  group('language', () {
+    test('defaults to following the device', () async {
+      SharedPreferences.setMockInitialValues({});
+      expect((await repository.load()).language, AppLanguage.system);
+      expect(AppLanguage.system.languageCode, isNull);
+    });
+
+    test('round-trips every choice through storage', () async {
+      for (final choice in AppLanguage.values) {
+        SharedPreferences.setMockInitialValues({});
+        await repository.save(const AppSettings().copyWith(language: choice));
+        expect((await repository.load()).language, choice);
+      }
+      expect(AppLanguage.english.languageCode, 'en');
+      expect(AppLanguage.arabic.languageCode, 'ar');
+    });
+
+    test(
+      'an older settings blob without the field falls back to system',
+      () async {
+        // Simulates upgrading from a build that predates the language setting:
+        // the key is absent, so loading must not throw or default to something
+        // other than "follow the device".
+        SharedPreferences.setMockInitialValues({
+          'app_settings_v1': '{"themeMode":"dark","locationMode":"city"}',
+        });
+        final loaded = await repository.load();
+        expect(loaded.language, AppLanguage.system);
+        expect(loaded.themeMode, AppThemeMode.dark);
+      },
+    );
+
+    test('an unrecognised stored value falls back to system', () async {
+      SharedPreferences.setMockInitialValues({
+        'app_settings_v1': '{"language":"klingon"}',
+      });
+      expect((await repository.load()).language, AppLanguage.system);
+    });
+
+    test('resolveAppLocale honours the choice over the device', () {
+      const englishPhone = Locale('en');
+      expect(
+        resolveAppLocale(AppLanguage.system, englishPhone).languageCode,
+        'en',
+      );
+      expect(
+        resolveAppLocale(AppLanguage.arabic, englishPhone).languageCode,
+        'ar',
+      );
+      expect(
+        resolveAppLocale(AppLanguage.english, const Locale('ar')).languageCode,
+        'en',
+      );
+    });
+
+    test('an unsupported device language narrows instead of throwing', () {
+      // Regression guard: the generated lookupAppLocalizations throws for
+      // anything outside ['ar','en'].
+      expect(
+        resolveAppLocale(AppLanguage.system, const Locale('fr')).languageCode,
+        'en',
+      );
+    });
   });
 }

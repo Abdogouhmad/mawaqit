@@ -1,0 +1,446 @@
+{
+  "@@locale": "ar",
+  "appTitle": "مواقيت",
+  "actionBack": "رجوع",
+  "actionDone": "تم",
+  "actionClose": "إغلاق",
+  "actionRetry": "إعادة المحاولة",
+  "actionAllow": "السماح",
+  "actionNotNow": "ليس الآن",
+  "actionTryAgain": "أعد المحاولة",
+  "actionSaveLocation": "حفظ الموقع",
+  "actionInstallNow": "ثبّت الآن",
+  "actionUpdateNow": "حدّث الآن",
+  "homeLocationUnavailable": "الموقع غير متاح — اضغط لتعيينه من الإعدادات",
+  "homeErrorTitle": "تعذّر تحديد مواقيت الصلاة",
+  "homeErrorBody": "تعذّر تحميل مواقيت الصلاة.",
+  "homeErrorHint": "اسحب للأسفل لإعادة المحاولة، أو عيّن مدينة أو GPS من الإعدادات.",
+  "homeDailySchedule": "مواقيت اليوم",
+  "homePrivacyNote": "خاصّي وبلا اتصال. لا تغادر بياناتك جهازك.",
+  "homeNextPrayer": "الصلاة القادمة",
+  "homeStart": "البداية",
+  "homeSunsetAt": "الغروب {time}",
+  "@homeSunsetAt": {
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "6:42 PM"
+      }
+    }
+  },
+  "homeSunsetIn": "الغروب بعد {countdown}",
+  "@homeSunsetIn": {
+    "placeholders": {
+      "countdown": {
+        "type": "String",
+        "example": "1h 24m"
+      }
+    }
+  },
+  "homeDevOnly": "للتطوير فقط",
+  "homePreviewAdhan": "معاينة أذان {prayer}",
+  "@homePreviewAdhan": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Fajr"
+      }
+    }
+  },
+  "homeDevPreviewBody": "يفتح شاشة الأذان الكاملة كما في المنبّه الحقيقي. زر الإيقاف وأزرار الصوت تعمل تمامًا كالأذان الفعلي.",
+  "solarNoon": "زوال الشمس",
+  "solarNoonDetail": "{time}  •  طول اليوم {length}",
+  "@solarNoonDetail": {
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "12:18 PM"
+      },
+      "length": {
+        "type": "String",
+        "example": "11h 14m"
+      }
+    }
+  },
+  "sunset": "الغروب",
+  "prayerMuted": "مكتوم",
+  "prayerAdhanLabel": "أذان {prayer}",
+  "@prayerAdhanLabel": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "الفجر"
+      }
+    }
+  },
+  "prayerMuteHint": "انقر مرتين لكتم الصوت",
+  "prayerUnmuteHint": "انقر مرتين لإلغاء الكتم",
+  "prayerTapToMute": "اضغط لكتم الأذان",
+  "prayerTapToUnmute": "اضغط لإلغاء كتم الأذان",
+  "adhanWord": "الأذان",
+  "adhanItIsTimeFor": "حان الآن وقت",
+  "adhanNowPlaying": "يتم الآن تشغيل نداء الصلاة",
+  "adhanStop": "إيقاف الأذان",
+  "adhanStopping": "جارٍ الإيقاف…",
+  "adhanVolumeHint": "اضغط على زر الصوت للإيقاف",
+  "settingsTitle": "الإعدادات",
+  "settingsSubtitle": "المواقيت والتذكيرات والمظهر",
+  "settingsSectionLocationTiming": "الموقع والضبط",
+  "settingsCurrentLocation": "الموقع الحالي",
+  "settingsSectionCalculation": "أساليب الحساب",
+  "settingsCalculationMethod": "طريقة الحساب",
+  "settingsJuridicalMethod": "المذهب الفقهي (العصر)",
+  "settingsSectionNotifications": "الإشعارات والتنبيهات",
+  "settingsSectionAppearance": "المظهر",
+  "settingsTheme": "السمة",
+  "settingsSectionAbout": "حول التطبيق والتحديث",
+  "settingsLocationTitle": "الموقع",
+  "settingsCitySearchHint": "مثال: لندن أو الدار البيضاء",
+  "settingsSearching": "جارٍ البحث…",
+  "settingsSearchMinChars": "اكتب 3 أحرف على الأقل للبحث.",
+  "settingsCoordinates": "{latitude}، {longitude}",
+  "@settingsCoordinates": {
+    "placeholders": {
+      "latitude": {
+        "type": "String",
+        "example": "51.507"
+      },
+      "longitude": {
+        "type": "String",
+        "example": "-0.128"
+      }
+    }
+  },
+  "settingsAboutTagline": "مواقيت الصلاة، بلا ضجيج.",
+  "settingsAboutVersion": "إصدار {version}  •  بلا حسابات، بلا تتبّع",
+  "@settingsAboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.9.0"
+      }
+    }
+  },
+  "settingsLocationModeAuto": "تلقائي (GPS)",
+  "settingsLocationModeCity": "مدينة",
+  "settingsThemeSystem": "النظام",
+  "settingsThemeLight": "فاتح",
+  "settingsThemeDark": "داكن",
+  "notifToneTitle": "نغمة {kind}",
+  "@notifToneTitle": {
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "الأذان"
+      }
+    }
+  },
+  "notifTestAction": "تجربة {kind}",
+  "@notifTestAction": {
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "الأذان"
+      }
+    }
+  },
+  "notifRemindMeBefore": "ذكّرني قبل",
+  "@notifLeadMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "notifKindDisabledWarning": "إشعارات {kind} معطّلة — فعّلها من الأعلى ثم أعد المحاولة.",
+  "@notifKindDisabledWarning": {
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "الأذان"
+      }
+    }
+  },
+  "notifAccessWarning": "إشعارات التطبيق غير مفعّلة — اسمح بالإشعارات لمواقيت ثم أعد المحاولة.",
+  "notifTestFailed": "فشلت تجربة {kind}: {error}",
+  "@notifTestFailed": {
+    "placeholders": {
+      "kind": {
+        "type": "String",
+        "example": "الأذان"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@notifPrayerInMinutes": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "العصر"
+      },
+      "minutes": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "notifPrayerAtTime": "حان الآن وقت صلاة {prayer} · {time}",
+  "@notifPrayerAtTime": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "المغرب"
+      },
+      "time": {
+        "type": "String",
+        "example": "6:42 PM"
+      }
+    }
+  },
+  "notifReminderInOneMinute": "{prayer} بعد دقيقة",
+  "@notifReminderInOneMinute": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "العصر"
+      }
+    }
+  },
+  "notifReminderInMinutes": "{prayer} بعد {minutes} دقيقة",
+  "@notifReminderInMinutes": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "العصر"
+      },
+      "minutes": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "@notifReminderBody": {
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "3:15 PM"
+      }
+    }
+  },
+  "notifAdhanTitle": "الأذان — {prayer}",
+  "@notifAdhanTitle": {
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "العشاء"
+      }
+    }
+  },
+  "notifAdhanTitleName": "الأذان — {name}",
+  "@notifAdhanTitleName": {
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "تجربة"
+      }
+    }
+  },
+  "@notifRingsAtPrayerBody": {
+    "placeholders": {
+      "tone": {
+        "type": "String",
+        "example": "أدم الشرفاوى"
+      }
+    }
+  },
+  "notifUpdateAvailable": "إصدار مواقيت {version} متاح",
+  "@notifUpdateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "1.0.0"
+      }
+    }
+  },
+  "toneSheetPreviewHint": "اضغط على السماعة لمعاينة الصوت قبل الاختيار.",
+  "toneSheetBuiltIn": "النغمات المدمجة",
+  "toneSheetDeviceSounds": "أصوات الجهاز",
+  "toneSheetDeviceNote": "تبقى أصوات الجهاز على هذا الهاتف. إذا نُقل الملف أو حُذف، سيتحوّل الأذان إلى التشغيل الصامت بدلًا من أن يعلّق.",
+  "toneSheetReading": "جارٍ قراءة أصوات الجهاز…",
+  "toneSheetUnavailable": "لا توجد أصوات متاحة على الجهاز.",
+  "toneSheetReadFailed": "تعذّرت قراءة أصوات الجهاز.",
+  "toneSheetOnThisDevice": "على هذا الجهاز",
+  "toneSheetNoSound": "بلا صوت",
+  "toneSheetTapToPreview": "اضغط للمعاينة",
+  "toneSheetPreviewUnavailableShort": "المعاينة غير متاحة",
+  "toneSheetPreviewTooltip": "معاينة",
+  "toneSheetPreviewUnavailable": "المعاينة غير متاحة على هذا الجهاز.",
+  "accessKeepAdhanOnTime": "حافظ على دقة الأذان",
+  "accessKeepAdhanBody": "يوقف هاتفك التطبيقات أثناء إطفاء الشاشة، وهذا ما يمنع الأذان من الرنين. الإذنان التاليان يجعلانه موثوقًا.",
+  "accessReliability": "موثوقية المنبّه",
+  "@accessGrantedNote": {
+    "placeholders": {
+      "permission": {
+        "type": "String",
+        "example": "إشعارات ملء الشاشة"
+      }
+    }
+  },
+  "accessNotifications": "الإشعارات",
+  "accessAlarmsAndReminders": "المنبّهات والتذكيرات",
+  "accessFullScreen": "إشعارات ملء الشاشة",
+  "accessDisplayOverOtherApps": "العرض فوق التطبيقات الأخرى",
+  "accessDndAccess": "الوصول إلى وضع عدم الإزعاج",
+  "accessUnrestrictedBattery": "بطارية غير مقيّدة",
+  "updateSoftwareUpdate": "تحديث البرمجيات",
+  "updateChecking": "جارٍ التحقق…",
+  "updateCheckFailed": "فشل التحقق",
+  "updateAvailableTitle": "يتوفّر تحديث جديد",
+  "updateUpToDate": "أنت تستخدم أحدث إصدار",
+  "updateLookingForVersions": "جارٍ البحث عن إصدارات أحدث…",
+  "updateVersionDetails": "تفاصيل الإصدار",
+  "updateCurrentVersion": "الإصدار الحالي",
+  "updateLatestVersion": "أحدث إصدار",
+  "updateInstallType": "نوع التثبيت",
+  "updateLastChecked": "آخر تحقّق",
+  "updateLastResult": "آخر نتيجة",
+  "updateNoReleaseNotes": "لا تتوفّر ملاحظات الإصدار لهذا الإصدار.",
+  "updateDownloadingTitle": "جارٍ تنزيل التحديث",
+  "updateDownloading": "جارٍ التنزيل…",
+  "updatePercent": "{percent}٪",
+  "@updatePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int",
+        "example": "40"
+      }
+    }
+  },
+  "updateVerifiedReady": "تم التحقق من التحديث وهو جاهز للتثبيت.",
+  "updateBadge": "تحديث متاح",
+  "updateAboutMawaqit": "عن مواقيت",
+  "updateAboutBody": "بلا حسابات، بلا تتبّع — مواقيت الصلاة في متناول يدك",
+  "updateVersionLabel": "الإصدار {version}",
+  "@updateVersionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.9.0"
+      }
+    }
+  },
+  "updateAboutDescription": "تطبيق هادئ ومركّز لمواقيت الصلاة مع تنبيه الأذان.",
+  "settingsLocationTimingDesc": "الموقع والتوقيت",
+  "settingsCalculationDesc": "طريقة الحساب ومذهب العصر ليومك",
+  "settingsNotificationsDesc": "يرفع الأذان والتنبيهات قبل الصلاة",
+  "settingsAppearanceDesc": "اتبع الهاتف أو اختر سمة ثابتة",
+  "settingsCityName": "اسم المدينة",
+  "settingsNoCityFound": "لم يُعثر على مدينة لـ «{query}». جرّب منطقة أوسع.",
+  "settingsSearchFailed": "فشل البحث: {error}",
+  "settingsAutoGpsValue": "تلقائي (GPS)",
+  "settingsThemeSystemValue": "يتبع الهاتف",
+  "madhabHanafi": "حنفي",
+  "madhabStandard": "جمهور (شافعي، مالكي، حنبلي)",
+  "prayerFajr": "الفجر",
+  "prayerDhuhr": "الظهر",
+  "prayerAsr": "العصر",
+  "prayerMaghrib": "المغرب",
+  "prayerIsha": "العشاء",
+  "notifKindPrePrayer": "قبل الصلاة",
+  "notifKindAdhan": "الأذان",
+  "notifTestAdhanSubtitle": "يطلق التنبيه بملء الشاشة بعد ٣ ثوانٍ",
+  "notifTestPrePrayerSubtitle": "يطلق التذكير بعد ٣ ثوانٍ",
+  "notifEnabledPrePrayerHint": "يذكّرك قبل كل صلاة",
+  "notifEnabledAdhanHint": "يرفع الأذان عند دخول وقت الصلاة",
+  "notifDisabledPrePrayerNote": "فعّله لتصلك تذكيرات تنازلية قبل كل صلاة.",
+  "notifDisabledAdhanNote": "فعّله ليرتفع الأذان كاملًا في كل وقت صلاة.",
+  "notifTestAdhanFull": "سيُطلق تنبيه الأذان بعد ٣ ثوانٍ — بملء الشاشة، فوق شاشة القفل، وفوق أي تطبيق تستخدمه.",
+  "notifTestAdhanOverApps": "سيُطلق الأذان بعد ٣ ثوانٍ — بملء الشاشة فوق شاشة القفل. أثناء استخدامك للهاتف سيبقى بطاقة: اسمح بـ «العرض فوق التطبيقات» في موثوقية التنبيه لإجباره على الظهور.",
+  "notifTestAdhanHeadsUp": "سيُطلق الأذان بعد ٣ ثوانٍ (تنبيه عائم — الوصول لملء الشاشة مُعطَّل في إعدادات النظام).",
+  "notifTestPrePrayerTone": "سيُطلق تذكير ما قبل الصلاة بعد ٣ ثوانٍ — سيُشغَّل {tone}.",
+  "accessDoneAdhan": "تم — أُعيد جدولة أذان اليوم وتذكيراته.",
+  "accessDoneReminders": "تم التطبيق — أُعيد جدولة تذكيرات اليوم.",
+  "accessCanRingDescription": "الأذان يرن في وقته ويشعل شاشتك",
+  "accessCannotRingDescription": "قد يتأخر الأذان أو يصمت دون هذه الأذونات",
+  "accessAllGranted": "كل أذونات التنبيه ممنوحة",
+  "accessMissingSummary": "{missing} من {total} من الأذونات مُعطَّلة — قد يتأخر الأذان أو يصمت أو لا يظهر إطلاقًا. اضغط أي صف لإصلاحه.",
+  "accessAllowed": "ممنوح",
+  "accessFix": "إصلاح",
+  "accessBlurbNotifications": "إظهار الأذان وبطاقة ما قبل الصلاة",
+  "accessBlurbAlarmsAndReminders": "الرن في وقت الصلاة تمامًا بدل التأخير دقائق",
+  "accessBlurbFullScreen": "تنبيه يوقظ الشاشة ويظهر فوق شاشة القفل",
+  "accessBlurbOverApps": "إظهار الأذان بملء الشاشة حتى أثناء استخدام الهاتف",
+  "accessBlurbDnd": "رن الأذان حتى لو كان الهاتف على الصامت",
+  "accessBlurbBattery": "منع الهاتف من تأخير الأذان أو إسقاطه",
+  "notifLeadShort": "{minutes} د",
+  "notifOffPrePrayer": "لا تذكيرات تنازلية قبل الصلاة.",
+  "notifOffAdhan": "لا تنبيه أذان عند دخول وقت الصلاة.",
+  "updateErrorNoBuild": "لا يوجد ملف APK لهذا الإصدار.",
+  "updateErrorDownload": "تعذّر تنزيل التحديث.{detail}",
+  "updateErrorChecksum": "عدم تطابق المجموع الاختباري — رُفض التحديث حفاظًا على أمانك.",
+  "updateErrorInstall": "رفض أندرويد تثبيت التحديث.{detail}",
+  "updateErrorServer": "تعذّر الوصول إلى خادم التحديث.",
+  "updateErrorGeneric": "حدث خطأ ما.",
+  "updateStatusMandatory": "تحديث إلزامي",
+  "updateNeverChecked": "لم يُفحص قط",
+  "updateNever": "أبدًا",
+  "updateJustNow": "الآن للتو",
+  "updateUnknown": "غير معروف",
+  "updateUniversalApk": "حزمة APK universal",
+  "updateWhatsNew": "ما الجديد",
+  "updateCheckForUpdates": "ابحث عن تحديثات",
+  "updateRetry": "أعد المحاولة",
+  "updateMinutesAgo": "قبل {minutes} د",
+  "updateHoursAgo": "قبل {hours} س",
+  "updateUpToDateShort": "محدَّث",
+  "channelAppUpdates": "تحديثات التطبيق",
+  "channelAppUpdatesDescription": "تنبيهات عند توفر إصدار جديد من مواقيت.",
+  "channelPrePrayer": "تنبيه ما قبل الصلاة",
+  "channelPrePrayerDescription": "تذكير تنازلي قبل كل صلاة.",
+  "channelAdhanMuted": "نداء الصلاة (صامت)",
+  "channelAdhanMutedDescription": "يُعرض الأذان صامتًا عند كتم صلاة.",
+  "channelAdhanTest": "نداء الصلاة (تجريبي)",
+  "channelAdhanTestDescription": "أذان تجريبي — تشغيل الصوت من التطبيق مباشرة.",
+  "channelPrePrayerTest": "تنبيه ما قبل الصلاة (تجريبي)",
+  "channelPrePrayerTestDescription": "تجربة ما قبل الصلاة — تشغيل الصوت من التطبيق مباشرة.",
+  "testPrePrayerTitle": "تجربة — تذكير ما قبل الصلاة",
+  "testPrePrayerBodyAudible": "تذكيرات تنازلية قبل كل صلاة بـ {minutes} د · النغمة: {tone}",
+  "testPrePrayerBodySilent": "لا توجد نغمة محددة (صامت) — ستظهر بطاقة التنبيه كما هي.",
+  "testAdhanTitle": "تجربة — تنبيه الأذان",
+  "testAdhanBodySoundOff": "صوت الأذان مُعطَّل — ستظهر البطاقة بملء الشاشة صامتة.",
+  "testAdhanBodySilentTone": "النغمة المحددة صامتة — ستظهر البطاقة بملء الشاشة صامتة.",
+  "testAdhanBodyAudible": "يرن عند دخول وقت الصلاة ويشغل شاشة القفل كالمنبّه · الأذان: {tone}",
+  "soundUnplayableBody": "تعذّر تشغيل الصوت المحدد على هذا الجهاز.",
+  "chimeMuted": "النغمة مكتومة (صامت)",
+  "notifReminderBodyWithTone": "يليه الأذان عند {time} · {chime}",
+  "homeDayBeginsWith": "يبدأ اليوم بـ {prayer}",
+  "homePrayerEnded": "انتهى وقت {prayer} في {time}",
+  "widgetIn": "بعد {countdown}",
+  "accessGrantedAutomatically": "{permission} ممنوح تلقائيًا في هذا الإصدار من أندرويد — لا حاجة لأي إجراء.",
+  "hijriMonth1": "محرم",
+  "hijriMonth2": "صفر",
+  "hijriMonth3": "ربيع الأول",
+  "hijriMonth4": "ربيع الآخر",
+  "hijriMonth5": "جمادى الأولى",
+  "hijriMonth6": "جمادى الآخرة",
+  "hijriMonth7": "رجب",
+  "hijriMonth8": "شعبان",
+  "hijriMonth9": "رمضان",
+  "hijriMonth10": "شوال",
+  "hijriMonth11": "ذو القعدة",
+  "hijriMonth12": "ذو الحجة",
+  "unitDays": "ي",
+  "unitHours": "س",
+  "unitMinutes": "د",
+  "unitSeconds": "ث",
+  "updateErrorAlreadyRunning": "يوجد تحديث قيد التنفيذ بالفعل.",
+  "updateErrorPermissionDenied": "تم رفض إذن تثبيت التطبيقات.",
+  "settingsLanguage": "اللغة",
+  "settingsLanguageSystem": "لغة النظام",
+  "settingsLanguageEnglish": "الإنجليزية",
+  "settingsLanguageArabic": "العربية",
+  "testAdhanName": "اختبار"
+}
