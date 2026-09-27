@@ -152,8 +152,14 @@ class AdhanPlaybackService : Service() {
      */
     private fun armMaxDuration() {
         cancelMaxDuration()
-        maxDurationRunnable = Runnable { stopAdhan() }
-        mainHandler.postDelayed(maxDurationRunnable, MAX_DURATION_MS)
+        // Assign to a local first: passing the nullable field straight into
+        // `postDelayed` does not compile (the parameter is a non-null Runnable),
+        // and the local is the instance that `removeCallbacks` must be given
+        // later — posting `this` would queue a second object the cancel can
+        // never reach, so the watchdog would survive a dismissal.
+        val runnable = Runnable { stopAdhan() }
+        maxDurationRunnable = runnable
+        mainHandler.postDelayed(runnable, MAX_DURATION_MS)
     }
 
     private fun cancelMaxDuration() {
