@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mawaqit/core/theme/app_theme.dart';
-import 'package:mawaqit/core/theme/colors.dart';
+import 'package:mawaqit/core/ui/theme/app_theme.dart';
+import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/shared/ui/segmented_control.dart';
 
 void main() {
-  group('Sage Emerald theme', () {
-    test('light scheme uses the sage primary', () {
+  group('emerald brand theme', () {
+    test('light scheme uses the emerald primary', () {
       final theme = AppTheme.light();
-      expect(theme.colorScheme.primary, AppColors.primaryLight);
+      expect(theme.colorScheme.primary, AppColors.primaryEmerald);
       expect(theme.textTheme.titleLarge?.fontFamily, isNotNull);
     });
 
     test('dark scheme uses its own primary', () {
       final theme = AppTheme.dark();
-      expect(theme.colorScheme.primary, AppColors.primaryDark);
+      expect(theme.colorScheme.primary, AppColors.primaryEmeraldDark);
       expect(theme.brightness, Brightness.dark);
     });
   });

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/theme/colors.dart';
-import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/core/ui/theme/app_colors.dart';
+import 'package:mawaqit/core/ui/theme/shapes.dart';
 
 /// Pill-shaped segmented control (design "None/5/10/15", "System/Light/Dark").
 ///
@@ -26,6 +26,15 @@ class SegmentedControl<T> extends StatelessWidget {
   static const Duration _duration = Duration(milliseconds: 280);
   static const Curve _curve = Curves.easeOutCubic;
 
+  /// Below this segment width the per-segment icon is dropped.
+  ///
+  /// An icon costs [AppIconSize.md] plus [AppSpacing.sm] — 23dp — which is a
+  /// third of what a four-way control has to give each label on a 393dp phone.
+  /// The label is what carries the meaning ("English" is unambiguous where a
+  /// globe icon is not), so the icon is the first thing to go. Two- and
+  /// three-way controls are wide enough to keep theirs.
+  static const double _minSegmentForIcon = 100;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -43,6 +52,8 @@ class SegmentedControl<T> extends StatelessWidget {
         builder: (context, constraints) {
           final segmentWidth =
               (constraints.maxWidth - padding * 2) / options.length;
+          final showIcons =
+              icons.isNotEmpty && segmentWidth >= _minSegmentForIcon;
 
           return Stack(
             children: [
@@ -64,7 +75,7 @@ class SegmentedControl<T> extends StatelessWidget {
               Row(
                 children: [
                   for (var i = 0; i < options.length; i++)
-                    Expanded(child: _segment(context, i)),
+                    Expanded(child: _segment(context, i, showIcon: showIcons)),
                 ],
               ),
             ],
@@ -74,7 +85,7 @@ class SegmentedControl<T> extends StatelessWidget {
     );
   }
 
-  Widget _segment(BuildContext context, int index) {
+  Widget _segment(BuildContext context, int index, {required bool showIcon}) {
     final optionValue = options[index].$1;
     final label = options[index].$2;
     final scheme = Theme.of(context).colorScheme;
@@ -91,7 +102,7 @@ class SegmentedControl<T> extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (icons.length > index) ...[
+            if (showIcon && icons.length > index) ...[
               TweenAnimationBuilder<Color?>(
                 duration: _duration,
                 curve: _curve,
@@ -104,14 +115,27 @@ class SegmentedControl<T> extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
             ],
-            AnimatedDefaultTextStyle(
-              duration: _duration,
-              curve: _curve,
-              style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                color: foreground,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+            // `Flexible` is load-bearing, not defensive. A `Text` placed
+            // directly in a `Row` is handed an unbounded main-axis width, so each
+            // label laid out at its full intrinsic width and painted past the
+            // segment — which is what overflowed the language control once it
+            // grew to four options. Truncating keeps the segment's own bounds
+            // authoritative at any width, text scale, or translation length.
+            Flexible(
+              child: AnimatedDefaultTextStyle(
+                duration: _duration,
+                curve: _curve,
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                  color: foreground,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                ),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
               ),
-              child: Text(label),
             ),
           ],
         ),

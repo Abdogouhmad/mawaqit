@@ -77,6 +77,7 @@ extension AppLanguageL10n on AppLanguage {
     AppLanguage.system => l10n.settingsLanguageSystem,
     AppLanguage.english => l10n.settingsLanguageEnglish,
     AppLanguage.arabic => l10n.settingsLanguageArabic,
+    AppLanguage.french => l10n.settingsLanguageFrench,
   };
 }
 

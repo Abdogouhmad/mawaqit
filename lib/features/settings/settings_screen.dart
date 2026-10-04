@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/core/navigation/app_shell.dart';
+import 'package:mawaqit/core/ui/theme/app_colors.dart';
+import 'package:mawaqit/core/ui/theme/motion.dart';
+import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
@@ -64,6 +67,13 @@ class _SettingsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
+    // No back arrow and no Done button.
+    //
+    // Settings is a tab in the bottom shell, not a pushed route, so there is
+    // nothing to pop back to: both controls ran `Navigator.maybePop()`, which on
+    // a tab root does nothing at all and leaves the button looking broken. The
+    // tab bar is the way out, and the Android system back gesture behaves the
+    // same way.
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
@@ -71,46 +81,20 @@ class _SettingsHeader extends StatelessWidget {
         AppSpacing.sm,
         AppSpacing.md,
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Material(
-            color: scheme.secondaryContainer.withValues(alpha: 0.6),
-            shape: const CircleBorder(),
-            child: IconButton(
-              onPressed: () => Navigator.of(context).maybePop(),
-              icon: const Icon(Icons.arrow_back),
-              color: scheme.onSecondaryContainer,
-              tooltip: AppLocalizations.of(context).actionBack,
-            ),
+          UiText(
+            AppLocalizations.of(context).settingsTitle,
+            type: UiTextType.titleLarge,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.2,
           ),
-          const SizedBox(width: AppSpacing.xl),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                UiText(
-                  AppLocalizations.of(context).settingsTitle,
-                  type: UiTextType.titleLarge,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.2,
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                UiText(
-                  AppLocalizations.of(context).settingsSubtitle,
-                  type: UiTextType.labelMedium,
-                  color: scheme.onSurfaceVariant,
-                ),
-              ],
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).maybePop(),
-            child: UiText(
-              AppLocalizations.of(context).actionDone,
-              type: UiTextType.labelLarge,
-              color: scheme.primary,
-              fontWeight: FontWeight.w700,
-            ),
+          const SizedBox(height: AppSpacing.xxs),
+          UiText(
+            AppLocalizations.of(context).settingsSubtitle,
+            type: UiTextType.labelMedium,
+            color: scheme.onSurfaceVariant,
           ),
         ],
       ),
@@ -128,148 +112,187 @@ class _SettingsBody extends ConsumerWidget {
     final controller = ref.read(settingsProvider.notifier);
     final l10n = AppLocalizations.of(context);
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.huge,
-        AppSpacing.xs,
-        AppSpacing.huge,
-        AppSpacing.pageBottom,
-      ),
-      children: [
-        // Location & timing
-        SectionHeader(
-          label: AppLocalizations.of(context).settingsSectionLocationTiming,
-          description: l10n.settingsLocationTimingDesc,
-          icon: Icons.near_me_outlined,
+    return NavVisibilityScope.wrap(
+      context,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.huge,
+          AppSpacing.xs,
+          AppSpacing.huge,
+          AppSpacing.pageBottom,
         ),
-        AppCard(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xs,
-            vertical: AppSpacing.xs,
-          ),
-          child: SettingsRow(
+        children: [
+          // Location & timing
+          SectionHeader(
+            label: AppLocalizations.of(context).settingsSectionLocationTiming,
+            description: l10n.settingsLocationTimingDesc,
             icon: Icons.near_me_outlined,
-            title: AppLocalizations.of(context).settingsCurrentLocation,
-            subtitle: _locationSubtitle(context, settings),
-            onTap: () => _openLocationSheet(context, ref, controller, settings),
-            trailing: AppPill(
-              label: settings.locationMode.localized(l10n),
-              dense: true,
+          ),
+          AppCard(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xs,
+              vertical: AppSpacing.xs,
+            ),
+            child: SettingsRow(
+              icon: Icons.near_me_outlined,
+              title: AppLocalizations.of(context).settingsCurrentLocation,
+              subtitle: _locationSubtitle(context, settings),
+              onTap: () =>
+                  _openLocationSheet(context, ref, controller, settings),
+              trailing: AppPill(
+                label: settings.locationMode.localized(l10n),
+                dense: true,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.mega),
+          const SizedBox(height: AppSpacing.mega),
 
-        // Calculation
-        SectionHeader(
-          label: AppLocalizations.of(context).settingsSectionCalculation,
-          description: l10n.settingsCalculationDesc,
-          icon: Icons.calculate_outlined,
-        ),
-        SettingsGroup(
-          children: [
-            SettingsRow(
-              icon: Icons.calculate_outlined,
-              title: AppLocalizations.of(context).settingsCalculationMethod,
-              subtitle: settings.calculationMethod.displayName,
-              onTap: () =>
-                  _pickCalculationMethod(context, controller, settings),
-              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
-            ),
-            SettingsRow(
-              icon: Icons.balance_outlined,
-              title: l10n.settingsJuridicalMethod,
-              subtitle: settings.madhab == Madhab.hanafi
-                  ? l10n.madhabHanafi
-                  : l10n.madhabStandard,
-              onTap: () => _pickMadhab(context, controller, settings),
-              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.mega),
-
-        // Notifications & audio
-        SectionHeader(
-          label: AppLocalizations.of(context).settingsSectionNotifications,
-          description: l10n.settingsNotificationsDesc,
-          icon: Icons.notifications_none,
-        ),
-        SettingsGroup(
-          children: [
-            NotificationSettingsSection(kind: NotificationKind.prePrayer),
-            NotificationSettingsSection(kind: NotificationKind.adhan),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.huge),
-        const AlarmAccessSection(),
-        const SizedBox(height: AppSpacing.mega),
-
-        // Appearance
-        SectionHeader(
-          label: AppLocalizations.of(context).settingsSectionAppearance,
-          description: l10n.settingsAppearanceDesc,
-          icon: Icons.palette_outlined,
-        ),
-        SettingsGroup(
-          children: [
-            _SegmentedSettingRow<AppLanguage>(
-              icon: Icons.language,
-              title: l10n.settingsLanguage,
-              valueLabel: settings.language.localized(l10n),
-              control: SegmentedControl<AppLanguage>(
-                value: settings.language,
-                onChanged: (value) {
-                  HapticFeedback.selectionClick();
-                  controller.save(settings.copyWith(language: value));
-                },
-                icons: const [
-                  Icons.settings_suggest_outlined,
-                  Icons.abc_outlined,
-                  Icons.language,
-                ],
-                options: [
-                  (AppLanguage.system, l10n.settingsLanguageSystem),
-                  (AppLanguage.english, l10n.settingsLanguageEnglish),
-                  (AppLanguage.arabic, l10n.settingsLanguageArabic),
-                ],
+          // Calculation
+          SectionHeader(
+            label: AppLocalizations.of(context).settingsSectionCalculation,
+            description: l10n.settingsCalculationDesc,
+            icon: Icons.calculate_outlined,
+          ),
+          SettingsGroup(
+            children: [
+              SettingsRow(
+                icon: Icons.calculate_outlined,
+                title: AppLocalizations.of(context).settingsCalculationMethod,
+                subtitle: settings.calculationMethod.displayName,
+                onTap: () =>
+                    _pickCalculationMethod(context, controller, settings),
+                trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
               ),
-            ),
-            _SegmentedSettingRow<AppThemeMode>(
-              icon: Icons.palette_outlined,
-              title: l10n.settingsTheme,
-              valueLabel: _themeLabel(context, settings.themeMode),
-              control: SegmentedControl<AppThemeMode>(
-                value: settings.themeMode,
-                onChanged: (value) {
-                  HapticFeedback.selectionClick();
-                  controller.save(settings.copyWith(themeMode: value));
-                },
-                icons: const [
-                  Icons.settings_brightness,
-                  Icons.light_mode_outlined,
-                  Icons.dark_mode_outlined,
-                ],
-                options: [
-                  (AppThemeMode.system, l10n.settingsThemeSystem),
-                  (AppThemeMode.light, l10n.settingsThemeLight),
-                  (AppThemeMode.dark, l10n.settingsThemeDark),
-                ],
+              SettingsRow(
+                icon: Icons.balance_outlined,
+                title: l10n.settingsJuridicalMethod,
+                subtitle: settings.madhab == Madhab.hanafi
+                    ? l10n.madhabHanafi
+                    : l10n.madhabStandard,
+                onTap: () => _pickMadhab(context, controller, settings),
+                trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.tera),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.mega),
 
-        // About & OTA updates
-        SectionHeader(
-          label: AppLocalizations.of(context).settingsSectionAbout,
-          icon: Icons.info_outline,
-        ),
-        const UpdateSection(),
-        const SizedBox(height: AppSpacing.tera),
-        _Footer(),
-      ],
+          // Notifications & audio
+          SectionHeader(
+            label: AppLocalizations.of(context).settingsSectionNotifications,
+            description: l10n.settingsNotificationsDesc,
+            icon: Icons.notifications_none,
+          ),
+          SettingsGroup(
+            children: [
+              NotificationSettingsSection(kind: NotificationKind.prePrayer),
+              NotificationSettingsSection(kind: NotificationKind.adhan),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.huge),
+          const AlarmAccessSection(),
+          const SizedBox(height: AppSpacing.mega),
+
+          // Appearance
+          SectionHeader(
+            label: AppLocalizations.of(context).settingsSectionAppearance,
+            description: l10n.settingsAppearanceDesc,
+            icon: Icons.palette_outlined,
+          ),
+          SettingsGroup(
+            children: [
+              _SegmentedSettingRow<AppLanguage>(
+                icon: Icons.language,
+                title: l10n.settingsLanguage,
+                valueLabel: settings.language.localized(l10n),
+                control: SegmentedControl<AppLanguage>(
+                  value: settings.language,
+                  onChanged: (value) {
+                    HapticFeedback.selectionClick();
+                    controller.save(settings.copyWith(language: value));
+                  },
+                  icons: const [
+                    Icons.settings_suggest_outlined,
+                    Icons.abc_outlined,
+                    Icons.text_fields,
+                    Icons.translate,
+                  ],
+                  options: [
+                    (AppLanguage.system, l10n.settingsLanguageSystem),
+                    (AppLanguage.english, l10n.settingsLanguageEnglish),
+                    (AppLanguage.arabic, l10n.settingsLanguageArabic),
+                    (AppLanguage.french, l10n.settingsLanguageFrench),
+                  ],
+                ),
+              ),
+              _SegmentedSettingRow<AppThemeMode>(
+                icon: Icons.palette_outlined,
+                title: l10n.settingsTheme,
+                valueLabel: _themeLabel(context, settings.themeMode),
+                control: SegmentedControl<AppThemeMode>(
+                  value: settings.themeMode,
+                  onChanged: (value) {
+                    HapticFeedback.selectionClick();
+                    controller.save(settings.copyWith(themeMode: value));
+                  },
+                  icons: const [
+                    Icons.settings_brightness,
+                    Icons.light_mode_outlined,
+                    Icons.dark_mode_outlined,
+                  ],
+                  options: [
+                    (AppThemeMode.system, l10n.settingsThemeSystem),
+                    (AppThemeMode.light, l10n.settingsThemeLight),
+                    (AppThemeMode.dark, l10n.settingsThemeDark),
+                  ],
+                ),
+              ),
+              _PaletteSettingRow(
+                value: settings.palette,
+                onChanged: (palette) {
+                  HapticFeedback.selectionClick();
+                  controller.save(settings.copyWith(palette: palette));
+                },
+              ),
+              SettingsRow(
+                icon: Icons.blur_off_outlined,
+                title: l10n.appearanceReduceTransparency,
+                subtitle: l10n.appearanceReduceTransparencyHint,
+                trailing: Switch(
+                  value: settings.reduceTransparency,
+                  onChanged: (value) {
+                    HapticFeedback.selectionClick();
+                    controller.save(
+                      settings.copyWith(reduceTransparency: value),
+                    );
+                  },
+                ),
+              ),
+              SettingsRow(
+                icon: Icons.motion_photos_off_outlined,
+                title: l10n.appearanceMotion,
+                subtitle: l10n.appearanceMotionHint,
+                trailing: Switch(
+                  value: settings.reduceMotion,
+                  onChanged: (value) {
+                    HapticFeedback.selectionClick();
+                    controller.save(settings.copyWith(reduceMotion: value));
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.tera),
+
+          // About & OTA updates
+          SectionHeader(
+            label: AppLocalizations.of(context).settingsSectionAbout,
+            icon: Icons.info_outline,
+          ),
+          const UpdateSection(),
+          const SizedBox(height: AppSpacing.tera),
+          const _Footer(),
+        ],
+      ),
     );
   }
 
@@ -670,6 +693,8 @@ class _SegmentedSettingRow<T> extends StatelessWidget {
 }
 
 class _Footer extends StatelessWidget {
+  const _Footer();
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -685,20 +710,194 @@ class _Footer extends StatelessWidget {
           l10n.appTitle,
           type: UiTextType.titleMedium,
           fontWeight: FontWeight.w700,
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.xxs),
         UiText(
           l10n.settingsAboutTagline,
           type: UiTextType.labelMedium,
           color: scheme.onSurfaceVariant,
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.md),
+        // The localized template, not the English literal this used to spell
+        // out — that string is exactly `settingsAboutVersion`'s en value, so
+        // Arabic and French readers were seeing English here while the About
+        // dialog above them was translated.
         UiText(
-          'v${AppInfo.version}  •  No accounts, no tracking',
+          l10n.settingsAboutVersion(AppInfo.version),
           type: UiTextType.labelSmall,
           color: scheme.onSurfaceVariant.withValues(alpha: 0.55),
+          textAlign: TextAlign.center,
         ),
       ],
+    );
+  }
+}
+
+/// Palette picker.
+///
+/// Rendered as swatch circles rather than a segmented control of words: the
+/// three palettes differ in *colour*, not in meaning, so the control should
+/// show the thing being chosen. Names stay as the semantic label so a screen
+/// reader announces what the swatch is.
+///
+/// Deliberately separate from `_SegmentedSettingRow` — that one is a text
+/// control for text-valued settings, and reusing it here would mean inventing
+/// an icon list whose icons do not correspond to anything.
+class _PaletteSettingRow extends StatelessWidget {
+  const _PaletteSettingRow({required this.value, required this.onChanged});
+
+  final AppPalette value;
+  final ValueChanged<AppPalette> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xxxl,
+        AppSpacing.xxl,
+        AppSpacing.xxxl,
+        AppSpacing.xxl,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              IconBadge(icon: Icons.palette_outlined),
+              const SizedBox(width: AppSpacing.xxl),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    UiText(
+                      l10n.appearancePalette,
+                      type: UiTextType.titleMedium,
+                      fontSize: AppFontSize.lg,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    const SizedBox(height: AppSpacing.xxs),
+                    UiText(
+                      _labelOf(value, l10n),
+                      type: UiTextType.labelMedium,
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xxl),
+          Row(
+            children: [
+              for (final palette in AppPalette.values)
+                Expanded(
+                  child: _PaletteSwatch(
+                    palette: palette,
+                    selected: palette == value,
+                    label: _labelOf(palette, l10n),
+                    onTap: () => onChanged(palette),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _labelOf(AppPalette palette, AppLocalizations l10n) =>
+      switch (palette) {
+        AppPalette.emerald => l10n.appearancePaletteEmerald,
+        AppPalette.sage => l10n.appearancePaletteSage,
+        AppPalette.midnight => l10n.appearancePaletteMidnight,
+      };
+}
+
+/// One selectable palette swatch: a two-tone dot showing the palette's primary
+/// over its surface, with a ring when selected.
+class _PaletteSwatch extends StatelessWidget {
+  const _PaletteSwatch({
+    required this.palette,
+    required this.selected,
+    required this.label,
+    required this.onTap,
+  });
+
+  final AppPalette palette;
+  final bool selected;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    // Resolved from the seed rather than read off the live [scheme], so each
+    // swatch previews the palette it selects — including the two the user is not
+    // currently on, which is the whole point of a picker.
+    final preview = ColorScheme.fromSeed(
+      seedColor: palette.lightSeed,
+      brightness: Theme.of(context).brightness,
+    );
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      // The dot is decoration as far as assistive tech is concerned; the label
+      // above already carries the name.
+      excludeSemantics: true,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          child: Column(
+            children: [
+              AnimatedContainer(
+                duration: AppMotion.short,
+                curve: AppMotion.standard,
+                height: AppSpacing.control,
+                width: AppSpacing.control,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  // Two arcs rather than a flat fill: the palette is defined by
+                  // its primary/secondary pair, and a single-colour dot would
+                  // make Emerald and Sage nearly indistinguishable at 40 dp.
+                  gradient: SweepGradient(
+                    colors: [
+                      preview.primary,
+                      preview.secondary,
+                      preview.primary,
+                    ],
+                  ),
+                  border: Border.all(
+                    color: selected ? scheme.primary : scheme.outlineVariant,
+                    width: selected ? 2.5 : 1,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              UiText(
+                label,
+                type: UiTextType.labelSmall,
+                textAlign: TextAlign.center,
+                color: selected ? scheme.primary : scheme.onSurfaceVariant,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                maxLines: 2,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/data/models/alarm_access.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';

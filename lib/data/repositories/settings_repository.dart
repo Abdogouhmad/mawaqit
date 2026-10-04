@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:mawaqit/core/const/pref_keys.dart';
+import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 
 class SettingsRepository {
-  static const _key = 'app_settings_v1';
-
   Future<AppSettings> load() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key);
+    final raw = prefs.getString(PrefKeys.appSettings);
     if (raw == null) return const AppSettings();
     try {
       return _fromJson(jsonDecode(raw) as Map<String, dynamic>);
@@ -21,7 +21,7 @@ class SettingsRepository {
 
   Future<void> save(AppSettings settings) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_key, jsonEncode(_toJson(settings)));
+    await prefs.setString(PrefKeys.appSettings, jsonEncode(_toJson(settings)));
   }
 
   Map<String, dynamic> _toJson(AppSettings s) => {
@@ -40,6 +40,9 @@ class SettingsRepository {
     'cityName': s.cityName,
     'cityLatitude': s.cityLatitude,
     'cityLongitude': s.cityLongitude,
+    'palette': s.palette.storageKey,
+    'reduceTransparency': s.reduceTransparency,
+    'reduceMotion': s.reduceMotion,
   };
 
   AppSettings _fromJson(Map<String, dynamic> json) => AppSettings(
@@ -76,5 +79,10 @@ class SettingsRepository {
     cityName: json['cityName'] as String?,
     cityLatitude: (json['cityLatitude'] as num?)?.toDouble(),
     cityLongitude: (json['cityLongitude'] as num?)?.toDouble(),
+    // `fromStorageKey` falls back to the brand palette, so a blob written
+    // before palettes existed still renders a coherent theme.
+    palette: AppPalette.fromStorageKey(json['palette'] as String?),
+    reduceTransparency: json['reduceTransparency'] as bool? ?? false,
+    reduceMotion: json['reduceMotion'] as bool? ?? false,
   );
 }

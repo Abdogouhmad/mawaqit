@@ -20,7 +20,7 @@ val derivedVersionCode =
     versionParts.getOrElse(2) { 0 }
 
 android {
-    namespace = "com.mawaqit.mawaqit"
+    namespace = "com.freesoftware.mawaqit"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -31,8 +31,11 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.mawaqit.mawaqit"
+        // The published application id. It stems from a domain the project
+        // actually controls, which is why this is `com.freesoftware.mawaqit`
+        // rather than a doubled-up `com.mawaqit.mawaqit` — that shape resolves
+        // to the non-existent domain `mawaqit.mawaqit.com`.
+        applicationId = "com.freesoftware.mawaqit"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -89,6 +92,28 @@ android {
         compose = true
     }
 
+    androidResources {
+        // AndroidX, Material and the Compose libraries each ship their own
+        // translations for ~80 locales, and aapt2 bundles every one of them into
+        // the APK. This app only ever renders Arabic or English, so the rest are
+        // dead weight the platform will never pick — it resolves against the
+        // device locale at runtime, and a locale with no entry simply falls back
+        // to the default. `fr` is kept because the app ships a French locale.
+        //
+        // This is a whitelist: adding a language to `lib/l10n/` means adding it
+        // here too, or it will be missing from the native chrome (date and time
+        // pickers, permission dialogs) even though the Flutter side has it.
+        localeFilters += listOf("en", "ar", "fr")
+    }
+
+    packaging {
+        resources {
+            // The licence texts Flutter's own engine library ships. Harmless,
+            // but they are dead weight in every APK, and some stores flag an
+            // APK that redistributes someone else's licence file verbatim.
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
 
 kotlin {

@@ -1,11 +1,27 @@
 // ignore_for_file: depend_on_referenced_packages
 import 'package:flutter/material.dart' show Icons;
 import 'package:home_widget_generator/home_widget_generator.dart';
-import 'package:mawaqit/core/theme/colors.dart';
+import 'package:mawaqit/core/ui/theme/app_colors.dart';
 
 @HomeWidget(
   name: 'PrayerWidget',
   description: 'Next prayer, live countdown, and daily sequence',
+
+  // Tapping the card lands on the prayer-times tab, which is what the card is
+  // showing. Not cosmetic: `widgetUrl` is what makes the generator emit
+  // `actionStartActivity<MainActivity>(Uri.parse(...))` instead of the bare
+  // one-argument overload. Only the URI overload goes through the plugin's
+  // `HomeWidgetLaunchIntent`, which attaches the `ActivityOptions` carrying
+  // `MODE_BACKGROUND_ACTIVITY_START_ALLOWED` — without it Android 14+ treats
+  // the launcher's tap as a background activity start and refuses it, which is
+  // the white screen this replaces.
+  //
+  // The generator demands an absolute URI, so the tab path rides in the path
+  // with an empty authority: `mawaqit:///times` → `uri.path == '/times'`.
+  // Flutter's own deep linking is off (no `flutter_deeplinking_enabled` in the
+  // manifest), so nothing else tries to interpret this scheme; only
+  // `HomeWidget.initiallyLaunchedFromHomeWidget` / `widgetClicked` read it.
+  widgetUrl: 'mawaqit:///times',
 
   android: HomeWidgetAndroidConfiguration(
     minWidth: 170,
@@ -25,8 +41,12 @@ import 'package:mawaqit/core/theme/colors.dart';
           light: HWColor.fixed(AppColors.widgetCanvasLightArgb),
           dark: HWColor.fixed(AppColors.widgetCanvasDarkArgb),
         ),
+        // On the decoration, not on the border: 0.4.0 moved the corner radius
+        // off `HWBoxBorder` and gave it its own type. Glance rounds with a single
+        // `cornerRadius` per view, so one value covers the border and the fill,
+        // and the generator insets the inner one by the border thickness itself.
+        borderRadius: HWBorderRadius.circular(24),
         border: HWBoxBorder(
-          radius: 24,
           thickness: 1,
           color: HWColor.themed(
             light: HWColor.fixed(AppColors.widgetHairlineLightArgb),
@@ -56,8 +76,8 @@ import 'package:mawaqit/core/theme/colors.dart';
                         Icons.mosque_rounded,
                         size: 16,
                         color: HWColor.themed(
-                          light: HWColor.fixed(AppColors.primaryLightArgb),
-                          dark: HWColor.fixed(AppColors.radiantSageArgb),
+                          light: HWColor.fixed(AppColors.emeraldPrimaryArgb),
+                          dark: HWColor.fixed(AppColors.emeraldPrimaryDarkArgb),
                         ),
                       ),
                     ),
@@ -66,8 +86,8 @@ import 'package:mawaqit/core/theme/colors.dart';
                       style: HWRoleTextStyle(
                         role: HWTextStyleRole.caption,
                         color: HWColor.themed(
-                          light: HWColor.fixed(AppColors.primaryLightArgb),
-                          dark: HWColor.fixed(AppColors.radiantSageArgb),
+                          light: HWColor.fixed(AppColors.emeraldPrimaryArgb),
+                          dark: HWColor.fixed(AppColors.emeraldPrimaryDarkArgb),
                         ),
                         fontWeight: HWFontWeight.bold,
                       ),
@@ -117,7 +137,7 @@ import 'package:mawaqit/core/theme/colors.dart';
                     style: HWRoleTextStyle(
                       role: HWTextStyleRole.title,
                       color: HWColor.themed(
-                        light: HWColor.fixed(AppColors.primaryLightArgb),
+                        light: HWColor.fixed(AppColors.emeraldPrimaryArgb),
                         dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                       ),
                       fontWeight: HWFontWeight.bold,
@@ -148,7 +168,7 @@ import 'package:mawaqit/core/theme/colors.dart';
                     Icons.circle,
                     size: 9,
                     color: HWColor.themed(
-                      light: HWColor.fixed(AppColors.primaryLightArgb),
+                      light: HWColor.fixed(AppColors.emeraldPrimaryArgb),
                       dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                     ),
                   ),
@@ -181,7 +201,7 @@ import 'package:mawaqit/core/theme/colors.dart';
                     Icons.circle,
                     size: 9,
                     color: HWColor.themed(
-                      light: HWColor.fixed(AppColors.primaryLightArgb),
+                      light: HWColor.fixed(AppColors.emeraldPrimaryArgb),
                       dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                     ),
                   ),
@@ -214,7 +234,7 @@ import 'package:mawaqit/core/theme/colors.dart';
                     Icons.circle,
                     size: 9,
                     color: HWColor.themed(
-                      light: HWColor.fixed(AppColors.primaryLightArgb),
+                      light: HWColor.fixed(AppColors.emeraldPrimaryArgb),
                       dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                     ),
                   ),
@@ -247,7 +267,7 @@ import 'package:mawaqit/core/theme/colors.dart';
                     Icons.circle,
                     size: 9,
                     color: HWColor.themed(
-                      light: HWColor.fixed(AppColors.primaryLightArgb),
+                      light: HWColor.fixed(AppColors.emeraldPrimaryArgb),
                       dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                     ),
                   ),
@@ -280,7 +300,7 @@ import 'package:mawaqit/core/theme/colors.dart';
                     Icons.circle,
                     size: 9,
                     color: HWColor.themed(
-                      light: HWColor.fixed(AppColors.primaryLightArgb),
+                      light: HWColor.fixed(AppColors.emeraldPrimaryArgb),
                       dark: HWColor.fixed(AppColors.widgetAccentDarkArgb),
                     ),
                   ),

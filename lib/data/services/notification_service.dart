@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'package:mawaqit/core/const/prayer_keys.dart';
 import 'package:mawaqit/core/navigation/app_navigator.dart';
 import 'package:mawaqit/core/audio/tone_catalog.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
@@ -67,9 +68,31 @@ class NotificationService {
 
   static const String _nativeChannel = 'mawaqit/native';
 
-  /// Application id — `android.resource://` notification sound URIs must point
-  /// at the app's own raw resources. Kept in sync with the Android package.
-  static const String _androidApplicationId = 'com.mawaqit.mawaqit';
+  /// The application id this build actually installed under, asked of the
+  /// platform rather than hardcoded, and cached after the first read.
+  ///
+  /// `android.resource://` URIs are resolved against the *installed* package, so
+  /// a baked-in id silently rots the first time the package is renamed or a
+  /// build variant carries a different suffix: the URI still parses, so nothing
+  /// fails loudly — the notification just points at a package this build does
+  /// not own and the adhan comes out silent.
+  ///
+  /// Null off Android (a Linux dev run, or before [init] completes), which is
+  /// the signal to leave the channel without a sound rather than build a URI
+  /// that cannot resolve. [init] primes it, and every channel below is created
+  /// after that, so the synchronous getters see the real value.
+  static String? _androidApplicationId;
+
+  static Future<void> _primeApplicationId() async {
+    if (_androidApplicationId != null) return;
+    try {
+      _androidApplicationId = await const MethodChannel(_nativeChannel)
+          .invokeMethod<String>('appPackageName');
+    } catch (_) {
+      // No native side — a desktop dev run. Not an error worth surfacing.
+      _androidApplicationId = null;
+    }
+  }
 
   /// Binds a bundled `res/raw` sound by explicit `android.resource://` URI.
   ///
@@ -79,10 +102,14 @@ class NotificationService {
   /// installed APK that predates the resource). The URI form skips that
   /// pre-validation: a missing resource degrades to a silent alert instead of
   /// aborting the schedule.
-  static UriAndroidNotificationSound _soundForResource(String rawName) =>
-      UriAndroidNotificationSound(
-        'android.resource://$_androidApplicationId/raw/$rawName',
-      );
+  ///
+  /// Null when the application id is unavailable, which leaves the channel
+  /// without an explicit sound.
+  static UriAndroidNotificationSound? _soundForResource(String rawName) {
+    final id = _androidApplicationId;
+    if (id == null) return null;
+    return UriAndroidNotificationSound('android.resource://$id/raw/$rawName');
+  }
 
   // Deterministic per-day id spaces. `epochDay * 10 + prayerIndex` keeps every
   // prayer's id unique across days without colliding between alert kinds.
@@ -153,9 +180,7 @@ class NotificationService {
       description: l10n.channelPrePrayerDescription,
       importance: Importance.high,
       playSound: true,
-      sound: UriAndroidNotificationSound(
-        'android.resource://com.mawaqit.mawaqit/raw/pre_alert',
-      ),
+      sound: _soundForResource('pre_alert'),
       audioAttributesUsage: AudioAttributesUsage.alarm,
     );
   }
@@ -298,6 +323,10 @@ class NotificationService {
     AmbientL10n.locale =
         locale ?? WidgetsBinding.instance.platformDispatcher.locale;
     await TimezoneSetup.ensureInitialized();
+
+    // Before any channel is built: the `android.resource://` sound URIs below
+    // need the installed application id, which differs per flavor.
+    await _primeApplicationId();
 
     await _plugin.initialize(
       settings: const InitializationSettings(
@@ -1277,11 +1306,11 @@ class NotificationService {
   }
 
   /// Human-readable id for one prayer occurrence, e.g. `"2026-09-21_maghrib"`.
-  static String prayerIdFor(DateTime date, PrayerKind kind) {
-    final m = date.month.toString().padLeft(2, '0');
-    final d = date.day.toString().padLeft(2, '0');
-    return '${date.year}-$m-${d}_${kind.name}';
-  }
+  ///
+  /// Delegates to [PrayerKeys.occurrenceId] so the id the native module persists
+  /// and the id the mute list stores are provably the same string.
+  static String prayerIdFor(DateTime date, PrayerKind kind) =>
+      PrayerKeys.occurrenceId(date, kind);
 
   /// Whether the adhan is genuinely audible for [settings].
   ///

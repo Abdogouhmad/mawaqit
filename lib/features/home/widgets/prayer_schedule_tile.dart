@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:mawaqit/core/theme/colors.dart';
-import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/core/ui/theme/app_colors.dart';
+import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';

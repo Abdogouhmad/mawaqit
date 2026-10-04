@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/core/ui/theme/shapes.dart';
 
 /// Leading icon badge — the tonal circle (or rounded square) that anchors
 /// settings rows, section headers and card titles.

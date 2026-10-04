@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/core/ui/theme/shapes.dart';
 
 /// One shared action-button API for the four M3 button variants, with a
 /// built-in loading state and optional full width.

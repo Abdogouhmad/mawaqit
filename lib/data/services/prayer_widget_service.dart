@@ -52,11 +52,41 @@ abstract final class PrayerWidgetService {
       AmbientL10n.locale = locale;
       TimeFormatter.locale(locale.languageCode);
       final l10n = AmbientL10n.instance;
+
+      // Whether a prayer's time has already gone by today.
+      bool isPast(PrayerKind kind) {
+        final t = day.prayer(kind)?.time;
+        return t != null && t.isBefore(now);
+      }
+
       await PrayerWidgetHomeWidget.saveData(
         locationShort: _shorten(locationShort ?? settings.cityName),
         nextPrayerName: next.kind.localized(l10n),
         nextPrayerTime: TimeFormatter.clock(next.time),
         nextPrayerCountdown: l10n.widgetIn(TimeFormatter.longCountdown(nextIn)),
+        // The five prayer-sequence dots.
+        //
+        // These ten flags used to be omitted here, and the omission was silent:
+        // the generated `saveData` skips every null argument, and the generated
+        // `PrayerWidgetData.fromPreferences` collapses a *missing* key to
+        // `false` — the same value the widget reads for "not past". So nothing
+        // ever threw and nothing ever looked broken; all five dots just sat at
+        // the faintest tint forever and the row never moved.
+        //
+        // Every flag is therefore written on every snapshot. `IsActive` is
+        // checked before `IsPast` in the generated Kotlin, so after Isha the
+        // highlight correctly rolls over onto tomorrow's Fajr — `next.kind`
+        // becomes fajr above, while today's own Fajr stays marked past.
+        fajrIsActive: next.kind == PrayerKind.fajr,
+        fajrIsPast: isPast(PrayerKind.fajr),
+        dhuhrIsActive: next.kind == PrayerKind.dhuhr,
+        dhuhrIsPast: isPast(PrayerKind.dhuhr),
+        asrIsActive: next.kind == PrayerKind.asr,
+        asrIsPast: isPast(PrayerKind.asr),
+        maghribIsActive: next.kind == PrayerKind.maghrib,
+        maghribIsPast: isPast(PrayerKind.maghrib),
+        ishaIsActive: next.kind == PrayerKind.isha,
+        ishaIsPast: isPast(PrayerKind.isha),
       );
       await PrayerWidgetHomeWidget.updateWidget();
     } catch (_) {

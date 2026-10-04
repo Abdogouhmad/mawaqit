@@ -2,8 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:mawaqit/core/constants.dart';
-import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/core/const/app_constants.dart';
+import 'package:mawaqit/core/navigation/app_shell.dart';
+import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
@@ -34,42 +35,45 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
-          onRefresh: () async => ref.invalidate(homeControllerProvider),
-          color: Theme.of(context).colorScheme.primary,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.huge,
-              AppSpacing.xs,
-              AppSpacing.huge,
-              AppSpacing.pageBottom,
-            ),
-            children: [
-              _HomeHeader(locationMissing: locationMissing),
-              asyncState.when(
-                // Keep the current day on screen while a refresh or a settings
-                // change recomputes it. The RefreshIndicator already shows the
-                // pull, so swapping the whole body for a spinner here is a
-                // regression, not feedback. A genuinely first load still has no
-                // previous value and falls through to `loading` below.
-                skipLoadingOnReload: true,
-                loading: () => const _HomeLoading(),
-                error: (error, _) => _HomeError(message: error.toString()),
-                data: (data) => _HomeBody(state: data),
+        child: NavVisibilityScope.wrap(
+          context,
+          child: RefreshIndicator(
+            onRefresh: () async => ref.invalidate(homeControllerProvider),
+            color: Theme.of(context).colorScheme.primary,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.huge,
+                AppSpacing.xs,
+                AppSpacing.huge,
+                AppSpacing.pageBottom,
               ),
-              // Renders nothing: the one-time battery-optimisation ask. Mounted
-              // only once home data exists, which is also the point where the
-              // notification service has finished initialising and the system
-              // access state behind the question is a real read.
-              if (state != null) const AlarmAccessGate(),
-              if (kDebugMode) ...[
-                const SizedBox(height: AppSpacing.tera),
-                _DevAdhanPreview(
-                  prayer: state?.nextPrayer?.kind ?? PrayerKind.maghrib,
+              children: [
+                _HomeHeader(locationMissing: locationMissing),
+                asyncState.when(
+                  // Keep the current day on screen while a refresh or a settings
+                  // change recomputes it. The RefreshIndicator already shows the
+                  // pull, so swapping the whole body for a spinner here is a
+                  // regression, not feedback. A genuinely first load still has no
+                  // previous value and falls through to `loading` below.
+                  skipLoadingOnReload: true,
+                  loading: () => const _HomeLoading(),
+                  error: (error, _) => _HomeError(message: error.toString()),
+                  data: (data) => _HomeBody(state: data),
                 ),
+                // Renders nothing: the one-time battery-optimisation ask. Mounted
+                // only once home data exists, which is also the point where the
+                // notification service has finished initialising and the system
+                // access state behind the question is a real read.
+                if (state != null) const AlarmAccessGate(),
+                if (kDebugMode) ...[
+                  const SizedBox(height: AppSpacing.tera),
+                  _DevAdhanPreview(
+                    prayer: state?.nextPrayer?.kind ?? PrayerKind.maghrib,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -123,13 +127,6 @@ class _HomeHeader extends StatelessWidget {
               ),
             ),
           ],
-          const Spacer(),
-          IconButton(
-            onPressed: () => Navigator.of(context).pushNamed('/settings'),
-            icon: const Icon(Icons.settings_outlined),
-            color: scheme.onSurfaceVariant,
-            tooltip: AppLocalizations.of(context).settingsTitle,
-          ),
         ],
       ),
     );
@@ -240,30 +237,45 @@ class _HomeBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.xxxl),
         Row(
           children: [
-            Expanded(
+            // Both labels are `Flexible` rather than one being `Expanded`: a
+            // countdown grows through the day ("IN 4H 12M" -> "IN 4M"), and an
+            // `Expanded` sibling would take the slack and squeeze it out of the
+            // row entirely rather than let the two share.
+            Flexible(
               child: UiText(
                 state.methodLabel.toUpperCase(),
                 type: UiTextType.labelSmall,
                 letterSpacing: 0.8,
                 color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
+                // Truncates rather than wrapping: this row is a single line by
+                // design, and a two-line method name would break the gap between
+                // the Solar card and the row below.
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
               ),
             ),
+            const SizedBox(width: AppSpacing.sm),
             Icon(
               Icons.wb_twilight,
               size: AppIconSize.sm,
               color: scheme.primary,
             ),
             const SizedBox(width: AppSpacing.sm),
-            UiText(
-              (sunsetIn.isNegative
-                      ? l10n.homeSunsetAt(TimeFormatter.clock(sunset))
-                      : l10n.homeSunsetIn(
-                          TimeFormatter.longCountdown(sunsetIn),
-                        ))
-                  .toUpperCase(),
-              type: UiTextType.labelSmall,
-              letterSpacing: 0.8,
-              color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
+            Flexible(
+              child: UiText(
+                (sunsetIn.isNegative
+                        ? l10n.homeSunsetAt(TimeFormatter.clock(sunset))
+                        : l10n.homeSunsetIn(
+                            TimeFormatter.longCountdown(sunsetIn),
+                          ))
+                    .toUpperCase(),
+                type: UiTextType.labelSmall,
+                letterSpacing: 0.8,
+                color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -277,12 +289,19 @@ class _HomeBody extends ConsumerWidget {
               color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
             ),
             const SizedBox(width: AppSpacing.sm),
-            UiText(
-              l10n.homePrivacyNote,
-              type: UiTextType.labelSmall,
-              color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
-              letterSpacing: 0.2,
-              fontWeight: FontWeight.w500,
+            // `Flexible` is load-bearing, not defensive. A `Text` in a `Row` is
+            // given an unbounded main-axis width, so this note laid out at its
+            // full intrinsic width — the length of the whole sentence — and
+            // overflowed the card by exactly that difference on every locale.
+            Flexible(
+              child: UiText(
+                l10n.homePrivacyNote,
+                type: UiTextType.labelSmall,
+                color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
+                letterSpacing: 0.2,
+                fontWeight: FontWeight.w500,
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),

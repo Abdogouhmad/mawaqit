@@ -22,6 +22,8 @@ class HomeState {
     required this.now,
     this.day,
     this.locationName = '',
+    this.latitude,
+    this.longitude,
     this.fromManual = false,
     this.currentPrayer,
     this.nextPrayer,
@@ -35,6 +37,17 @@ class HomeState {
   final DateTime now;
   final PrayerDay? day;
   final String locationName;
+
+  /// Resolved coordinates for [day].
+  ///
+  /// Carried on the state rather than re-resolved by each screen: the Times tab
+  /// needs them, and a second `Geolocator.getCurrentPosition` would mean a
+  /// second GPS round trip — and a second permission prompt — for a user who
+  /// opened the tab seconds after Home. `null` until a location has been
+  /// resolved, which is what [hasLocationResolved] reports.
+  final double? latitude;
+  final double? longitude;
+
   final bool fromManual;
   final PrayerTime? currentPrayer;
   final PrayerTime? nextPrayer;
@@ -44,10 +57,15 @@ class HomeState {
   final bool isLoading;
   final String? error;
 
+  /// Whether coordinates are available, i.e. a location has been resolved.
+  bool get hasLocationResolved => latitude != null && longitude != null;
+
   HomeState copyWith({
     DateTime? now,
     PrayerDay? day,
     String? locationName,
+    double? latitude,
+    double? longitude,
     bool? fromManual,
     PrayerTime? currentPrayer,
     PrayerTime? nextPrayer,
@@ -62,6 +80,8 @@ class HomeState {
       now: now ?? this.now,
       day: day ?? this.day,
       locationName: locationName ?? this.locationName,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       fromManual: fromManual ?? this.fromManual,
       currentPrayer: currentPrayer ?? this.currentPrayer,
       nextPrayer: nextPrayer ?? this.nextPrayer,
@@ -218,6 +238,11 @@ class HomeController extends AsyncNotifier<HomeState> {
         now: now,
         day: previous?.day,
         locationName: previous?.locationName ?? '',
+        // Kept on purpose: a failed *refresh* must not blank the coordinates the
+        // Times tab is still rendering from.
+        latitude: previous?.latitude,
+        longitude: previous?.longitude,
+        fromManual: previous?.fromManual ?? false,
         isLoading: false,
         error: error.toString(),
       );
@@ -308,6 +333,8 @@ class HomeController extends AsyncNotifier<HomeState> {
         now: now,
         day: day,
         locationName: location.displayName,
+        latitude: location.latitude,
+        longitude: location.longitude,
         fromManual: location.fromManual,
         methodLabel: PrayerTimesRepository.shortLabel(
           settings.calculationMethod,

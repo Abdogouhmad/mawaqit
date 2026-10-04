@@ -86,8 +86,10 @@ err() { printf '\033[1;31m[mawaqit]\033[0m %s\n' "$*" >&2; }
 # semi-ordered number can be used for tags/manifests regardless of `+<build>`.
 get_version() { sed -n 's/^version: *//p' pubspec.yaml | head -n1; }
 
-VERSION="$(get_version)"
-VERSION="${VERSION%%+*}"          # strip any +<build-number> metadata
+VERSION_RAW="$(get_version)"
+VERSION="${VERSION_RAW%%+*}"          # strip any +<build-number> metadata
+BUILD_NUMBER="${VERSION_RAW#*+}"
+[[ "$BUILD_NUMBER" == "$VERSION_RAW" ]] && BUILD_NUMBER=""   # no '+' present
 IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
 VERSION_CODE=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
 TAG="v${VERSION}"
@@ -210,6 +212,8 @@ stage_artifacts() {
   mkdir -p dist
   local out="build/app/outputs/flutter-apk"
 
+  # A wrong guess here surfaces as "Missing build output" long after a ~10 min
+  # build, so the names are asserted explicitly rather than assumed.
   for src_name in app-armeabi-v7a-release.apk app-arm64-v8a-release.apk app-release.apk; do
     [[ -f "$out/$src_name" ]] || { err "Missing build output: $out/$src_name"; exit 1; }
   done
@@ -260,6 +264,31 @@ verify_signing() {
 }
 
 # ── Sanity checks ────────────────────────────────────────────────────────────
+# The `+<build number>` in pubspec.yaml and the derived versionCode are two
+# expressions of one number, and the repo has no way to enforce that except this.
+# It matters because pubspec.yaml's `+<build number>` is the only version figure
+# anything outside Gradle can read — the OTA updater manifest, the release tags
+# and any downstream build all parse it with a regex and never evaluate the
+# arithmetic above. So a missing or stale build number makes every update look
+# like a downgrade while local builds, the OTA manifest and the tags all appear
+# perfectly consistent.
+check_build_number() {
+  if [[ -z "$BUILD_NUMBER" ]]; then
+    err "pubspec.yaml has no '+<build number>' in \`version: ${VERSION}\`."
+    err "Nothing downstream can read a versionCode without one."
+    err "Expected: ${VERSION}+${VERSION_CODE}"
+    exit 1
+  fi
+  if [[ "$BUILD_NUMBER" != "$VERSION_CODE" ]]; then
+    err "pubspec.yaml version is ${VERSION_RAW} but the derived versionCode is ${VERSION_CODE}."
+    err "They must match: consumers read '$BUILD_NUMBER' while this build"
+    err "produces '$VERSION_CODE', and a mismatch looks like a downgrade."
+    exit 1
+  fi
+}
+
+# ── Build mode ───────────────────────────────────────────────────────────────
+
 check_version_checksum() {
   if [[ "$CHECK_VERSION" == false || "$CI_RUNNER" == true ]]; then
     return
@@ -276,6 +305,8 @@ echo "════════════════════════�
 echo "  mawaqit — release build"
 echo "  version: $VERSION   (versionCode $VERSION_CODE, tag $TAG)"
 echo "════════════════════════════════════════════"
+
+check_build_number
 
 info "Fetching dependencies..."
 flutter pub get
