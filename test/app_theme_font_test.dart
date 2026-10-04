@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mawaqit/core/constants.dart';
-import 'package:mawaqit/core/theme/app_theme.dart';
+import 'package:mawaqit/core/const/app_constants.dart';
+import 'package:mawaqit/core/ui/theme/app_theme.dart';
 
 void main() {
   // The Arabic UI was silently rendering in the system font: Manrope has no

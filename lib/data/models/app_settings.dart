@@ -1,5 +1,6 @@
 import 'package:adhan_dart/adhan_dart.dart';
 
+import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 
 enum AppThemeMode { system, light, dark }
@@ -7,12 +8,12 @@ enum AppThemeMode { system, light, dark }
 /// UI language override.
 ///
 /// `system` means "follow the device", which is what most users want and what
-/// the app did before this setting existed. The other two pin the app to a
-/// language regardless of the device — a real need for a bilingual user who
-/// reads Arabic prayers but wants an English system, or vice versa.
+/// the app did before this setting existed. The others pin the app to a language
+/// regardless of the device — a real need for a bilingual user who reads Arabic
+/// prayers but wants a French system, or vice versa.
 ///
 /// No display label: see [AppLanguageL10n] in lib/l10n/enum_localization.dart.
-enum AppLanguage { system, english, arabic }
+enum AppLanguage { system, english, arabic, french }
 
 extension AppLanguageCode on AppLanguage {
   /// BCP-47 code, or `null` to follow the device locale.
@@ -24,6 +25,7 @@ extension AppLanguageCode on AppLanguage {
     AppLanguage.system => null,
     AppLanguage.english => 'en',
     AppLanguage.arabic => 'ar',
+    AppLanguage.french => 'fr',
   };
 }
 
@@ -51,6 +53,9 @@ class AppSettings {
     this.cityName,
     this.cityLatitude,
     this.cityLongitude,
+    this.palette = AppPalette.emerald,
+    this.reduceTransparency = false,
+    this.reduceMotion = false,
   });
 
   final CalculationMethod calculationMethod;
@@ -77,6 +82,24 @@ class AppSettings {
   final String? cityName;
   final double? cityLatitude;
   final double? cityLongitude;
+
+  /// Hand-tuned colour scheme. No dynamic colour — see `AppPalette`.
+  final AppPalette palette;
+
+  /// Replaces the frosted nav bar with an opaque surface.
+  ///
+  /// Off by default because the blur is the design; on because a `BackdropFilter`
+  /// over a scrolling list is a genuine battery and frame-rate cost on weaker
+  /// hardware, and Android itself now offers a system-wide "remove blur"
+  /// accessibility toggle.
+  final bool reduceTransparency;
+
+  /// Collapses every spring animation to an instant state change.
+  ///
+  /// Mirrors the platform's own "remove animations" accessibility setting, but
+  /// is offered separately because the platform flag does not always reach a
+  /// Flutter app and does not cover the spring physics.
+  final bool reduceMotion;
 
   static const List<int> leadOptions = [0, 5, 10, 15];
 
@@ -129,6 +152,9 @@ class AppSettings {
     String? cityName,
     double? cityLatitude,
     double? cityLongitude,
+    AppPalette? palette,
+    bool? reduceTransparency,
+    bool? reduceMotion,
   }) {
     return AppSettings(
       calculationMethod: calculationMethod ?? this.calculationMethod,
@@ -150,6 +176,9 @@ class AppSettings {
       cityName: cityName ?? this.cityName,
       cityLatitude: cityLatitude ?? this.cityLatitude,
       cityLongitude: cityLongitude ?? this.cityLongitude,
+      palette: palette ?? this.palette,
+      reduceTransparency: reduceTransparency ?? this.reduceTransparency,
+      reduceMotion: reduceMotion ?? this.reduceMotion,
     );
   }
 

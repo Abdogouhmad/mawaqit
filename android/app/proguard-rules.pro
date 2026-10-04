@@ -12,7 +12,7 @@
 
 # App native entry points: manifest receivers/services/activities and the
 # MethodChannel bridge are looked up by name, so R8 must not rename them.
--keep class com.mawaqit.mawaqit.** { *; }
+-keep class com.freesoftware.mawaqit.** { *; }
 
 # The Flutter engine references Play Core split-install APIs for deferred
 # components, which this app neither uses nor bundles (GitHub APK

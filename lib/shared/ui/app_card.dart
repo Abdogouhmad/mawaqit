@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/theme/colors.dart';
-import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/core/ui/theme/app_colors.dart';
+import 'package:mawaqit/core/ui/theme/shapes.dart';
 
 /// Soft rounded card with hairline border, tonal fill and a whisper-soft
 /// emerald ambient shadow (design "Level 1 / Level 2" containers).
@@ -42,9 +42,11 @@ class AppCard extends StatelessWidget {
         boxShadow: ambient
             ? [
                 BoxShadow(
-                  color:
-                      (isLight ? AppColors.primaryLight : AppColors.primaryDark)
-                          .withValues(alpha: isLight ? 0.05 : 0.12),
+                  // The scheme's own primary, so the ambient tint follows
+                  // whichever palette is selected instead of being pinned to one.
+                  color: scheme.primary.withValues(
+                    alpha: isLight ? 0.05 : 0.12,
+                  ),
                   blurRadius: AppSpacing.giga,
                   offset: const Offset(0, AppSpacing.md),
                 ),

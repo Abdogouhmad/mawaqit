@@ -3,9 +3,16 @@ description: "Mawaqit — a calm, focused prayer-times app with adhan reminders.
 publish_to: "none"
 
 # Sole source of truth for the release version. Android's versionCode is derived
-# from it as major*10000 + minor*100 + patch by build.sh, which is also what the
-# OTA manifest and the release tags use, so a bump here is the only bump needed.
-version: 0.10.0
+# from it as major*10000 + minor*100 + patch by build.sh, which is also what
+# the OTA manifest and the release tags use, so a bump here is the only bump
+# needed.
+#
+# The `+<build number>` is REQUIRED and must equal that derived versionCode.
+# Free-software repositories (F-Droid) read the version with regexes only — they
+# never run the Gradle arithmetic above — so without a literal number here
+# there is no versionCode for their update checker to find and every release is
+# invisible to them. build.sh fails the build if the two ever disagree.
+version: 0.12.1+1201
 
 environment:
   sdk: ^3.13.4
@@ -38,6 +45,7 @@ dependencies:
   ota_update: ^7.1.0
   package_info_plus: ^10.2.1
   home_widget: ^0.10.0
+  go_router: ^18.0.2
 
 dev_dependencies:
   flutter_test:
@@ -46,8 +54,13 @@ dev_dependencies:
   # Lint set activated in analysis_options.yaml.
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
-  home_widget_generator: ^0.2.0
-  home_widget_cli: ^0.2.0
+  # 0.4.x, not 0.2.x: 0.4.0 is the version that generated the checked-in widget
+  # code (it emits `updatePreview`, `previewFingerprint`, the pin-widget helpers
+  # and `getInstalledWidgets`), so regenerating under 0.2.0 would delete working
+  # code. It is also the first version whose `widgetUrl` routes the tap through
+  # the plugin's ActivityOptions-aware intent — see prayer_widget.dart.
+  home_widget_generator: ^0.4.0
+  home_widget_cli: ^0.4.0
 
 flutter:
   uses-material-design: true

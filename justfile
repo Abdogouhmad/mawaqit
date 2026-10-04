@@ -31,7 +31,7 @@ build-release:
 
 # Create an APK for each Android ABI
 split:
-    flutter build apk --split-per-abi
+    flutter build apk --release --split-per-abi
 
 # Regenerate the home-widget Glance code (run after editing lib/src/home_widget/prayer_widget.dart)
 widget:

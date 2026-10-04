@@ -777,8 +777,208 @@
   "@settingsLanguageArabic": {
     "description": "Language selector in the Appearance section of settings."
   },
+  "settingsLanguageFrench": "French",
   "testAdhanName": "Test",
   "@testAdhanName": {
     "description": "Short display name for the adhan test, used in the overlay and the notification body."
+  },
+  "navHome": "Home",
+  "navTimes": "Times",
+  "navSettings": "Settings",
+  "timesTitle": "Prayer Times",
+  "@timesTitle": {
+    "description": "Title of the monthly prayer-times tab."
+  },
+  "timesSubtitle": "Every prayer, every day of the month",
+  "@timesSubtitle": {
+    "description": "Subtitle under the monthly prayer-times title."
+  },
+  "timesNoLocation": "Pick a location to see the full month.",
+  "@timesNoLocation": {
+    "description": "Empty state on the Times tab when no location is resolved yet."
+  },
+  "timesGoToSettings": "Open Settings",
+  "@timesGoToSettings": {
+    "description": "Button on the Times tab empty state."
+  },
+  "timesSunrise": "Sunrise",
+  "@timesSunrise": {
+    "description": "Column header for sunrise on the monthly grid."
+  },
+  "timesHighlightedToday": "Today",
+  "@timesHighlightedToday": {
+    "description": "Accessibility hint that a row is today's row."
+  },
+  "timesJumpToToday": "Jump to today",
+  "@timesJumpToToday": {
+    "description": "Returns the calendar to the current month."
+  },
+  "timesLoadFailed": "Prayer times could not be loaded.",
+  "@timesLoadFailed": {
+    "description": "Shown when the month could not be computed."
+  },
+  "timesMonthShift": "The month at a glance",
+  "@timesMonthShift": {
+    "description": "Heading on the card summarising how each prayer's time shifts across the displayed month."
+  },
+  "timesShiftCaption": "Change in each prayer's time from the first to the last day of the month, in minutes.",
+  "@timesShiftCaption": {
+    "description": "Explains the signed minute values on the month-shift card."
+  },
+  "timesShiftEarlier": "earlier",
+  "@timesShiftEarlier": {
+    "description": "Screen-reader wording for a prayer whose time falls earlier across the month. Sorts after a number, so lower case."
+  },
+  "timesShiftLater": "later",
+  "@timesShiftLater": {
+    "description": "Screen-reader wording for a prayer whose time falls later across the month. Sorts after a number, so lower case."
+  },
+  "timesShiftUnchanged": "unchanged",
+  "@timesShiftUnchanged": {
+    "description": "Screen-reader wording for a prayer whose time does not move across the month. Sorts after a number, so lower case."
+  },
+  "timesSelectMonth": "Choose a month",
+  "@timesSelectMonth": {
+    "description": "Tooltip for the month button that opens the month picker."
+  },
+  "reliabilityTitle": "Adhan reliability",
+  "@reliabilityTitle": {
+    "description": "Title of Settings → Reliability."
+  },
+  "reliabilitySubtitle": "Why the adhan might not ring on time",
+  "@reliabilitySubtitle": {
+    "description": "Subtitle under the Reliability title."
+  },
+  "reliabilityAllGood": "Everything is set. The adhan should ring on time.",
+  "@reliabilityAllGood": {
+    "description": "Shown when every checklist row passes."
+  },
+  "reliabilityIssueSummary": "{count} of {total} checks need attention",
+  "@reliabilityIssueSummary": {
+    "description": "Summary line above the reliability checklist.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      },
+      "total": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+  "reliabilityTestAdhan": "Test adhan in 10 seconds",
+  "@reliabilityTestAdhan": {
+    "description": "Reliability screen button that runs the real adhan path."
+  },
+  "reliabilityTestArmed": "Adhan will fire in 10 seconds…",
+  "@reliabilityTestArmed": {
+    "description": "Confirmation shown after arming the test adhan."
+  },
+  "reliabilityUpcomingTitle": "Next scheduled events",
+  "@reliabilityUpcomingTitle": {
+    "description": "Header for the debug list of upcoming events."
+  },
+  "reliabilityNoEvents": "Nothing is scheduled. Open the app to re-arm.",
+  "@reliabilityNoEvents": {
+    "description": "Shown when the native module reports an empty event store."
+  },
+  "reliabilityDaysRemaining": "{count} days of adhans still scheduled",
+  "@reliabilityDaysRemaining": {
+    "description": "How far ahead the 14-day window currently reaches.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "11"
+      }
+    }
+  },
+  "reliabilityRunningLow": "Only {count} days left — open Mawaqit to top it up.",
+  "@reliabilityRunningLow": {
+    "description": "Warning shown when fewer than 3 days remain in the window.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "reliabilityStatusOk": "Ready",
+  "@reliabilityStatusOk": {
+    "description": "Passing state on a reliability checklist row."
+  },
+  "reliabilityCheckNotifications": "Notifications allowed",
+  "@reliabilityCheckNotifications": {
+    "description": "Reliability checklist row: POST_NOTIFICATIONS."
+  },
+  "reliabilityCheckExactAlarms": "Exact alarms allowed",
+  "@reliabilityCheckExactAlarms": {
+    "description": "Reliability checklist row: SCHEDULE_EXACT_ALARM."
+  },
+  "reliabilityCheckFullScreen": "Full-screen notifications allowed",
+  "@reliabilityCheckFullScreen": {
+    "description": "Reliability checklist row: USE_FULL_SCREEN_INTENT."
+  },
+  "reliabilityCheckBattery": "Battery optimisation off",
+  "@reliabilityCheckBattery": {
+    "description": "Reliability checklist row: battery-optimisation exemption."
+  },
+  "reliabilityCheckChannels": "Notification channels not muted",
+  "@reliabilityCheckChannels": {
+    "description": "Reliability checklist row: the adhan channels' importance and sound."
+  },
+  "reliabilityCheckWindow": "14-day window filled",
+  "@reliabilityCheckWindow": {
+    "description": "Reliability checklist row: enough future events scheduled."
+  },
+  "reliabilityEventRow": "{name} · {relative}",
+  "@reliabilityEventRow": {
+    "description": "One row in the upcoming-events debug list.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Asr adhan"
+      },
+      "relative": {
+        "type": "String",
+        "example": "in 3h 12m"
+      }
+    }
+  },
+  "appearanceTitle": "Appearance",
+  "@appearanceTitle": {
+    "description": "Appearance group in Settings."
+  },
+  "appearancePalette": "Colour palette",
+  "@appearancePalette": {
+    "description": "Palette picker row label."
+  },
+  "appearancePaletteEmerald": "Deep emerald",
+  "@appearancePaletteEmerald": {
+    "description": "Brand palette name."
+  },
+  "appearancePaletteSage": "Sage",
+  "@appearancePaletteSage": {
+    "description": "Legacy palette name."
+  },
+  "appearancePaletteMidnight": "Midnight",
+  "@appearancePaletteMidnight": {
+    "description": "Indigo/amber palette name."
+  },
+  "appearanceReduceTransparency": "Reduce transparency",
+  "@appearanceReduceTransparency": {
+    "description": "Switch that replaces the frosted nav bar with an opaque one."
+  },
+  "appearanceReduceTransparencyHint": "Turns the floating blur off and uses solid surfaces instead. Helps on devices where blur is expensive.",
+  "@appearanceReduceTransparencyHint": {
+    "description": "Subtitle for the reduce-transparency switch."
+  },
+  "appearanceMotion": "Reduce motion",
+  "@appearanceMotion": {
+    "description": "Switch that stops the spring animations."
+  },
+  "appearanceMotionHint": "Removes the spring movement from the navigation bar and lists.",
+  "@appearanceMotionHint": {
+    "description": "Subtitle for the reduce-motion switch."
   }
 }

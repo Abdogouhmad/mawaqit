@@ -11,6 +11,189 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.1] - 2026-10-04
+
+Patch release. The highlights are the bottom navigation and a smaller download.
+
+### Changed
+
+- **The bottom navigation is frosted glass again** — the bar's tint no longer
+  carries a colour cast, so it reads as a pane in front of the content instead of
+  a green object resting on it, and the blur behind it is now strong enough to
+  actually show. It also sits a little further from the screen edges.
+- **Smaller download** — Android system strings are now packaged only for the
+  languages the app ships in (Arabic, English, French) instead of all ~80 that
+  the platform libraries provide.
+
+### Removed
+
+- **The Qibla screen** — the compass-based direction finder has been taken out
+  pending a rewrite. It was the least stable part of the app and the readings were
+  not reliable enough to rely on for prayer direction.
+
+### Fixed
+
+- **Notification sounds resolve correctly** on every build now, instead of only
+  on the variant that appended an application-id suffix.
+
+## [0.12.0] - 2026-10-03
+
+New since v0.11.1.
+
+A rebuilt Times tab. The previous one squeezed five prayer times across a phone
+screen by shrinking them until they were about 40% of the intended size — and
+about 22% at large text settings, which is when the screen is hardest to read.
+The month is now a list of days rather than a squeezed table.
+
+### Added
+
+- **A "month at a glance" card** — how far each prayer moves across the month, in
+  minutes, with an arrow for the direction. It is the question a monthly prayer
+  table exists to answer, and reading it off the table meant comparing two cells
+  nineteen rows apart on a phone.
+- **Prayer names that stay on screen** — the labels are pinned above the month, so
+  the times are never bare numbers. They are laid out from the same column
+  measurement as the values, so the two cannot drift apart.
+- **A month and year picker** — jump to a specific month instead of tapping the
+  chevron repeatedly. It offers the same range the chevrons do.
+- **A spoken summary per day** — a screen reader now announces each row as
+  "Friday, March 14, today, Fajr 5:12 AM, Sunrise 6:31 AM, …" rather than reading
+  seven unrelated numbers.
+
+### Changed
+
+- **The month is no longer a five-column table.** Each day is a row with the
+  weekday, Gregorian date and Hijri date, and the prayer times are laid out in
+  however many columns the screen can hold at full size — five on a wide phone,
+  two on a narrow one at 200% text. Times are no longer scaled down to fit.
+- **Days are wider apart and easier to hit**, and today is marked with one filled
+  shape instead of three competing highlights.
+- **The month opens on today** rather than on the 1st. On the 20th the 1st is
+  nineteen rows above the fold.
+
+### Fixed
+
+- **Prayer times were unreadable at large text settings.** Five times sharing a
+  360dp phone meant each was rendered at roughly 40% of its intended size, and at
+  200% text roughly 22%.
+- **Weekdays were abbreviated to fit, and clipped in Arabic.** Arabic has no
+  abbreviated weekday form, so the date was being cut off on every row. Weekdays
+  are now spelled out.
+- **The "pull down to try again" message on a failed load had nothing to pull
+  down.** There is now a Retry button.
+- **Tapping a month could land on a month the calendar refuses to page to.** The
+  bounds are now enforced at the one place the month is set, rather than relying
+  on each control disabling itself.
+- **The "month at a glance" card no longer stays hidden.** It compares each
+  prayer's time on the first day of the month with its time on the last, and was
+  subtracting the two dates as well as the times — about 43,200 minutes, which is
+  not a change any prayer makes. The card read as untrustworthy and was never
+  drawn at all. It now compares the times of day, so a prayer crossing midnight
+  reads as the minutes it moved rather than as a 24-hour jump.
+- **A clean error at launch** — the app started inside a guarded zone while the
+  Flutter bindings were created outside it, so the two disagreed about which zone
+  every timer, platform channel and image decode would run in.
+- **A missing plugin no longer logs an error on every launch** — where there is no
+  native side to answer (a stale install, desktop, web) the app now checks first
+  instead of subscribing to a widget channel that cannot open.
+
+## [0.11.1] - 2026-10-03
+
+Fixes for the palette picker and the home-screen widget.
+
+### Fixed
+
+- **Tapping the home-screen widget no longer shows a white screen** — on Android
+  14 and newer the tap was delivered to the app as a background activity start
+  with no allowance for one, so Android refused it and you were left looking at
+  a blank window instead of the app. The card now opens the app on the prayer
+  times tab it was already showing, whether the app was closed or already open.
+- **The home-screen widget wears the app's colour again** — it was still
+  rendering in an older sage green while the rest of the app had moved to
+  emerald, because the card's colours are baked into generated native code that
+  was never regenerated after the palette changed.
+- **The five prayer dots on the widget now move** — which prayers have passed
+  and which one is next were never written to the widget, so every dot stayed at
+  its faintest shade permanently. They now track the day like the rest of the
+  card.
+- **The selected tab and the tinted highlights follow the palette you pick** —
+  choosing Sage or Midnight changed the icons and accents but left the filled
+  pill behind the selected tab, the countdown hero, the adhan card, the qibla
+  dial, the Times highlight and the update card all in emerald green, as though
+  the choice had not been made.
+- **The app can no longer get stuck on a blank window at launch** — if a
+  platform plugin failed to answer during start-up the app would wait forever
+  without drawing anything. A missing version string now degrades to a fallback
+  instead of taking the whole launch down with it.
+- **The version line under Settings is translated** — it was hardcoded to the
+  English wording, so Arabic and French readers saw it in English while the
+  About panel directly above it was translated.
+
+### Changed
+
+- **About Mawaqit finally describes the app** — the panel opens on the app's
+  mark above its name, the tagline and a plain description of what the app does,
+  and the version in a quiet chip underneath, all centred rather than hung off
+  the left edge.
+
+## [0.11.0] - 2026-10-03
+
+New since v0.10.0.
+
+### Added
+
+- **French** — the app now speaks French throughout, not just in English and
+  Arabic. The language picker in Settings → Appearance offers *System default*,
+  English, العربية and Français, and the month and date headings, the prayer
+  names and the countdown units all follow the choice.
+- **Hijri dates on the Times tab** — every row now carries the Hijri day
+  alongside the Gregorian one, so Ramadan, Eid and the rest of the Islamic year
+  can be read straight off the calendar instead of counted backwards. The
+  conversion follows the Umm al-Qura calendar, the same one printed prayer
+  timetables use, so the dates match the mosque's.
+- **Page through the month** — the arrows either side of the month step back and
+  forward, a year at a time, and a button beside them brings you straight back to
+  the current month.
+- **Times opens on today** — landing on the 1st meant starting a screen of days
+  that had already passed.
+
+### Changed
+
+- **The prayer names are readable again** — the column headings had been cut to
+  three letters to make them fit, which turned *Fajr* into "Faj" and *Sunrise*
+  into "Sun". They are spelled out now, and each row also carries its weekday so
+  you can pick out the Fridays at a glance.
+- **Today is easier to pick out** — the current day is marked with a highlighted
+  band and an accent bar instead of a barely-visible tint, and the prayer
+  headings stay pinned in place while you scroll the month.
+- **The navigation bar is frosted again** — it had been rendering as a flat
+  tinted slab, because the blur was sampling an empty backdrop rather than the
+  list scrolling past underneath it.
+- **The selected tab now wears the app's colour** — it was using a desaturated
+  grey-green that belonged to no other part of the screen, so the tab you were on
+  did not read as selected. It is now the emerald of the brand, and the app's
+  colour roles are set explicitly instead of inheriting a shade of purple that
+  Flutter supplies by default.
+
+### Fixed
+
+- **Text running off the edge of the Home screen** — the prayer time and the
+  sunrise/sunset lines were laid out at their full width regardless of the
+  screen, so on a narrow phone they spilled past the card and off the display.
+- **The Settings language row overflowing** — the four options did not fit
+  across a small screen and were cut off mid-word.
+- **A row of text no longer breaks the layout at large font sizes** — every tab is
+  now checked at up to 200% text, where five prayer times no longer fitted their
+  columns.
+- **Settings no longer shows a back arrow and a Done button** — both did nothing.
+  Settings is one of the tabs at the bottom, so there is no screen to go back to;
+  the tab bar is the way out.
+- **The settings icon is gone from the Home header** — it opened a tab you can
+  already reach from the bar along the bottom.
+- **The compass now says why it cannot show a needle** — it distinguishes a phone
+  with no magnetometer from a build whose compass support never registered, and
+  shows a readable message instead of a raw error string.
+
 ## [0.10.0] - 2026-09-27
 
 New since v0.9.0.
@@ -752,3 +935,6 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.8.5]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.4...v0.8.5
 [0.8.6]: https://github.com/Abdogouhmad/mawaqit/compare/v0.8.5...v0.8.6
 [0.10.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.9.0...v0.10.0
+[0.11.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.10.0...v0.11.0
+[0.11.1]: https://github.com/Abdogouhmad/mawaqit/compare/v0.11.0...v0.11.1
+[0.12.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.11.1...v0.12.0

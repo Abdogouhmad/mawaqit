@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Settings list tile: leading icon in a soft circle, title + subtitle,

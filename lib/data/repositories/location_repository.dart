@@ -5,6 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:mawaqit/core/const/pref_keys.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 
 /// Resolved location with human-readable display name.
@@ -36,11 +37,6 @@ class CitySearchResult {
 }
 
 class LocationRepository {
-  static const String _latKey = 'resolved_latitude';
-  static const String _lngKey = 'resolved_longitude';
-  static const String _nameKey = 'resolved_location_name';
-  static const String _manualKey = 'resolved_location_manual';
-
   /// Searches for cities by name (e.g. "London", "Casablanca") and returns
   /// up to [limit] candidates with their coordinates.
   ///
@@ -260,15 +256,15 @@ class LocationRepository {
   /// than arming alarms from half a location.
   static Future<ResolvedLocation?> _readCache() async {
     final prefs = await SharedPreferences.getInstance();
-    final lat = prefs.getDouble(_latKey);
-    final lng = prefs.getDouble(_lngKey);
-    final name = prefs.getString(_nameKey);
+    final lat = prefs.getDouble(PrefKeys.locationLatitude);
+    final lng = prefs.getDouble(PrefKeys.locationLongitude);
+    final name = prefs.getString(PrefKeys.locationName);
     if (lat == null || lng == null || name == null) return null;
     return ResolvedLocation(
       latitude: lat,
       longitude: lng,
       displayName: name,
-      fromManual: prefs.getBool(_manualKey) ?? false,
+      fromManual: prefs.getBool(PrefKeys.locationIsManual) ?? false,
     );
   }
 
@@ -284,10 +280,10 @@ class LocationRepository {
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble(_latKey, latitude);
-      await prefs.setDouble(_lngKey, longitude);
-      await prefs.setString(_nameKey, name);
-      await prefs.setBool(_manualKey, manual);
+      await prefs.setDouble(PrefKeys.locationLatitude, latitude);
+      await prefs.setDouble(PrefKeys.locationLongitude, longitude);
+      await prefs.setString(PrefKeys.locationName, name);
+      await prefs.setBool(PrefKeys.locationIsManual, manual);
     } catch (_) {
       // A cache miss only costs a reschedule; it must never fail the resolve.
     }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:mawaqit/core/theme/tokens.dart';
+import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
