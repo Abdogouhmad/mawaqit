@@ -11,6 +11,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Project-hardening pass (see `docs/optimization-notes.md`): stricter lints and
+analysis, a refreshed dependency set, a CI workflow, and expanded tests.
+
+### Added
+
+- **CI workflow** — format, analyze, test (with coverage) and a debug-APK smoke
+  build run on pull requests and non-`main` branches.
+- **Tests for the OTA update logic** — manifest parsing and the update-decision
+  matrix are now covered.
+
+### Fixed
+
+- **The Times tab's solar card no longer overflows** on narrow phones or at large
+  text scales; the sunrise and sunset labels were given an unbounded width.
+- **A context with no locale falls back to English** instead of Arabic; the
+  generated locale list is alphabetical, so its first entry was Arabic, not the
+  `en` template.
+
+### Changed
+
+- Stricter analyzer rules enabled and all resulting issues fixed — no behavior
+  change beyond the fixes above.
+- Direct and dev dependencies are current; the redundant direct
+  `flutter_local_notifications_linux` dependency was dropped (still pulled in
+  transitively).
+
 ## [0.13.0] - 2026-10-12
 
 Settings is now a table of contents rather than one long scroll. The main screen
@@ -976,4 +1004,5 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.11.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.10.0...v0.11.0
 [0.11.1]: https://github.com/Abdogouhmad/mawaqit/compare/v0.11.0...v0.11.1
 [0.12.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.11.1...v0.12.0
+[Unreleased]: https://github.com/Abdogouhmad/mawaqit/compare/v0.13.0...HEAD
 [0.13.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.12.1...v0.13.0
