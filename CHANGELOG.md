@@ -25,6 +25,8 @@ analysis, a refreshed dependency set, a CI workflow, and expanded tests.
 
 ### Fixed
 
+- **French is offered in Android's per-app language picker** on Android 13+;
+  `locales_config.xml` listed only English and Arabic even though French ships.
 - **The Times tab's solar card no longer overflows** on narrow phones or at large
   text scales; the sunrise and sunset labels were given an unbounded width.
 - **A context with no locale falls back to English** instead of Arabic; the

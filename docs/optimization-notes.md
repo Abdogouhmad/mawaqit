@@ -101,6 +101,9 @@ of intent:
   and `/dist/` are ignored). Local `dist/*.jks` and `keystore/*.jks` exist on
   disk only.
 - `LICENSE` is Apache-2.0 and is consistent with the README.
+- `android/app/src/main/res/xml/locales_config.xml` listed only `en`/`ar` while
+  the app ships `fr`; added `<locale android:name="fr"/>` so French appears in
+  Android 13+'s per-app language picker.
 
 ## Skipped or deferred
 
@@ -120,6 +123,11 @@ of intent:
 - **Arabic-Indic digits.** `intl` 0.20 renders generic `ar` with Latin digits;
   only `ar_EG` yields Arabic-Indic. Changing this is a user-visible decision for
   the maintainer (documented with a TODO in `test/time_formatter_test.dart`).
+- **Android Gradle "Built-in Kotlin" migration.** A debug build emits a warning
+  that `home_widget` and `workmanager_android` still apply the Kotlin Gradle
+  Plugin, which a future Flutter version will reject. This is upstream in those
+  plugins and can't be fixed here; watch for plugin releases that adopt
+  Built-in Kotlin.
 
 ## Open TODOs and questions for the maintainer
 
