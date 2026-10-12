@@ -147,11 +147,7 @@ class _SolarArcPainter extends CustomPainter {
 /// Rendered only for the current month — see [TimesScreen] — because the arc is
 /// about "now", and a lapsed or future month has no meaningful now.
 class DaySolarCard extends StatelessWidget {
-  const DaySolarCard({
-    super.key,
-    required this.day,
-    required this.now,
-  });
+  const DaySolarCard({super.key, required this.day, required this.now});
 
   final PrayerDay day;
   final DateTime now;
@@ -242,16 +238,23 @@ class DaySolarCard extends StatelessWidget {
             ),
             Row(
               children: [
-                _ArcAnchor(
-                  time: TimeFormatter.clock(sunrise),
-                  label: l10n.timesSunrise,
-                  alignment: CrossAxisAlignment.start,
+                // Each anchor gets half the row rather than its intrinsic width:
+                // "Lever/Coucher du soleil" is wider than half a narrow phone at
+                // large text scales, and a `Spacer` gave them unbounded width, so
+                // the Row overflowed instead of the labels wrapping.
+                Expanded(
+                  child: _ArcAnchor(
+                    time: TimeFormatter.clock(sunrise),
+                    label: l10n.timesSunrise,
+                    alignment: CrossAxisAlignment.start,
+                  ),
                 ),
-                const Spacer(),
-                _ArcAnchor(
-                  time: TimeFormatter.clock(sunset),
-                  label: l10n.sunset,
-                  alignment: CrossAxisAlignment.end,
+                Expanded(
+                  child: _ArcAnchor(
+                    time: TimeFormatter.clock(sunset),
+                    label: l10n.sunset,
+                    alignment: CrossAxisAlignment.end,
+                  ),
                 ),
               ],
             ),

@@ -3,6 +3,14 @@ import 'dart:ui' show Locale, PlatformDispatcher;
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
+/// Locale used when the device asks for a language the app does not ship.
+///
+/// This is the template language (`app_en.arb`), named explicitly rather than
+/// read from `AppLocalizations.supportedLocales.first`: gen-l10n returns that
+/// list in alphabetical order, so `.first` is Arabic, not the template — a
+/// device set to an unsupported language would silently open in Arabic.
+const Locale kFallbackAppLocale = Locale('en');
+
 /// Resolves [device] to the closest locale the app actually ships, falling back
 /// to the template language.
 ///
@@ -17,7 +25,7 @@ AppLocalizations resolveLocalizations(Locale device) {
       return lookupAppLocalizations(supported);
     }
   }
-  return lookupAppLocalizations(AppLocalizations.supportedLocales.first);
+  return lookupAppLocalizations(kFallbackAppLocale);
 }
 
 /// The locale the app will actually render in for a given device locale.
@@ -25,7 +33,7 @@ Locale supportedLocaleFor(Locale device) {
   for (final supported in AppLocalizations.supportedLocales) {
     if (supported.languageCode == device.languageCode) return supported;
   }
-  return AppLocalizations.supportedLocales.first;
+  return kFallbackAppLocale;
 }
 
 /// Resolves the user's [AppLanguage] preference against the [device] locale.
