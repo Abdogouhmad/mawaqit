@@ -146,7 +146,9 @@ class GeneralScreen extends ConsumerWidget {
                         value: settings.reduceMotion,
                         onChanged: (value) {
                           HapticFeedback.selectionClick();
-                          controller.save(settings.copyWith(reduceMotion: value));
+                          controller.save(
+                            settings.copyWith(reduceMotion: value),
+                          );
                         },
                       ),
                     ),
@@ -188,10 +190,7 @@ class _AmoledRow extends StatelessWidget {
       icon: Icons.contrast_outlined,
       title: l10n.settingsAmoled,
       subtitle: isDark ? l10n.settingsAmoledHint : l10n.settingsAmoledDisabled,
-      trailing: Switch(
-        value: value,
-        onChanged: isDark ? onChanged : null,
-      ),
+      trailing: Switch(value: value, onChanged: isDark ? onChanged : null),
     );
   }
 }
@@ -270,7 +269,10 @@ class _LanguageSelector extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: tile(AppLanguage.system, Icons.settings_suggest_outlined),
+                child: tile(
+                  AppLanguage.system,
+                  Icons.settings_suggest_outlined,
+                ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(child: tile(AppLanguage.english, Icons.abc_rounded)),
@@ -282,7 +284,9 @@ class _LanguageSelector extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: tile(AppLanguage.arabic, Icons.translate_rounded)),
+              Expanded(
+                child: tile(AppLanguage.arabic, Icons.translate_rounded),
+              ),
               const SizedBox(width: AppSpacing.md),
               Expanded(child: tile(AppLanguage.french, Icons.language_rounded)),
             ],
@@ -548,9 +552,7 @@ class _PaletteSwatch extends StatelessWidget {
                 child: ClipOval(
                   child: Stack(
                     children: [
-                      Positioned.fill(
-                        child: ColoredBox(color: scheme.primary),
-                      ),
+                      Positioned.fill(child: ColoredBox(color: scheme.primary)),
                       Positioned(
                         right: 0,
                         bottom: 0,

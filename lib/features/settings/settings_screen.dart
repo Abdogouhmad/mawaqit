@@ -254,9 +254,8 @@ class _SettingsBody extends ConsumerWidget {
   }
 
   void _openGeneral(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const GeneralScreen()),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const GeneralScreen()));
   }
 
   void _openNotifications(BuildContext context) {
@@ -266,9 +265,9 @@ class _SettingsBody extends ConsumerWidget {
   }
 
   void _openPermissions(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const PermissionsScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const PermissionsScreen()));
   }
 
   void _openLocationSheet(
@@ -630,4 +629,3 @@ class _Footer extends StatelessWidget {
     );
   }
 }
-

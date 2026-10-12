@@ -136,11 +136,7 @@ class DayRow extends StatelessWidget {
           children: [
             _DayLine(day: day, isToday: isToday, locale: locale),
             const SizedBox(height: AppSpacing.md),
-            for (
-              var start = 0;
-              start < columns.length;
-              start += grid.columns
-            )
+            for (var start = 0; start < columns.length; start += grid.columns)
               _PrayerStrip(
                 columns: columns.sublist(
                   start,
