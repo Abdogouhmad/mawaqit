@@ -56,28 +56,22 @@ void main() {
 
   group('UpdateManifest', () {
     test('isNewerThan compares version codes', () {
-      expect(manifest(code: 1200).isNewerThan(1100), isTrue);
-      expect(manifest(code: 1200).isNewerThan(1200), isFalse);
-      expect(manifest(code: 1200).isNewerThan(1300), isFalse);
+      expect(manifest().isNewerThan(1100), isTrue);
+      expect(manifest().isNewerThan(1200), isFalse);
+      expect(manifest().isNewerThan(1300), isFalse);
     });
 
     test('isMandatoryFor honours the explicit flag', () {
-      expect(
-        manifest(code: 1200, mandatory: true).isMandatoryFor(1100),
-        isTrue,
-      );
+      expect(manifest(mandatory: true).isMandatoryFor(1100), isTrue);
     });
 
     test('isMandatoryFor honours the support floor', () {
-      expect(manifest(code: 1200, floor: 1000).isMandatoryFor(900), isTrue);
-      expect(manifest(code: 1200, floor: 1000).isMandatoryFor(1000), isFalse);
+      expect(manifest(floor: 1000).isMandatoryFor(900), isTrue);
+      expect(manifest(floor: 1000).isMandatoryFor(1000), isFalse);
     });
 
     test('isMandatoryFor is false when there is nothing newer to install', () {
-      expect(
-        manifest(code: 1200, mandatory: true).isMandatoryFor(1200),
-        isFalse,
-      );
+      expect(manifest(mandatory: true).isMandatoryFor(1200), isFalse);
     });
   });
 
@@ -101,11 +95,11 @@ void main() {
 
     test('reports up to date when the installed build is current', () {
       expect(
-        service.check(manifest: manifest(code: 1200), currentVersionCode: 1200),
+        service.check(manifest: manifest(), currentVersionCode: 1200),
         UpdateCheckResult.upToDate,
       );
       expect(
-        service.check(manifest: manifest(code: 1200), currentVersionCode: 1300),
+        service.check(manifest: manifest(), currentVersionCode: 1300),
         UpdateCheckResult.upToDate,
       );
     });
@@ -113,7 +107,7 @@ void main() {
     test('reports an optional update when newer and supported', () {
       expect(
         service.check(
-          manifest: manifest(code: 1200, floor: 1000),
+          manifest: manifest(floor: 1000),
           currentVersionCode: 1100,
         ),
         UpdateCheckResult.updateAvailable,
@@ -122,10 +116,7 @@ void main() {
 
     test('reports a mandatory update when the build is below the floor', () {
       expect(
-        service.check(
-          manifest: manifest(code: 1200, floor: 1100),
-          currentVersionCode: 900,
-        ),
+        service.check(manifest: manifest(floor: 1100), currentVersionCode: 900),
         UpdateCheckResult.updateMandatory,
       );
     });
