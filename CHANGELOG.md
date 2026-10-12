@@ -11,6 +11,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-10-12
+
+Settings is now a table of contents rather than one long scroll. The main screen
+keeps Location, Calculation and About exactly as they were; everything else moved
+onto its own page, so the list is shorter and each screen has room to explain
+itself. The General screen also gains a fuller set of colour palettes and an
+OLED-friendly pure-black mode.
+
+### Added
+
+- **More colour palettes.** Six new palettes — Ocean, Violet, Rose, Amber,
+  Terracotta and Graphite — join Emerald, Sage and Midnight in Settings →
+  General, shown as a wrapping grid of two-tone discs.
+- **Pure black (AMOLED) mode.** A new switch under Surfaces flattens the dark
+  theme to true black for OLED panels; the preference is remembered while the
+  app is in light mode, and enabled again when dark mode returns.
+- **A live theme preview** on the General screen, so a palette, mode or pure
+  black can be seen on a real card before leaving the screen.
+
+### Changed
+
+- **Settings is split into sub-screens.** General, Notifications and Permissions
+  each open on their own page instead of being stacked down the one list.
+- **A new General screen collects language and appearance.** Language and the
+  theme controls — mode, colour palette, reduce transparency and reduce motion —
+  moved off the main list and behind Settings → General, whose row names the
+  current language and theme.
+- **Notifications has its own screen** holding the pre-prayer and adhan blocks,
+  each with its switch, tone, lead time and test.
+- **Permissions has its own screen** — the alarm-reliability checks moved out of
+  the Notifications area to a dedicated *Permissions* page, reached from the main
+  list.
+
+### Fixed
+
+- **General screen no longer crashes.** The language and theme tiles could fail
+  to draw on some screen sizes; they now size to fit and render evenly.
+
 ## [0.12.1] - 2026-10-04
 
 Patch release. The highlights are the bottom navigation and a smaller download.
@@ -938,3 +976,4 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.11.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.10.0...v0.11.0
 [0.11.1]: https://github.com/Abdogouhmad/mawaqit/compare/v0.11.0...v0.11.1
 [0.12.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.11.1...v0.12.0
+[0.13.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.12.1...v0.13.0

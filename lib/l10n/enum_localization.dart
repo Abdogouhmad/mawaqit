@@ -1,3 +1,4 @@
+import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/data/models/alarm_access.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
@@ -86,5 +87,19 @@ extension AppThemeModeL10n on AppThemeMode {
     AppThemeMode.system => l10n.settingsThemeSystem,
     AppThemeMode.light => l10n.settingsThemeLight,
     AppThemeMode.dark => l10n.settingsThemeDark,
+  };
+}
+
+extension AppPaletteL10n on AppPalette {
+  String localized(AppLocalizations l10n) => switch (this) {
+    AppPalette.emerald => l10n.appearancePaletteEmerald,
+    AppPalette.sage => l10n.appearancePaletteSage,
+    AppPalette.midnight => l10n.appearancePaletteMidnight,
+    AppPalette.ocean => l10n.appearancePaletteOcean,
+    AppPalette.violet => l10n.appearancePaletteViolet,
+    AppPalette.rose => l10n.appearancePaletteRose,
+    AppPalette.amber => l10n.appearancePaletteAmber,
+    AppPalette.terracotta => l10n.appearancePaletteTerracotta,
+    AppPalette.graphite => l10n.appearancePaletteGraphite,
   };
 }

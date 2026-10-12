@@ -965,6 +965,42 @@
   "@appearancePaletteMidnight": {
     "description": "Indigo/amber palette name."
   },
+  "appearancePaletteOcean": "Ocean",
+  "@appearancePaletteOcean": {
+    "description": "Blue palette name."
+  },
+  "appearancePaletteViolet": "Violet",
+  "@appearancePaletteViolet": {
+    "description": "Violet palette name."
+  },
+  "appearancePaletteRose": "Rose",
+  "@appearancePaletteRose": {
+    "description": "Rose palette name."
+  },
+  "appearancePaletteAmber": "Amber",
+  "@appearancePaletteAmber": {
+    "description": "Amber palette name."
+  },
+  "appearancePaletteTerracotta": "Terracotta",
+  "@appearancePaletteTerracotta": {
+    "description": "Terracotta palette name."
+  },
+  "appearancePaletteGraphite": "Graphite",
+  "@appearancePaletteGraphite": {
+    "description": "Graphite palette name."
+  },
+  "settingsAmoled": "Pure black",
+  "@settingsAmoled": {
+    "description": "Switch that flattens the dark theme surfaces to true black for OLED."
+  },
+  "settingsAmoledHint": "True black surfaces for OLED panels",
+  "@settingsAmoledHint": {
+    "description": "Subtitle for the AMOLED switch while dark mode is active."
+  },
+  "settingsAmoledDisabled": "Available in dark mode",
+  "@settingsAmoledDisabled": {
+    "description": "Subtitle for the AMOLED switch while light mode is active."
+  },
   "appearanceReduceTransparency": "Reduce transparency",
   "@appearanceReduceTransparency": {
     "description": "Switch that replaces the frosted nav bar with an opaque one."
@@ -980,5 +1016,49 @@
   "appearanceMotionHint": "Removes the spring movement from the navigation bar and lists.",
   "@appearanceMotionHint": {
     "description": "Subtitle for the reduce-motion switch."
+  },
+  "settingsSectionGeneral": "General",
+  "@settingsSectionGeneral": {
+    "description": "Settings section heading holding the language and theme screen."
+  },
+  "settingsGeneralDesc": "Language, theme and display",
+  "@settingsGeneralDesc": {
+    "description": "Subtitle under the General settings section heading."
+  },
+  "settingsGeneralRow": "Language & theme",
+  "@settingsGeneralRow": {
+    "description": "Row that opens the General screen from the settings list."
+  },
+  "settingsGeneralLanguageDesc": "App language, independent of your phone",
+  "@settingsGeneralLanguageDesc": {
+    "description": "Subtitle under the Language heading on the General screen."
+  },
+  "settingsGeneralSurfaces": "Surfaces",
+  "@settingsGeneralSurfaces": {
+    "description": "Heading for the blur and motion switches on the General screen."
+  },
+  "settingsGeneralSurfacesDesc": "Fine print: blur and motion",
+  "@settingsGeneralSurfacesDesc": {
+    "description": "Subtitle under the Surfaces heading on the General screen."
+  },
+  "settingsNotificationsRow": "Alerts & tones",
+  "@settingsNotificationsRow": {
+    "description": "Row that opens the Notifications screen from the settings list."
+  },
+  "settingsSectionPermissions": "Permissions",
+  "@settingsSectionPermissions": {
+    "description": "Settings section heading holding the permission check screen."
+  },
+  "settingsPermissionsDesc": "System access that keeps the adhan on time",
+  "@settingsPermissionsDesc": {
+    "description": "Subtitle under the Permissions settings section heading."
+  },
+  "settingsPermissionsRow": "Check permissions",
+  "@settingsPermissionsRow": {
+    "description": "Row that opens the permission check screen."
+  },
+  "settingsPermissionsUnavailable": "Permission checks are available on Android only.",
+  "@settingsPermissionsUnavailable": {
+    "description": "Shown on the permissions screen on platforms with no such permissions."
   }
 }

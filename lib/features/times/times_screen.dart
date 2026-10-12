@@ -8,13 +8,14 @@ import 'package:mawaqit/core/ui/widgets/app_chrome.dart';
 import 'package:mawaqit/core/ui/widgets/empty_state.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/features/times/times_controller.dart';
+import 'package:mawaqit/features/times/widgets/almanac_header.dart';
 import 'package:mawaqit/features/times/widgets/day_row.dart';
 import 'package:mawaqit/features/times/widgets/month_shift_card.dart';
-import 'package:mawaqit/features/times/widgets/month_switcher.dart';
 import 'package:mawaqit/features/times/widgets/prayer_grid.dart';
 import 'package:mawaqit/features/times/widgets/prayer_labels_header.dart';
+import 'package:mawaqit/features/times/widgets/solar_arc.dart';
+import 'package:mawaqit/features/times/widgets/times_columns.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
-import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Horizontal margin shared by the header and every row.
 ///
@@ -203,12 +204,12 @@ class _MonthState extends ConsumerState<_Month> {
     // `RenderAbstractViewport.getOffsetToReveal` would need a laid-out child for
     // the row it wants, and on the first frame there is not one yet.
     final rowHeight = DayRow.heightFor(
-      _grid ?? const PrayerGrid(columns: 5, timeStyle: null),
+      _grid ?? const PrayerGrid(columns: timesColumnCount, timeStyle: null),
       Theme.of(context).textTheme,
       MediaQuery.textScalerOf(context),
     );
     final headerHeight = PrayerLabelsHeader.heightFor(
-      _grid ?? const PrayerGrid(columns: 5, timeStyle: null),
+      _grid ?? const PrayerGrid(columns: timesColumnCount, timeStyle: null),
       Theme.of(context).textTheme,
       MediaQuery.textScalerOf(context),
     );
@@ -238,6 +239,7 @@ class _MonthState extends ConsumerState<_Month> {
           MediaQuery.sizeOf(context).width - _inset * 2 - AppSpacing.md * 2,
       widestText: _widestText(state),
       textScaler: MediaQuery.textScalerOf(context),
+      itemCount: timesColumnCount,
       direction: Directionality.of(context),
     );
     final grid = _grid!;
@@ -246,6 +248,11 @@ class _MonthState extends ConsumerState<_Month> {
     // calls to decide which single row is today is 31 chances to disagree with
     // itself across a midnight boundary.
     final now = DateTime.now();
+
+    // Today's own row, feeding the solar card. Absent when another month is
+    // displayed, which is exactly when a "now" arc would be meaningless.
+    final todayIndex = state.days.indexWhere((day) => _isSameDay(day.date, now));
+    final todayDay = todayIndex < 0 ? null : state.days[todayIndex];
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _revealToday());
 
@@ -270,9 +277,11 @@ class _MonthState extends ConsumerState<_Month> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _ScreenTitle(locationName: state.locationName),
-                  const SizedBox(height: AppSpacing.xl),
-                  MonthSwitcher(state: state),
+                  AlmanacHeader(state: state),
+                  if (todayDay != null) ...[
+                    const SizedBox(height: AppSpacing.giga),
+                    DaySolarCard(day: todayDay, now: now),
+                  ],
                   if (state.shifts != null) ...[
                     const SizedBox(height: AppSpacing.giga),
                     MonthShiftCard(shifts: state.shifts!),
@@ -332,11 +341,18 @@ class _MonthState extends ConsumerState<_Month> {
   /// Chosen by glyph count rather than measured, because measuring needs a style
   /// and the style is what the grid is about to decide. Counting is the safe
   /// direction: a longer count can only make the grid more conservative.
+  ///
+  /// Sunrise is included because it is one of the columns the grid must fit; a
+  /// day where sunrise is the longest string is exactly the case that would
+  /// otherwise overflow a grid sized from the prayers alone.
   static String _widestText(TimesState state) {
     var widest = '';
     for (final day in state.days) {
-      for (final prayer in day.prayers) {
-        final text = TimeFormatter.clock(prayer.time);
+      for (final time in [
+        for (final prayer in day.prayers) prayer.time,
+        day.sunrise,
+      ]) {
+        final text = TimeFormatter.clock(time);
         if (text.length > widest.length) widest = text;
       }
     }
@@ -345,44 +361,4 @@ class _MonthState extends ConsumerState<_Month> {
 
   static bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
-}
-
-/// The tab title and the one piece of context the schedule depends on.
-///
-/// Location only. This used to carry the month as well, which put two copies of
-/// "October 2026" about 50dp apart with only the lower one updating as you paged.
-class _ScreenTitle extends StatelessWidget {
-  const _ScreenTitle({required this.locationName});
-
-  final String locationName;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        UiText(
-          l10n.timesTitle,
-          type: UiTextType.headlineSmall,
-          fontWeight: FontWeight.w600,
-          letterSpacing: -0.3,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: AppSpacing.xxs),
-        UiText(
-          locationName.isEmpty ? l10n.timesSubtitle : locationName,
-          type: UiTextType.labelSmall,
-          color: scheme.onSurfaceVariant,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.2,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
 }

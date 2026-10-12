@@ -144,7 +144,10 @@ class PrayerScheduleTile extends StatelessWidget {
                   if (active && countdownLabel != null) ...[
                     AppPill(
                       label: countdownLabel!,
-                      icon: Icons.notifications_active,
+                      // A clock, not a bell: the bell column belongs to the
+                      // adhan mute control beside it, and the countdown is
+                      // about *when*, not *whether*, the call sounds.
+                      icon: Icons.timer_outlined,
                       dense: true,
                       backgroundColor: scheme.surfaceContainerLowest,
                       foregroundColor: scheme.primary,
@@ -215,11 +218,12 @@ class PrayerScheduleTile extends StatelessWidget {
                   onTap: enabled ? _handleToggle : null,
                   radius: kMinTouchTarget / 2,
                   child: Icon(
-                    passed
-                        ? Icons.notifications_off_outlined
-                        : active
-                        ? Icons.notifications_active
-                        : Icons.notifications_none,
+                    // A speaker, because this button controls the adhan audio —
+                    // the bell read as "notifications", which is a different
+                    // switch (the pre-prayer alert), and made the control's job
+                    // ambiguous next to the countdown it used to share an icon
+                    // with.
+                    Icons.volume_up,
                     size: AppIconSize.md,
                     color: active
                         ? scheme.primary

@@ -2,19 +2,16 @@ import 'dart:async';
 
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mawaqit/core/navigation/app_shell.dart';
-import 'package:mawaqit/core/ui/theme/app_colors.dart';
-import 'package:mawaqit/core/ui/theme/motion.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
-import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
+import 'package:mawaqit/features/settings/screen/general.dart';
+import 'package:mawaqit/features/settings/screen/notify.dart';
+import 'package:mawaqit/features/settings/screen/permission.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
-import 'package:mawaqit/features/settings/widgets/alarm_access_section.dart';
-import 'package:mawaqit/features/settings/widgets/notification_settings_section.dart';
 import 'package:mawaqit/features/settings/widgets/update_section.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/shared/components/section_header.dart';
@@ -23,7 +20,6 @@ import 'package:mawaqit/shared/components/settings_row.dart';
 import 'package:mawaqit/shared/ui/app_button.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
-import 'package:mawaqit/shared/ui/icon_badge.dart';
 import 'package:mawaqit/shared/ui/segmented_control.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 import 'package:mawaqit/shared/ui/option_sheet.dart';
@@ -176,108 +172,60 @@ class _SettingsBody extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.mega),
 
+          // General
+          SectionHeader(
+            label: l10n.settingsSectionGeneral,
+            description: l10n.settingsGeneralDesc,
+            icon: Icons.tune,
+          ),
+          SettingsGroup(
+            children: [
+              SettingsRow(
+                icon: Icons.tune,
+                title: l10n.settingsGeneralRow,
+                subtitle:
+                    '${settings.language.localized(l10n)} · '
+                    '${settings.themeMode.localized(l10n)}',
+                onTap: () => _openGeneral(context),
+                trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.mega),
+
           // Notifications & audio
           SectionHeader(
-            label: AppLocalizations.of(context).settingsSectionNotifications,
+            label: l10n.settingsSectionNotifications,
             description: l10n.settingsNotificationsDesc,
             icon: Icons.notifications_none,
           ),
           SettingsGroup(
             children: [
-              NotificationSettingsSection(kind: NotificationKind.prePrayer),
-              NotificationSettingsSection(kind: NotificationKind.adhan),
+              SettingsRow(
+                icon: Icons.notifications_none,
+                title: l10n.settingsNotificationsRow,
+                subtitle: l10n.settingsNotificationsDesc,
+                onTap: () => _openNotifications(context),
+                trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+              ),
             ],
           ),
-          const SizedBox(height: AppSpacing.huge),
-          const AlarmAccessSection(),
           const SizedBox(height: AppSpacing.mega),
 
-          // Appearance
+          // Permissions
           SectionHeader(
-            label: AppLocalizations.of(context).settingsSectionAppearance,
-            description: l10n.settingsAppearanceDesc,
-            icon: Icons.palette_outlined,
+            label: l10n.settingsSectionPermissions,
+            description: l10n.settingsPermissionsDesc,
+            icon: Icons.verified_user_outlined,
           ),
           SettingsGroup(
             children: [
-              _SegmentedSettingRow<AppLanguage>(
-                icon: Icons.language,
-                title: l10n.settingsLanguage,
-                valueLabel: settings.language.localized(l10n),
-                control: SegmentedControl<AppLanguage>(
-                  value: settings.language,
-                  onChanged: (value) {
-                    HapticFeedback.selectionClick();
-                    controller.save(settings.copyWith(language: value));
-                  },
-                  icons: const [
-                    Icons.settings_suggest_outlined,
-                    Icons.abc_outlined,
-                    Icons.text_fields,
-                    Icons.translate,
-                  ],
-                  options: [
-                    (AppLanguage.system, l10n.settingsLanguageSystem),
-                    (AppLanguage.english, l10n.settingsLanguageEnglish),
-                    (AppLanguage.arabic, l10n.settingsLanguageArabic),
-                    (AppLanguage.french, l10n.settingsLanguageFrench),
-                  ],
-                ),
-              ),
-              _SegmentedSettingRow<AppThemeMode>(
-                icon: Icons.palette_outlined,
-                title: l10n.settingsTheme,
-                valueLabel: _themeLabel(context, settings.themeMode),
-                control: SegmentedControl<AppThemeMode>(
-                  value: settings.themeMode,
-                  onChanged: (value) {
-                    HapticFeedback.selectionClick();
-                    controller.save(settings.copyWith(themeMode: value));
-                  },
-                  icons: const [
-                    Icons.settings_brightness,
-                    Icons.light_mode_outlined,
-                    Icons.dark_mode_outlined,
-                  ],
-                  options: [
-                    (AppThemeMode.system, l10n.settingsThemeSystem),
-                    (AppThemeMode.light, l10n.settingsThemeLight),
-                    (AppThemeMode.dark, l10n.settingsThemeDark),
-                  ],
-                ),
-              ),
-              _PaletteSettingRow(
-                value: settings.palette,
-                onChanged: (palette) {
-                  HapticFeedback.selectionClick();
-                  controller.save(settings.copyWith(palette: palette));
-                },
-              ),
               SettingsRow(
-                icon: Icons.blur_off_outlined,
-                title: l10n.appearanceReduceTransparency,
-                subtitle: l10n.appearanceReduceTransparencyHint,
-                trailing: Switch(
-                  value: settings.reduceTransparency,
-                  onChanged: (value) {
-                    HapticFeedback.selectionClick();
-                    controller.save(
-                      settings.copyWith(reduceTransparency: value),
-                    );
-                  },
-                ),
-              ),
-              SettingsRow(
-                icon: Icons.motion_photos_off_outlined,
-                title: l10n.appearanceMotion,
-                subtitle: l10n.appearanceMotionHint,
-                trailing: Switch(
-                  value: settings.reduceMotion,
-                  onChanged: (value) {
-                    HapticFeedback.selectionClick();
-                    controller.save(settings.copyWith(reduceMotion: value));
-                  },
-                ),
+                icon: Icons.verified_user_outlined,
+                title: l10n.settingsPermissionsRow,
+                subtitle: l10n.settingsPermissionsDesc,
+                onTap: () => _openPermissions(context),
+                trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
               ),
             ],
           ),
@@ -305,13 +253,23 @@ class _SettingsBody extends ConsumerWidget {
     return AppLocalizations.of(context).settingsAutoGpsValue;
   }
 
-  String _themeLabel(BuildContext context, AppThemeMode mode) => switch (mode) {
-    AppThemeMode.system => AppLocalizations.of(
-      context,
-    ).settingsThemeSystemValue,
-    AppThemeMode.light => AppLocalizations.of(context).settingsThemeLight,
-    AppThemeMode.dark => AppLocalizations.of(context).settingsThemeDark,
-  };
+  void _openGeneral(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const GeneralScreen()),
+    );
+  }
+
+  void _openNotifications(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const NotificationsScreen()),
+    );
+  }
+
+  void _openPermissions(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const PermissionsScreen()),
+    );
+  }
 
   void _openLocationSheet(
     BuildContext context,
@@ -630,68 +588,6 @@ class _LocationSheetState extends State<_LocationSheet> {
   }
 }
 
-/// Label + current value + a segmented control, the shape both Appearance rows
-/// share. Extracted so the language and theme rows cannot drift apart.
-class _SegmentedSettingRow<T> extends StatelessWidget {
-  const _SegmentedSettingRow({
-    required this.icon,
-    required this.title,
-    required this.valueLabel,
-    required this.control,
-  });
-
-  final IconData icon;
-  final String title;
-  final String valueLabel;
-  final Widget control;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xxxl,
-        AppSpacing.xxl,
-        AppSpacing.xxxl,
-        AppSpacing.xxl,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              IconBadge(icon: icon),
-              const SizedBox(width: AppSpacing.xxl),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    UiText(
-                      title,
-                      type: UiTextType.titleMedium,
-                      fontSize: AppFontSize.lg,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    UiText(
-                      valueLabel,
-                      type: UiTextType.labelMedium,
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xxl),
-          control,
-        ],
-      ),
-    );
-  }
-}
-
 class _Footer extends StatelessWidget {
   const _Footer();
 
@@ -735,169 +631,3 @@ class _Footer extends StatelessWidget {
   }
 }
 
-/// Palette picker.
-///
-/// Rendered as swatch circles rather than a segmented control of words: the
-/// three palettes differ in *colour*, not in meaning, so the control should
-/// show the thing being chosen. Names stay as the semantic label so a screen
-/// reader announces what the swatch is.
-///
-/// Deliberately separate from `_SegmentedSettingRow` — that one is a text
-/// control for text-valued settings, and reusing it here would mean inventing
-/// an icon list whose icons do not correspond to anything.
-class _PaletteSettingRow extends StatelessWidget {
-  const _PaletteSettingRow({required this.value, required this.onChanged});
-
-  final AppPalette value;
-  final ValueChanged<AppPalette> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xxxl,
-        AppSpacing.xxl,
-        AppSpacing.xxxl,
-        AppSpacing.xxl,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              IconBadge(icon: Icons.palette_outlined),
-              const SizedBox(width: AppSpacing.xxl),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    UiText(
-                      l10n.appearancePalette,
-                      type: UiTextType.titleMedium,
-                      fontSize: AppFontSize.lg,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    UiText(
-                      _labelOf(value, l10n),
-                      type: UiTextType.labelMedium,
-                      color: scheme.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xxl),
-          Row(
-            children: [
-              for (final palette in AppPalette.values)
-                Expanded(
-                  child: _PaletteSwatch(
-                    palette: palette,
-                    selected: palette == value,
-                    label: _labelOf(palette, l10n),
-                    onTap: () => onChanged(palette),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  static String _labelOf(AppPalette palette, AppLocalizations l10n) =>
-      switch (palette) {
-        AppPalette.emerald => l10n.appearancePaletteEmerald,
-        AppPalette.sage => l10n.appearancePaletteSage,
-        AppPalette.midnight => l10n.appearancePaletteMidnight,
-      };
-}
-
-/// One selectable palette swatch: a two-tone dot showing the palette's primary
-/// over its surface, with a ring when selected.
-class _PaletteSwatch extends StatelessWidget {
-  const _PaletteSwatch({
-    required this.palette,
-    required this.selected,
-    required this.label,
-    required this.onTap,
-  });
-
-  final AppPalette palette;
-  final bool selected;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    // Resolved from the seed rather than read off the live [scheme], so each
-    // swatch previews the palette it selects — including the two the user is not
-    // currently on, which is the whole point of a picker.
-    final preview = ColorScheme.fromSeed(
-      seedColor: palette.lightSeed,
-      brightness: Theme.of(context).brightness,
-    );
-
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      // The dot is decoration as far as assistive tech is concerned; the label
-      // above already carries the name.
-      excludeSemantics: true,
-      child: InkWell(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
-        customBorder: const CircleBorder(),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xs),
-          child: Column(
-            children: [
-              AnimatedContainer(
-                duration: AppMotion.short,
-                curve: AppMotion.standard,
-                height: AppSpacing.control,
-                width: AppSpacing.control,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  // Two arcs rather than a flat fill: the palette is defined by
-                  // its primary/secondary pair, and a single-colour dot would
-                  // make Emerald and Sage nearly indistinguishable at 40 dp.
-                  gradient: SweepGradient(
-                    colors: [
-                      preview.primary,
-                      preview.secondary,
-                      preview.primary,
-                    ],
-                  ),
-                  border: Border.all(
-                    color: selected ? scheme.primary : scheme.outlineVariant,
-                    width: selected ? 2.5 : 1,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              UiText(
-                label,
-                type: UiTextType.labelSmall,
-                textAlign: TextAlign.center,
-                color: selected ? scheme.primary : scheme.onSurfaceVariant,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                maxLines: 2,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

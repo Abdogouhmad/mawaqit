@@ -122,6 +122,17 @@ abstract final class TimeFormatter {
     return '${h.hDay} ${_hijriMonths[month - 1]} ${h.hYear}'.toLowerCase();
   }
 
+  /// Hijri month and year without the day, e.g. `"Rabi' al-Awwal 1448"`.
+  ///
+  /// The almanac masthead spans a whole Gregorian month, so its Hijri line names
+  /// the month rather than a single day. Kept here, beside [hijri], because both
+  /// read the same locale-correct month-name table.
+  static String hijriMonth(DateTime d) {
+    final h = HijriCalendar.fromDate(d);
+    final month = h.hMonth.clamp(1, 12);
+    return '${_hijriMonths[month - 1]} ${h.hYear}';
+  }
+
   /// "1h 24m 13s" style countdown for the next-prayer hero/tile. Seconds are
   /// always shown (the home ticker runs every second); the largest unit omits
   /// its leading zero.
