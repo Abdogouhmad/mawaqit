@@ -54,6 +54,7 @@ class AppSettings {
     this.cityLatitude,
     this.cityLongitude,
     this.palette = AppPalette.emerald,
+    this.amoled = false,
     this.reduceTransparency = false,
     this.reduceMotion = false,
   });
@@ -85,6 +86,12 @@ class AppSettings {
 
   /// Hand-tuned colour scheme. No dynamic colour — see `AppPalette`.
   final AppPalette palette;
+
+  /// Flattens the dark surfaces to true black for OLED panels.
+  ///
+  /// Only observable while dark mode is in effect, but the preference itself is
+  /// remembered across a switch to light and back — the same way Walt treats it.
+  final bool amoled;
 
   /// Replaces the frosted nav bar with an opaque surface.
   ///
@@ -153,6 +160,7 @@ class AppSettings {
     double? cityLatitude,
     double? cityLongitude,
     AppPalette? palette,
+    bool? amoled,
     bool? reduceTransparency,
     bool? reduceMotion,
   }) {
@@ -177,6 +185,7 @@ class AppSettings {
       cityLatitude: cityLatitude ?? this.cityLatitude,
       cityLongitude: cityLongitude ?? this.cityLongitude,
       palette: palette ?? this.palette,
+      amoled: amoled ?? this.amoled,
       reduceTransparency: reduceTransparency ?? this.reduceTransparency,
       reduceMotion: reduceMotion ?? this.reduceMotion,
     );

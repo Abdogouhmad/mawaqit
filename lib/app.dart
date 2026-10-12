@@ -65,6 +65,7 @@ class MawaqitApp extends ConsumerWidget {
       _ => ThemeMode.system,
     };
     final palette = settings?.palette;
+    final amoled = settings?.amoled ?? false;
 
     // The language the app is actually rendering in, resolved once and reused
     // for the locale override, the theme's Arabic typography, and the ambient
@@ -80,7 +81,7 @@ class MawaqitApp extends ConsumerWidget {
     // A palette switch must take effect now, not on the next cold start: the
     // themes are cached, and a stale cache would leave Settings showing the new
     // palette while every other screen kept the old colours.
-    final cacheKey = '${palette?.name}-${themeMode.name}-$isArabic';
+    final cacheKey = '${palette?.name}-${themeMode.name}-$isArabic-$amoled';
     if (_lastCacheKey != cacheKey) {
       _lastCacheKey = cacheKey;
       AppTheme.invalidateCache();
@@ -111,6 +112,7 @@ class MawaqitApp extends ConsumerWidget {
       darkTheme: AppTheme.dark(
         palette: palette ?? AppPalette.emerald,
         arabic: isArabic,
+        amoled: amoled,
       ),
       themeMode: themeMode,
       builder: (context, child) {

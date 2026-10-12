@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/ui/theme/text_theme.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
-import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/features/times/widgets/prayer_grid.dart';
-import 'package:mawaqit/l10n/enum_localization.dart';
+import 'package:mawaqit/features/times/widgets/times_columns.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
@@ -37,7 +36,7 @@ class PrayerLabelsHeader extends StatelessWidget {
     final line = AppTextTheme.lineHeight(label, scaler);
     // One label line plus the strip gap, per strip, plus the delegate's own
     // bottom padding.
-    return grid.stripsFor(PrayerKind.five.length) * (line + AppSpacing.xs) +
+    return grid.stripsFor(timesColumnCount) * (line + AppSpacing.xs) +
         AppSpacing.xs;
   }
 
@@ -46,9 +45,7 @@ class PrayerLabelsHeader extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
 
-    final labels = PrayerKind.five
-        .map((kind) => kind.localized(l10n))
-        .toList(growable: false);
+    final labels = timesColumnLabels(l10n);
 
     return Padding(
       // [DayRow] insets its own content by this much inside the screen gutter, and

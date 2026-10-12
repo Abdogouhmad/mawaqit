@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 
-/// How the five prayer times are arranged inside one day of the month, and at
-/// what size.
+/// How the month's time columns are arranged inside one day, and at what size.
+///
+/// The columns are the five obligatory prayers plus sunrise ([timesColumnCount]
+/// in `times_columns.dart`) — the `FittedBox` sizing below applies to whichever
+/// of them the day draws.
 ///
 /// The month grid used to be a fixed five-column table with one `FittedBox` per
 /// cell, and measurement makes that design's defect plain: on a 360dp phone in
@@ -31,7 +34,7 @@ class PrayerGrid {
 
   /// Two columns is the floor.
   ///
-  /// Below that the five prayers become a tall single file and a month stops
+  /// Below that the columns become a tall single file and a month stops
   /// reading as a month. When even two columns cannot hold a time — a 12-hour
   /// clock at 200% text on a narrow phone — the cell scales down instead, which
   /// still leaves a very large time compared with the 5dp the old grid produced.
@@ -57,8 +60,8 @@ class PrayerGrid {
     required double availableWidth,
     required String widestText,
     required TextScaler textScaler,
+    required int itemCount,
     TextDirection direction = TextDirection.ltr,
-    int prayerCount = 5,
   }) {
     // Tracking is the one thing stripped here. Tabular figures are fixed-width,
     // so the letter spacing `AppTextTheme` puts on `labelMedium` inserts visible
@@ -78,7 +81,7 @@ class PrayerGrid {
             const TextStyle(),
     ];
 
-    for (var columns = prayerCount; columns >= minColumns; columns--) {
+    for (var columns = itemCount; columns >= minColumns; columns--) {
       final columnWidth =
           (availableWidth - columnGap * (columns - 1)) / columns;
       for (final style in ladder) {
@@ -111,12 +114,12 @@ class PrayerGrid {
     return painter.width;
   }
 
-  /// Number of rows the five prayers occupy at this column count.
+  /// Number of rows [itemCount] columns occupy at this column count.
   ///
-  /// Not always whole: three columns leaves two prayers on a short last strip.
+  /// Not always whole: three columns leaves two columns on a short last strip.
   /// That raggedness is shared by [DayRow] and the pinned header, which is the
   /// point — the two are cut from the same [columns].
-  int stripsFor(int prayerCount) => (prayerCount / columns).ceil();
+  int stripsFor(int itemCount) => (itemCount / columns).ceil();
 
   @override
   bool operator ==(Object other) =>

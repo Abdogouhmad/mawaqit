@@ -1022,6 +1022,54 @@ class NotificationService {
     }
   }
 
+  /// Applies one occurrence's mute state to alarms that are already armed,
+  /// without waiting for a full reschedule.
+  ///
+  /// A mute toggle is a direct instruction about *this* Maghrib, but the only
+  /// other path that re-arms alarms is `BackgroundScheduler.rescheduleNow`,
+  /// which silently does nothing when no location can be resolved (a GPS user
+  /// with no cached fix). The armed native alarm would then still ring, so the
+  /// toggle was a lie in exactly the case a user notices most. Cancelling the
+  /// occurrence here — by id, in both the plugin and the native id spaces —
+  /// makes muting authoritative whether or not a reschedule can run.
+  ///
+  /// Unmuting cancels the occurrence's quiet card too; re-arming the audible
+  /// alarm is left to the reschedule the caller still kicks off, which is the
+  /// only place that knows the tone, lead-time and calculation method.
+  Future<void> applyOccurrenceMute({
+    required DateTime date,
+    required PrayerKind kind,
+    required bool muted,
+  }) async {
+    final index = PrayerKind.five.indexOf(kind);
+    if (index < 0) return;
+    final day = DateTime(date.year, date.month, date.day);
+    final id = _adhanId(day, index);
+
+    // The plugin-scheduled card (the fallback path, and every muted occurrence)
+    // and the native AlarmManager entry (an audible occurrence). Cancelling an
+    // id that was never posted is a no-op in both spaces.
+    try {
+      await _plugin.cancel(id: id);
+    } catch (_) {}
+    if (_isAndroid) {
+      try {
+        await _channel.invokeMethod('cancelAdhan', {'id': id});
+      } catch (_) {}
+    }
+
+    // A mute that lands while the call is actually ringing has to silence it,
+    // not merely pre-empt some future arming — this is the one moment the user
+    // is unmistakably asking for quiet. Unmuting can never match, because there
+    // is no ringing alarm it could be keeping.
+    if (muted && _ringingNotificationId == id) {
+      await stopAlarm(notificationId: id);
+      if (!_alarmDismissController.isClosed) {
+        _alarmDismissController.add(null);
+      }
+    }
+  }
+
   /// The clip ran out: stop the alarm and tell the presenter to close itself,
   /// so a finished call never restarts or lingers on screen.
   Future<void> _onAdhanFinished() async {

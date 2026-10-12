@@ -24,12 +24,24 @@ abstract final class AppTheme {
   static ThemeData light({
     AppPalette palette = AppPalette.emerald,
     bool arabic = false,
-  }) => _build(palette, Brightness.light, arabic: arabic);
+    bool amoled = false,
+  }) => _build(palette, Brightness.light, arabic: arabic, amoled: amoled);
 
   static ThemeData dark({
     AppPalette palette = AppPalette.emerald,
     bool arabic = false,
-  }) => _build(palette, Brightness.dark, arabic: arabic);
+    bool amoled = false,
+  }) => _build(palette, Brightness.dark, arabic: arabic, amoled: amoled);
+
+  /// The [ColorScheme] a palette produces at [brightness], without AMOLED.
+  ///
+  /// Used by the palette picker so each swatch previews the colours the palette
+  /// actually applies — including the hand-tuned ones, whose generated seed
+  /// primary differs by a shade from what ships.
+  static ColorScheme schemeFor(AppPalette palette, Brightness brightness) =>
+      brightness == Brightness.light
+      ? light(palette: palette).colorScheme
+      : dark(palette: palette).colorScheme;
 
   /// Drops every cached theme.
   ///
@@ -47,10 +59,11 @@ abstract final class AppTheme {
     AppPalette palette,
     Brightness brightness, {
     required bool arabic,
+    bool amoled = false,
   }) {
-    final key = '${palette.name}-${brightness.name}-$arabic';
+    final key = '${palette.name}-${brightness.name}-$arabic-$amoled';
     return _cache.putIfAbsent(key, () {
-      final scheme = _scheme(palette, brightness);
+      final scheme = _scheme(palette, brightness, amoled: amoled);
       final textTheme = AppTextTheme.build(
         scheme: scheme,
         brightness: brightness,
@@ -61,7 +74,17 @@ abstract final class AppTheme {
   }
 
   /// The seed supplies tonal harmony; the overrides supply the brand.
-  static ColorScheme _scheme(AppPalette palette, Brightness brightness) {
+  ///
+  /// Two families of palette live here. The three hand-authored ones keep their
+  /// exact overrides below. Every palette added after them is built purely from
+  /// `ColorScheme.fromSeed`, so its primaries, containers and surfaces all carry
+  /// the seed's hue and stay legible by construction. AMOLED is applied last and
+  /// only touches the surface ramp.
+  static ColorScheme _scheme(
+    AppPalette palette,
+    Brightness brightness, {
+    bool amoled = false,
+  }) {
     final seed = brightness == Brightness.light
         ? palette.lightSeed
         : palette.darkSeed;
@@ -70,18 +93,50 @@ abstract final class AppTheme {
       brightness: brightness,
     );
 
+    final scheme = palette.isTuned
+        ? _tuned(palette, generated, brightness)
+        : generated;
+
+    return brightness == Brightness.dark && amoled
+        ? _applyAmoled(scheme)
+        : scheme;
+  }
+
+  /// Flattens only the dark surface ramp to true black for OLED panels.
+  ///
+  /// Accents (`primary`, `error`, every container) are left untouched, so
+  /// enabling it changes how dark the app is without changing what any colour
+  /// means — the same rule Walt follows.
+  static ColorScheme _applyAmoled(ColorScheme scheme) => scheme.copyWith(
+    surface: AppColors.amoledSurface,
+    surfaceContainerLowest: AppColors.amoledLowest,
+    surfaceContainerLow: AppColors.amoledLow,
+    surfaceContainer: AppColors.amoledContainer,
+    surfaceContainerHigh: AppColors.amoledHigh,
+    surfaceContainerHighest: AppColors.amoledHighest,
+  );
+
+  /// The hand-checked brand overrides for [AppPalette.emerald], [AppPalette.sage]
+  /// and [AppPalette.midnight], layered over the generated scheme.
+  static ColorScheme _tuned(
+    AppPalette palette,
+    ColorScheme generated,
+    Brightness brightness,
+  ) {
     if (brightness == Brightness.light) {
       return generated.copyWith(
         primary: switch (palette) {
           AppPalette.emerald => AppColors.primaryEmerald,
           AppPalette.sage => AppColors.primarySage,
           AppPalette.midnight => AppColors.primaryMidnight,
+          _ => generated.primary,
         },
         onPrimary: AppColors.white,
         tertiary: switch (palette) {
           AppPalette.emerald => AppColors.goldLight,
           AppPalette.sage => AppColors.secondary,
           AppPalette.midnight => AppColors.amberLight,
+          _ => generated.tertiary,
         },
         onTertiary: AppColors.white,
         surface: AppColors.canvasLight,
@@ -104,11 +159,13 @@ abstract final class AppTheme {
           AppPalette.emerald => AppColors.emeraldContainerLight,
           AppPalette.sage => AppColors.sageContainerLight,
           AppPalette.midnight => AppColors.midnightContainerLight,
+          _ => generated.primaryContainer,
         },
         onPrimaryContainer: switch (palette) {
           AppPalette.emerald => AppColors.onEmeraldContainerLight,
           AppPalette.sage => AppColors.onSageContainerLight,
           AppPalette.midnight => AppColors.onMidnightContainerLight,
+          _ => generated.onPrimaryContainer,
         },
         secondaryContainer: AppColors.secondaryContainerLight,
         onSecondaryContainer: AppColors.onSecondaryContainerLight,
@@ -124,6 +181,7 @@ abstract final class AppTheme {
         AppPalette.emerald => AppColors.primaryEmeraldDark,
         AppPalette.sage => AppColors.primarySageDark,
         AppPalette.midnight => AppColors.primaryMidnightDark,
+        _ => generated.primary,
       },
       onPrimary: palette == AppPalette.sage
           ? AppColors.white
@@ -132,6 +190,7 @@ abstract final class AppTheme {
         AppPalette.emerald => AppColors.goldDark,
         AppPalette.sage => AppColors.radiantSage,
         AppPalette.midnight => AppColors.amberDark,
+        _ => generated.tertiary,
       },
       onTertiary: AppColors.white,
       surface: AppColors.canvasDark,
@@ -149,11 +208,13 @@ abstract final class AppTheme {
         AppPalette.emerald => AppColors.emeraldContainerDark,
         AppPalette.sage => AppColors.sageContainerDark,
         AppPalette.midnight => AppColors.midnightContainerDark,
+        _ => generated.primaryContainer,
       },
       onPrimaryContainer: switch (palette) {
         AppPalette.emerald => AppColors.onEmeraldContainerDark,
         AppPalette.sage => AppColors.onSageContainerDark,
         AppPalette.midnight => AppColors.onMidnightContainerDark,
+        _ => generated.onPrimaryContainer,
       },
       secondaryContainer: AppColors.secondaryContainerDark,
       onSecondaryContainer: AppColors.onSecondaryContainerDark,
@@ -170,7 +231,10 @@ abstract final class AppTheme {
     Brightness brightness,
   ) {
     final isLight = brightness == Brightness.light;
-    final cardColor = isLight ? AppColors.cardLight : AppColors.cardDark;
+    // Taken from the scheme rather than a fixed emerald literal so sheets,
+    // dialogs and cards follow the selected palette — and go true black under
+    // AMOLED, where `surfaceContainerLowest` is.
+    final cardColor = scheme.surfaceContainerLowest;
     final primary = scheme.primary;
 
     final base = ThemeData(
@@ -351,9 +415,9 @@ abstract final class AppTheme {
         behavior: SnackBarBehavior.floating,
         backgroundColor: isLight
             ? AppColors.onSurfaceLight
-            : AppColors.cardDark,
+            : scheme.surfaceContainerHigh,
         contentTextStyle: textTheme.bodyMedium?.copyWith(
-          color: isLight ? AppColors.white : AppColors.onSurfaceDark,
+          color: isLight ? AppColors.white : scheme.onSurface,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),

@@ -41,6 +41,7 @@ class SettingsRepository {
     'cityLatitude': s.cityLatitude,
     'cityLongitude': s.cityLongitude,
     'palette': s.palette.storageKey,
+    'amoled': s.amoled,
     'reduceTransparency': s.reduceTransparency,
     'reduceMotion': s.reduceMotion,
   };
@@ -82,6 +83,7 @@ class SettingsRepository {
     // `fromStorageKey` falls back to the brand palette, so a blob written
     // before palettes existed still renders a coherent theme.
     palette: AppPalette.fromStorageKey(json['palette'] as String?),
+    amoled: json['amoled'] as bool? ?? false,
     reduceTransparency: json['reduceTransparency'] as bool? ?? false,
     reduceMotion: json['reduceMotion'] as bool? ?? false,
   );

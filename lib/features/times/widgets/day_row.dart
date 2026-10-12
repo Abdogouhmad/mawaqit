@@ -9,17 +9,21 @@ import 'package:mawaqit/core/utils/hijri_dates.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/features/times/widgets/prayer_grid.dart';
-import 'package:mawaqit/l10n/enum_localization.dart';
+import 'package:mawaqit/features/times/widgets/times_columns.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
-/// One day of the month: who it is, and the five times.
+/// One day of the month: who it is, and the day's time columns.
 ///
 /// Every day uses the same [PrayerGrid], so the columns line up down the whole
 /// month — the property the screen depends on. What changed from the old table
 /// is the number of columns that grid holds: it is however many the times can be
 /// rendered in *at full size*, rather than always five with each cell shrunk to
 /// fit.
+///
+/// The columns themselves are the five prayers plus sunrise — see
+/// `times_columns.dart` — so the month answers "when does Fajr's window close"
+/// as well as "when is Dhuhr".
 class DayRow extends StatelessWidget {
   const DayRow({
     super.key,
@@ -68,7 +72,7 @@ class DayRow extends StatelessWidget {
     PrayerGrid grid,
     TextTheme textTheme,
     TextScaler scaler, {
-    int prayerCount = 5,
+    int itemCount = timesColumnCount,
   }) {
     double line(TextStyle? style, double fallback) => AppTextTheme.lineHeight(
       style ?? TextStyle(fontSize: fallback, height: 1.3),
@@ -85,7 +89,7 @@ class DayRow extends StatelessWidget {
         ) +
         AppSpacing.md +
         // Each strip: label, gap, time, then its own trailing gap.
-        grid.stripsFor(prayerCount) *
+        grid.stripsFor(itemCount) *
             (line(textTheme.labelSmall, AppFontSize.xs) +
                 AppSpacing.xxs +
                 line(grid.timeStyle, AppFontSize.md) +
@@ -98,13 +102,14 @@ class DayRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
+    final columns = timesColumnsFor(day, l10n);
 
     final spoken = <String>[
       DateFormat.EEEE(locale).format(day.date),
       DateFormat.MMMEd(locale).format(day.date),
       if (isToday) l10n.timesHighlightedToday,
-      for (final prayer in day.prayers)
-        '${prayer.kind.localized(l10n)} ${TimeFormatter.clock(prayer.time)}',
+      for (final column in columns)
+        '${column.label} ${TimeFormatter.clock(column.time)}',
     ].join(', ');
 
     return Semantics(
@@ -133,13 +138,13 @@ class DayRow extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             for (
               var start = 0;
-              start < day.prayers.length;
+              start < columns.length;
               start += grid.columns
             )
               _PrayerStrip(
-                prayers: day.prayers.sublist(
+                columns: columns.sublist(
                   start,
-                  (start + grid.columns).clamp(0, day.prayers.length),
+                  (start + grid.columns).clamp(0, columns.length),
                 ),
                 grid: grid,
                 isToday: isToday,
@@ -178,6 +183,10 @@ class _DayLine extends StatelessWidget {
 
     final weekday = DateFormat.EEEE(locale).format(day.date);
     final hijriDay = HijriDates.dayOfMonth(day.date);
+    // Friday carries the week: it is the day the month view is scanned for, and
+    // the congregation's own day. Tinting the weekday (the app's gold, the same
+    // solar accent the arc uses) flags every one without adding a string.
+    final isFriday = day.date.weekday == DateTime.friday;
 
     return Row(
       children: [
@@ -208,7 +217,11 @@ class _DayLine extends StatelessWidget {
             fontWeight: FontWeight.w600,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            color: isToday ? scheme.onPrimaryContainer : scheme.onSurface,
+            color: isToday
+                ? scheme.onPrimaryContainer
+                : isFriday
+                ? scheme.tertiary
+                : scheme.onSurface,
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -239,14 +252,14 @@ class _DayLine extends StatelessWidget {
 /// the grid on screen.
 class _PrayerStrip extends StatelessWidget {
   const _PrayerStrip({
-    required this.prayers,
+    required this.columns,
     required this.grid,
     required this.isToday,
     required this.now,
     required this.nextPrayer,
   });
 
-  final List<PrayerTime> prayers;
+  final List<TimesColumn> columns;
   final PrayerGrid grid;
   final bool isToday;
   final DateTime now;
@@ -262,9 +275,9 @@ class _PrayerStrip extends StatelessWidget {
           for (var i = 0; i < grid.columns; i++) ...[
             if (i > 0) const SizedBox(width: PrayerGrid.columnGap),
             Expanded(
-              child: i < prayers.length
+              child: i < columns.length
                   ? _PrayerCell(
-                      prayer: prayers[i],
+                      column: columns[i],
                       style: grid.timeStyle,
                       isToday: isToday,
                       now: now,
@@ -281,14 +294,14 @@ class _PrayerStrip extends StatelessWidget {
 
 class _PrayerCell extends StatelessWidget {
   const _PrayerCell({
-    required this.prayer,
+    required this.column,
     required this.style,
     required this.isToday,
     required this.now,
     required this.nextPrayer,
   });
 
-  final PrayerTime prayer;
+  final TimesColumn column;
   final TextStyle? style;
   final bool isToday;
   final DateTime now;
@@ -297,10 +310,11 @@ class _PrayerCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
 
-    final isNext = isToday && nextPrayer == prayer.kind;
-    final hasPassed = prayer.time.isBefore(now);
+    // Sunrise has no [PrayerKind], so it is never the "next prayer" — the
+    // highlight belongs to the five obligatory prayers the day is built around.
+    final isNext = isToday && column.kind != null && nextPrayer == column.kind;
+    final hasPassed = column.time.isBefore(now);
 
     // Only today's row says anything about passed and upcoming; on any other day
     // the times are simply the times, and dimming them by the current clock would
@@ -320,7 +334,7 @@ class _PrayerCell extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         UiText(
-          prayer.kind.localized(l10n),
+          column.label,
           type: UiTextType.labelSmall,
           fontWeight: FontWeight.w600,
           // Tracking off: the label sits directly over a fixed-width time, and a
@@ -336,7 +350,7 @@ class _PrayerCell extends StatelessWidget {
           fit: BoxFit.scaleDown,
           alignment: AlignmentDirectional.centerStart,
           child: Text(
-            TimeFormatter.clock(prayer.time),
+            TimeFormatter.clock(column.time),
             maxLines: 1,
             style: style?.copyWith(
               color: color,

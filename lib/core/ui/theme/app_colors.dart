@@ -22,7 +22,25 @@ enum AppPalette {
   sage,
 
   /// Midnight indigo + warm amber. High-contrast dark alternative.
-  midnight;
+  midnight,
+
+  /// Cool blue. A calm, high-contrast alternative to the greens.
+  ocean,
+
+  /// Soft violet, for users who want a warmer dark theme.
+  violet,
+
+  /// Rose, the one palette that leans warm without becoming gold.
+  rose,
+
+  /// Amber, the closest the app gets to the brand's gold without the green.
+  amber,
+
+  /// Terracotta, a muted earthy red.
+  terracotta,
+
+  /// Graphite, near-neutral for a monochrome look.
+  graphite;
 
   String get storageKey => name;
 
@@ -31,19 +49,48 @@ enum AppPalette {
     orElse: () => AppPalette.emerald,
   );
 
-  /// Light-mode seed. The schemes are hand-authored rather than generated from
-  /// this, but the seed is what `ColorScheme.fromSeed` would key off, and it is
-  /// the value used for the Material You–style tonal accents.
+  /// Whether the palette's [ColorScheme] is hand-authored in [AppTheme].
+  ///
+  /// The three original palettes carry exact, hand-checked brand overrides
+  /// (primary, tertiary and their container pairs). Every palette added after
+  /// them is generated from its seed with Material's tonal-spot solver instead,
+  /// so a new colour is a two-line change rather than a hand-tuned octet. Both
+  /// kinds render through the same role names, so no screen can tell them apart.
+  bool get isTuned => switch (this) {
+    AppPalette.emerald || AppPalette.sage || AppPalette.midnight => true,
+    AppPalette.ocean ||
+    AppPalette.violet ||
+    AppPalette.rose ||
+    AppPalette.amber ||
+    AppPalette.terracotta ||
+    AppPalette.graphite => false,
+  };
+
+  /// Light-mode seed. For a [isTuned] palette the scheme is hand-authored, but
+  /// the seed is still what the swatch previews and what the generator would
+  /// key off for the [isTuned] ones it is actually used to build.
   Color get lightSeed => switch (this) {
     AppPalette.emerald => AppColors.emeraldSeed,
     AppPalette.sage => AppColors.sageSeed,
     AppPalette.midnight => AppColors.midnightSeed,
+    AppPalette.ocean => AppColors.oceanSeed,
+    AppPalette.violet => AppColors.violetSeed,
+    AppPalette.rose => AppColors.roseSeed,
+    AppPalette.amber => AppColors.amberSeed,
+    AppPalette.terracotta => AppColors.terracottaSeed,
+    AppPalette.graphite => AppColors.graphiteSeed,
   };
 
   Color get darkSeed => switch (this) {
     AppPalette.emerald => AppColors.emeraldSeedDark,
     AppPalette.sage => AppColors.sageSeedDark,
     AppPalette.midnight => AppColors.midnightSeedDark,
+    AppPalette.ocean => AppColors.oceanSeedDark,
+    AppPalette.violet => AppColors.violetSeedDark,
+    AppPalette.rose => AppColors.roseSeedDark,
+    AppPalette.amber => AppColors.amberSeedDark,
+    AppPalette.terracotta => AppColors.terracottaSeedDark,
+    AppPalette.graphite => AppColors.graphiteSeedDark,
   };
 }
 
@@ -58,6 +105,21 @@ abstract final class AppColors {
   static const Color sageSeedDark = Color(0xFF3E9B76);
   static const Color midnightSeed = Color(0xFF2E3A7A);
   static const Color midnightSeedDark = Color(0xFF9BA6F0);
+
+  // Seeds for the generated palettes. Well separated in hue, so no two
+  // `ColorScheme.fromSeed` results collide into the same primary.
+  static const Color oceanSeed = Color(0xFF1565C0);
+  static const Color oceanSeedDark = Color(0xFF7FB2E5);
+  static const Color violetSeed = Color(0xFF6A3D9A);
+  static const Color violetSeedDark = Color(0xFFC3A0E8);
+  static const Color roseSeed = Color(0xFFB5345E);
+  static const Color roseSeedDark = Color(0xFFEE93AE);
+  static const Color amberSeed = Color(0xFF9A5B00);
+  static const Color amberSeedDark = Color(0xFFE8B768);
+  static const Color terracottaSeed = Color(0xFFA64B2A);
+  static const Color terracottaSeedDark = Color(0xFFE39B7A);
+  static const Color graphiteSeed = Color(0xFF4A5568);
+  static const Color graphiteSeedDark = Color(0xFFA9B4C2);
 
   // ─────────────────────── Emerald (brand default) ───────────────────────
   /// Deep emerald primary — the brand's core colour.
@@ -185,6 +247,17 @@ abstract final class AppColors {
   static const Color widgetMutedDark = Color(0x668A918C);
   static const Color widgetMutedTintLight = Color(0x336F7A72);
   static const Color widgetMutedTintDark = Color(0x338A918C);
+
+  // ───────────────────────── AMOLED (true black) ────────────────────────
+  // Applied only in dark mode. Only the surface ramp moves — every accent role
+  // keeps its palette colour, so "pure black" changes how dark the app is
+  // without changing what any colour means.
+  static const Color amoledSurface = Color(0xFF000000);
+  static const Color amoledLowest = Color(0xFF000000);
+  static const Color amoledLow = Color(0xFF0A0A0A);
+  static const Color amoledContainer = Color(0xFF111111);
+  static const Color amoledHigh = Color(0xFF181818);
+  static const Color amoledHighest = Color(0xFF202020);
 
   // ──────────────────────── Raw ARGB for native ─────────────────────────
   // The Android home-screen card (Glance) annotates ints, not Colors; these
