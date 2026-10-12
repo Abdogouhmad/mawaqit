@@ -155,9 +155,10 @@ void main() {
 
     test('an unsupported device language narrows instead of throwing', () {
       // Regression guard: the generated lookupAppLocalizations throws for
-      // anything outside ['ar','en'].
+      // anything outside the shipped set, so a device locale that is not one of
+      // them must be narrowed before it reaches it.
       expect(
-        resolveAppLocale(AppLanguage.system, const Locale('fr')).languageCode,
+        resolveAppLocale(AppLanguage.system, const Locale('zh')).languageCode,
         'en',
       );
     });

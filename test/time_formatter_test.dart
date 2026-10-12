@@ -1,7 +1,17 @@
+import 'dart:ui' show Locale;
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
+import 'package:mawaqit/l10n/ambient_l10n.dart';
 
 void main() {
+  // `TimeFormatter` builds `DateFormat`s for the active locale, and in the app
+  // `flutter_localizations` initializes intl's locale data before the first
+  // frame. A plain unit test has no such bootstrap, so the Arabic/French
+  // formatting tests would throw `LocaleDataException` without this.
+  setUpAll(() => initializeDateFormatting());
+
   group('TimeFormatter.countdown', () {
     test('composes hours and minutes', () {
       expect(
@@ -75,15 +85,20 @@ void main() {
     tearDown(() {
       TimeFormatter.locale(null);
       TimeFormatter.use24HourFormat(false);
+      AmbientL10n.reset();
     });
 
-    test('Arabic renders Arabic-Indic digits and a localized meridiem', () {
+    test('Arabic renders a localized meridiem instead of the English one', () {
       TimeFormatter.locale('ar');
       final arabic = TimeFormatter.clock(DateTime(2026, 9, 21, 13, 48));
       // The point is that it is no longer the English "1:48 PM" string: `ar`
-      // uses Arabic-Indic digits and a localized meridiem.
+      // resolves the meridiem in Arabic. (Arabic-Indic *digits* are not asserted:
+      // intl 0.20 renders generic `ar` with Latin digits and only narrows to
+      // Arabic-Indic for `ar_EG`, which the app does not use. See the notes in
+      // docs/optimization-notes.md.)
       expect(arabic, isNot('1:48 PM'));
-      expect(arabic, contains('٤'));
+      expect(arabic, isNot(contains('PM')));
+      expect(arabic, contains('م'));
     });
 
     test('an unsupported device locale falls back instead of throwing', () {
@@ -103,7 +118,9 @@ void main() {
     });
 
     test('countdown unit suffixes are localized', () {
-      TimeFormatter.locale('ar');
+      // `countdown` reads the ambient catalog rather than the formatter locale,
+      // because it is also built from background isolates with no BuildContext.
+      AmbientL10n.locale = const Locale('ar');
       expect(
         TimeFormatter.countdown(const Duration(hours: 1, minutes: 24)),
         isNot('1h 24m 00s'),

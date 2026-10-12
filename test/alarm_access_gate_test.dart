@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mawaqit/data/services/alarm_access_prompt.dart';
 import 'package:mawaqit/features/home/widgets/alarm_access_gate.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +47,11 @@ void main() {
   Future<void> pumpGate(WidgetTester tester) async {
     await tester.pumpWidget(
       const ProviderScope(
-        child: MaterialApp(home: Scaffold(body: AlarmAccessGate())),
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: AlarmAccessGate()),
+        ),
       ),
     );
     await tester.pumpAndSettle();

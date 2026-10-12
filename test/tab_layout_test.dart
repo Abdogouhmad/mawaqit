@@ -157,4 +157,3 @@ class _StubHome extends HomeController {
   @override
   Future<HomeState> build() async => _state;
 }
-
