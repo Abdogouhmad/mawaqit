@@ -1,8 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:mawaqit/data/models/alarm_access.dart';
 import 'package:mawaqit/data/services/alarm_access_prompt.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   const missing = AlarmAccess(battery: false);

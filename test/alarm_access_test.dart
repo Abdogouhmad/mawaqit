@@ -45,11 +45,9 @@ void main() {
     test('lists the missing grants in enum order', () {
       const access = AlarmAccess(
         notifications: false,
-        exactAlarms: true,
         fullScreenIntent: false,
         overlay: false,
         policyAccess: false,
-        battery: true,
       );
 
       expect(access.missing, [

@@ -105,9 +105,7 @@ class BlurSurface extends StatelessWidget {
   /// Strips [neutralAmount] of a colour's chroma, leaving lightness untouched.
   static Color neutralize(Color color) {
     final hsl = HSLColor.fromColor(color);
-    return hsl
-        .withSaturation(hsl.saturation * (1 - neutralAmount))
-        .toColor();
+    return hsl.withSaturation(hsl.saturation * (1 - neutralAmount)).toColor();
   }
 
   /// Luminance-preserving saturation matrix.
@@ -117,10 +115,26 @@ class BlurSurface extends StatelessWidget {
   /// brightness. The coefficients sum to 1 per row, which is what stops the
   /// backdrop from brightening or darkening as the effect is dialled up.
   static List<double> _saturationMatrix(double s) => [
-    0.213 + 0.787 * s, 0.715 - 0.715 * s, 0.072 - 0.072 * s, 0, 0,
-    0.213 - 0.213 * s, 0.715 + 0.285 * s, 0.072 - 0.072 * s, 0, 0,
-    0.213 - 0.213 * s, 0.715 - 0.715 * s, 0.072 + 0.928 * s, 0, 0,
-    0, 0, 0, 1, 0,
+    0.213 + 0.787 * s,
+    0.715 - 0.715 * s,
+    0.072 - 0.072 * s,
+    0,
+    0,
+    0.213 - 0.213 * s,
+    0.715 + 0.285 * s,
+    0.072 - 0.072 * s,
+    0,
+    0,
+    0.213 - 0.213 * s,
+    0.715 - 0.715 * s,
+    0.072 + 0.928 * s,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
   ];
 
   @override
@@ -134,7 +148,9 @@ class BlurSurface extends StatelessWidget {
         opacity ??
         (brightness == Brightness.light ? lightOpacity : defaultOpacity);
 
-    final baseTint = neutralTint ? neutralize(scheme.surfaceContainer) : scheme.surfaceContainer;
+    final baseTint = neutralTint
+        ? neutralize(scheme.surfaceContainer)
+        : scheme.surfaceContainer;
 
     final tint = reduceTransparency
         ? baseTint
@@ -151,10 +167,7 @@ class BlurSurface extends StatelessWidget {
         color: tint,
         borderRadius: shape,
         border: border
-            ? Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
-                width: 1,
-              )
+            ? Border.all(color: scheme.outlineVariant.withValues(alpha: 0.4))
             : null,
       ),
       child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
@@ -177,10 +190,7 @@ class BlurSurface extends StatelessWidget {
         // chrome's repaints cheap.
         child: ClipRRect(
           borderRadius: shape,
-          child: BackdropFilter(
-            filter: _backdropFilter(),
-            child: surface,
-          ),
+          child: BackdropFilter(filter: _backdropFilter(), child: surface),
         ),
       ),
     );

@@ -37,7 +37,6 @@ class SectionHeader extends StatelessWidget {
             IconBadge(
               icon: headerIcon,
               size: 34,
-              iconSize: AppIconSize.lg,
               color: scheme.primary.withValues(alpha: 0.08),
               foregroundColor: scheme.primary,
             ),

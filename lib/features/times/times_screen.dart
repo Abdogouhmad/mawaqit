@@ -251,7 +251,9 @@ class _MonthState extends ConsumerState<_Month> {
 
     // Today's own row, feeding the solar card. Absent when another month is
     // displayed, which is exactly when a "now" arc would be meaningless.
-    final todayIndex = state.days.indexWhere((day) => _isSameDay(day.date, now));
+    final todayIndex = state.days.indexWhere(
+      (day) => _isSameDay(day.date, now),
+    );
     final todayDay = todayIndex < 0 ? null : state.days[todayIndex];
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _revealToday());

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
-import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
 import 'package:mawaqit/features/settings/widgets/ota_update_screen.dart';
-import 'package:mawaqit/shared/ui/app_pill.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/components/settings_group.dart';
 import 'package:mawaqit/shared/components/settings_row.dart';
+import 'package:mawaqit/shared/ui/app_pill.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// The "About & update" card shown on the settings screen: a software-update
@@ -62,11 +61,6 @@ class UpdateSection extends ConsumerWidget {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        // No `title:` on purpose. AlertDialog start-aligns its title, which
-        // fought the centred stack below and left the app name hanging off to
-        // one side of the icon. The name is the first line of the content
-        // instead, so icon, name and copy share a single centre axis.
-        title: null,
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -100,7 +94,6 @@ class UpdateSection extends ConsumerWidget {
             const SizedBox(height: AppSpacing.xxs),
             UiText(
               l10n.settingsAboutTagline,
-              type: UiTextType.bodyMedium,
               color: scheme.onSurfaceVariant,
               textAlign: TextAlign.center,
             ),
@@ -111,11 +104,7 @@ class UpdateSection extends ConsumerWidget {
             // UiText passes it straight through and Flutter's default is
             // `TextAlign.start`, so without it this paragraph would wrap
             // left-aligned inside a centred column and look broken.
-            UiText(
-              l10n.updateAboutDescription,
-              type: UiTextType.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
+            UiText(l10n.updateAboutDescription, textAlign: TextAlign.center),
 
             const SizedBox(height: AppSpacing.xxl),
 

@@ -2,9 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-
-import 'package:mawaqit/core/ui/theme/text_theme.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/text_theme.dart';
 import 'package:mawaqit/core/utils/hijri_dates.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
@@ -136,11 +135,7 @@ class DayRow extends StatelessWidget {
           children: [
             _DayLine(day: day, isToday: isToday, locale: locale),
             const SizedBox(height: AppSpacing.md),
-            for (
-              var start = 0;
-              start < columns.length;
-              start += grid.columns
-            )
+            for (var start = 0; start < columns.length; start += grid.columns)
               _PrayerStrip(
                 columns: columns.sublist(
                   start,

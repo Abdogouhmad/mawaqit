@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-
 import 'package:mawaqit/core/ui/theme/app_theme.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/ui/pulse_dot.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
-import 'package:mawaqit/l10n/enum_localization.dart';
 
 /// Lightweight M3 Expressive countdown hero.
 ///

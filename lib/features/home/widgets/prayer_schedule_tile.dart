@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
 import 'package:mawaqit/shared/ui/pulse_dot.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
-import 'package:mawaqit/l10n/gen/app_localizations.dart';
-import 'package:mawaqit/l10n/enum_localization.dart';
 
 enum PrayerTileStatus { passed, active, upcoming }
 
@@ -111,7 +110,7 @@ class PrayerScheduleTile extends StatelessWidget {
           SizedBox(
             width: AppSpacing.xl,
             child: active
-                ? PulseDot(color: scheme.primary, size: 8)
+                ? PulseDot(color: scheme.primary)
                 : Container(
                     width: 7,
                     height: 7,

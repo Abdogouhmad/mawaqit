@@ -388,9 +388,7 @@ abstract final class AppTheme {
                 : scheme.onSurfaceVariant,
           ),
           side: const WidgetStatePropertyAll(BorderSide.none),
-          shape: const WidgetStatePropertyAll(
-            RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.zero)),
-          ),
+          shape: const WidgetStatePropertyAll(RoundedRectangleBorder()),
           textStyle: WidgetStatePropertyAll(textTheme.labelMedium),
         ),
       ),

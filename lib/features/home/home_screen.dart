@@ -1,19 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mawaqit/core/const/app_constants.dart';
 import 'package:mawaqit/core/navigation/app_shell.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
-import 'package:mawaqit/providers/providers.dart';
-import 'package:mawaqit/shared/components/section_header.dart';
-import 'package:mawaqit/shared/ui/app_button.dart';
-import 'package:mawaqit/shared/ui/app_card.dart';
-import 'package:mawaqit/shared/ui/pulse_dot.dart';
-import 'package:mawaqit/shared/ui/ui_text.dart';
 import 'package:mawaqit/features/home/home_controller.dart';
 import 'package:mawaqit/features/home/widgets/alarm_access_gate.dart';
 import 'package:mawaqit/features/home/widgets/countdown_hero.dart';
@@ -21,6 +14,12 @@ import 'package:mawaqit/features/home/widgets/prayer_schedule_tile.dart';
 import 'package:mawaqit/features/home/widgets/solar_card.dart';
 import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/providers/providers.dart';
+import 'package:mawaqit/shared/components/section_header.dart';
+import 'package:mawaqit/shared/ui/app_button.dart';
+import 'package:mawaqit/shared/ui/app_card.dart';
+import 'package:mawaqit/shared/ui/pulse_dot.dart';
+import 'package:mawaqit/shared/ui/ui_text.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -102,7 +101,7 @@ class _HomeHeader extends StatelessWidget {
             color: scheme.primary,
           ),
           const SizedBox(width: AppSpacing.md),
-          UiText(
+          const UiText(
             AppConstants.appName,
             type: UiTextType.titleLarge,
             fontWeight: FontWeight.w700,
@@ -162,7 +161,6 @@ class _HomeBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.xs),
         UiText(
           TimeFormatter.gregorian(now),
-          type: UiTextType.bodyMedium,
           textAlign: TextAlign.center,
           color: scheme.onSurfaceVariant,
         ),
@@ -347,7 +345,6 @@ class _DevAdhanPreview extends ConsumerWidget {
     return AppCard(
       ambient: false,
       color: scheme.surfaceContainerLow,
-      padding: const EdgeInsets.all(AppSpacing.xxxl),
       child: Column(
         children: [
           Row(
@@ -428,7 +425,6 @@ class _HomeError extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             UiText(
               message,
-              type: UiTextType.bodyMedium,
               textAlign: TextAlign.center,
               color: scheme.onSurfaceVariant,
             ),

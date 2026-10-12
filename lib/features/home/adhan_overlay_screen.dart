@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/ui/app_button.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
-import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
 class AdhanOverlayScreen extends StatefulWidget {
   const AdhanOverlayScreen({
@@ -86,7 +85,7 @@ class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
         },
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.fromLTRB(
+            padding: const EdgeInsets.fromLTRB(
               AppSpacing.lg,
               AppSpacing.md,
               AppSpacing.lg,
@@ -94,7 +93,7 @@ class _AdhanOverlayScreenState extends State<AdhanOverlayScreen> {
             ),
             child: Column(
               children: [
-                _Header(),
+                const _Header(),
 
                 Expanded(
                   child: _Content(title: widget.title, compact: compact),
@@ -193,7 +192,6 @@ class _Content extends StatelessWidget {
 
           UiText(
             AppLocalizations.of(context).adhanNowPlaying,
-            type: UiTextType.bodyMedium,
             textAlign: TextAlign.center,
             color: scheme.onSurfaceVariant,
           ),

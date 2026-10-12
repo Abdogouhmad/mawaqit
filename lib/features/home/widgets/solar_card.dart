@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
-import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
 /// Quiet astronomical summary: solar noon, day length and sunset.
 class SolarCard extends StatelessWidget {

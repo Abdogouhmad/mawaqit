@@ -205,7 +205,7 @@ void main() {
 
       await tester.tap(find.text('Settings'));
       await tester.pumpAndSettle();
-      expect(selected, [3]);
+      expect(selected, [2]);
     });
 
     testWidgets('ignores taps once hidden', (tester) async {

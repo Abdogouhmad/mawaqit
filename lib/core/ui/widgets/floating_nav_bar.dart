@@ -289,10 +289,6 @@ class _NavIcon extends StatelessWidget {
 
     if (badge <= 0) return icon;
 
-    return Badge(
-      isLabelVisible: true,
-      label: Text(badge > 99 ? '99+' : '$badge'),
-      child: icon,
-    );
+    return Badge(label: Text(badge > 99 ? '99+' : '$badge'), child: icon);
   }
 }

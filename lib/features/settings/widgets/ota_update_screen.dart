@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/data/services/update_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/shared/components/info_row.dart';
 import 'package:mawaqit/shared/ui/app_button.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
 import 'package:mawaqit/shared/ui/icon_badge.dart';
-import 'package:mawaqit/shared/components/info_row.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
-import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
 /// Full-page OTA update center, reachable from the settings "Update" entry.
 ///
@@ -79,7 +78,7 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
                     state.checkResult == UpdateCheckResult.checkFailed) ...[
                   _InlineError(
                     message: _errorMessage(context, state),
-                    onRetry: () => notifier.checkForUpdates(),
+                    onRetry: notifier.checkForUpdates,
                   ),
                   const SizedBox(height: AppSpacing.md),
                 ],
@@ -95,7 +94,7 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
                     progress: state.progress ?? 0,
                   ),
                   UpdateStatus.readyToInstall => _ReadyCard(
-                    onChangePressed: () => notifier.downloadAndInstall(),
+                    onChangePressed: notifier.downloadAndInstall,
                   ),
                   _ => _Actions(
                     canUpdate:
@@ -103,8 +102,8 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
                         state.status != UpdateStatus.downloading &&
                         state.status != UpdateStatus.readyToInstall,
                     failed: state.status == UpdateStatus.error,
-                    onCheck: () => notifier.checkForUpdates(),
-                    onDownload: () => notifier.downloadAndInstall(),
+                    onCheck: notifier.checkForUpdates,
+                    onDownload: notifier.downloadAndInstall,
                   ),
                 },
               ],
@@ -253,10 +252,7 @@ class _CheckingCard extends StatelessWidget {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const SizedBox(width: AppSpacing.md),
-              UiText(
-                AppLocalizations.of(context).updateLookingForVersions,
-                type: UiTextType.bodyMedium,
-              ),
+              UiText(AppLocalizations.of(context).updateLookingForVersions),
             ],
           ),
           const SizedBox(height: AppSpacing.giga),
@@ -384,7 +380,6 @@ class _ChangelogCard extends StatelessWidget {
         if (lines.isEmpty)
           UiText(
             AppLocalizations.of(context).updateNoReleaseNotes,
-            type: UiTextType.bodyMedium,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
             style: const TextStyle(fontStyle: FontStyle.italic),
           )
@@ -526,7 +521,6 @@ class _DownloadCard extends StatelessWidget {
           children: [
             UiText(
               AppLocalizations.of(context).updateDownloading,
-              type: UiTextType.bodyMedium,
               color: scheme.onSurfaceVariant,
             ),
             UiText(
@@ -567,7 +561,6 @@ class _ReadyCard extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         UiText(
           AppLocalizations.of(context).updateVerifiedReady,
-          type: UiTextType.bodyMedium,
           color: scheme.onSurfaceVariant,
           textAlign: TextAlign.center,
         ),
@@ -641,13 +634,7 @@ class _InlineError extends StatelessWidget {
         children: [
           Icon(Icons.error_outline_rounded, color: scheme.error),
           const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: UiText(
-              message,
-              type: UiTextType.bodyMedium,
-              color: scheme.onErrorContainer,
-            ),
-          ),
+          Expanded(child: UiText(message, color: scheme.onErrorContainer)),
           TextButton(
             onPressed: onRetry,
             child: UiText(
@@ -677,18 +664,12 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.xxxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
             children: [
-              IconBadge(
-                icon: icon,
-                square: true,
-                size: 40,
-                iconSize: AppIconSize.xl,
-              ),
+              IconBadge(icon: icon, square: true, iconSize: AppIconSize.xl),
               const SizedBox(width: AppSpacing.md),
               UiText(
                 title,

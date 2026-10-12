@@ -3,17 +3,16 @@ import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
 import 'package:mawaqit/data/services/prayer_widget_service.dart';
-import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
-import 'package:mawaqit/l10n/ambient_l10n.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
+import 'package:mawaqit/l10n/ambient_l10n.dart';
+import 'package:mawaqit/providers/providers.dart';
 
 /// Immutable snapshot of everything the Home screen renders.
 @immutable

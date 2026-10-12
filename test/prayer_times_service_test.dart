@@ -16,7 +16,7 @@ void main() {
       );
 
       expect(days.length, 28);
-      expect(days.first.date, DateTime(2026, 2, 1));
+      expect(days.first.date, DateTime(2026, 2));
       expect(days.last.date, DateTime(2026, 2, 28));
       for (var i = 1; i < days.length; i++) {
         expect(days[i].date.isAfter(days[i - 1].date), isTrue);
@@ -112,7 +112,7 @@ void main() {
       expect(window.map((d) => d.date).toList(), [
         DateTime(2026, 12, 30),
         DateTime(2026, 12, 31),
-        DateTime(2027, 1, 1),
+        DateTime(2027),
         DateTime(2027, 1, 2),
       ]);
     });
@@ -138,7 +138,7 @@ void main() {
 
     test('defaults to a 14-day scheduling window', () {
       final window = service.window(
-        from: DateTime(2026, 5, 1),
+        from: DateTime(2026, 5),
         latitude: 35.7750,
         longitude: -78.6336,
         parameters: parameters,
@@ -149,8 +149,7 @@ void main() {
 
   group('daysRemaining', () {
     final window = service.window(
-      from: DateTime(2026, 5, 1),
-      days: 14,
+      from: DateTime(2026, 5),
       latitude: 35.7750,
       longitude: -78.6336,
       parameters: parameters,
@@ -161,7 +160,7 @@ void main() {
     });
 
     test('is zero once the whole window is in the past', () {
-      expect(service.daysRemaining(window, DateTime(2026, 6, 1)), 0);
+      expect(service.daysRemaining(window, DateTime(2026, 6)), 0);
     });
 
     test('counts a day as remaining if any prayer is still ahead', () {
@@ -188,7 +187,7 @@ void main() {
     });
 
     test('is empty-input safe', () {
-      expect(service.daysRemaining(const [], DateTime(2026, 5, 1)), 0);
+      expect(service.daysRemaining(const [], DateTime(2026, 5)), 0);
     });
   });
 }

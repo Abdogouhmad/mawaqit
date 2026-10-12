@@ -1,10 +1,9 @@
 import 'package:flutter/foundation.dart';
-
 import 'package:mawaqit/core/utils/time_formatter.dart';
-import 'package:mawaqit/l10n/ambient_l10n.dart';
-import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
+import 'package:mawaqit/l10n/ambient_l10n.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/src/home_widget/prayer_widget.home_widget.dart';
 
 /// Pushes the current prayer day to the Android home-screen widget.
@@ -34,7 +33,7 @@ abstract final class PrayerWidgetService {
       final now = DateTime.now();
 
       // Next prayer — or tomorrow's Fajr once today is fully over.
-      PrayerTime next =
+      final PrayerTime next =
           day.currentOrNextPrayer(now) ??
           PrayerTime(kind: PrayerKind.fajr, time: day.nextDayFajr);
       final remaining = next.time.difference(now);

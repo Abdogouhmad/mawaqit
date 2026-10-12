@@ -62,7 +62,6 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               UiText(
                 body!,
-                type: UiTextType.bodyMedium,
                 textAlign: TextAlign.center,
                 color: scheme.onSurfaceVariant,
               ),

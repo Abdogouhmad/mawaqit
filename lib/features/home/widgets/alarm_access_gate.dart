@@ -3,16 +3,15 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mawaqit/data/models/alarm_access.dart';
 import 'package:mawaqit/data/services/alarm_access_prompt.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
-import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
 /// Asks once per build (so: on first install and after every update) for the
 /// battery-optimisation exemption, and nothing else.
@@ -100,10 +99,7 @@ class _AlarmAccessGateState extends ConsumerState<AlarmAccessGate> {
           AppLocalizations.of(dialogContext).accessKeepAdhanOnTime,
           type: UiTextType.titleLarge,
         ),
-        content: UiText(
-          AppLocalizations.of(dialogContext).accessKeepAdhanBody,
-          type: UiTextType.bodyMedium,
-        ),
+        content: UiText(AppLocalizations.of(dialogContext).accessKeepAdhanBody),
         actions: [
           TextButton(
             key: const Key('battery-exemption-later'),

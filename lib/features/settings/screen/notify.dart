@@ -52,9 +52,7 @@ class NotificationsScreen extends StatelessWidget {
               ),
               const SettingsGroup(
                 children: [
-                  NotificationSettingsSection(
-                    kind: NotificationKind.prePrayer,
-                  ),
+                  NotificationSettingsSection(kind: NotificationKind.prePrayer),
                   NotificationSettingsSection(kind: NotificationKind.adhan),
                 ],
               ),

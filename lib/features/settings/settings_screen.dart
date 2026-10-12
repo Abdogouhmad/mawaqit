@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mawaqit/core/navigation/app_shell.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
@@ -12,7 +11,10 @@ import 'package:mawaqit/features/settings/screen/general.dart';
 import 'package:mawaqit/features/settings/screen/notify.dart';
 import 'package:mawaqit/features/settings/screen/permission.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
+import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/features/settings/widgets/update_section.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/shared/components/section_header.dart';
 import 'package:mawaqit/shared/components/settings_group.dart';
@@ -20,12 +22,9 @@ import 'package:mawaqit/shared/components/settings_row.dart';
 import 'package:mawaqit/shared/ui/app_button.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
+import 'package:mawaqit/shared/ui/option_sheet.dart';
 import 'package:mawaqit/shared/ui/segmented_control.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
-import 'package:mawaqit/shared/ui/option_sheet.dart';
-import 'package:mawaqit/features/settings/settings_controller.dart';
-import 'package:mawaqit/l10n/gen/app_localizations.dart';
-import 'package:mawaqit/l10n/enum_localization.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -254,9 +253,8 @@ class _SettingsBody extends ConsumerWidget {
   }
 
   void _openGeneral(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const GeneralScreen()),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute<void>(builder: (_) => const GeneralScreen()));
   }
 
   void _openNotifications(BuildContext context) {
@@ -266,9 +264,9 @@ class _SettingsBody extends ConsumerWidget {
   }
 
   void _openPermissions(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const PermissionsScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const PermissionsScreen()));
   }
 
   void _openLocationSheet(
@@ -510,7 +508,6 @@ class _LocationSheetState extends State<_LocationSheet> {
                 const SizedBox(height: AppSpacing.xl),
                 AppCard(
                   padding: EdgeInsets.zero,
-                  radius: AppRadius.md,
                   borderColor: scheme.outlineVariant.withValues(alpha: 0.4),
                   ambient: false,
                   child: Column(
@@ -534,7 +531,6 @@ class _LocationSheetState extends State<_LocationSheet> {
                               result.latitude.toStringAsFixed(3),
                               result.longitude.toStringAsFixed(3),
                             ),
-                            type: UiTextType.bodyMedium,
                           ),
                           trailing: _draft.cityName == result.name
                               ? Icon(
@@ -630,4 +626,3 @@ class _Footer extends StatelessWidget {
     );
   }
 }
-

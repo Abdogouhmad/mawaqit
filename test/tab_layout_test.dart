@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mawaqit/core/navigation/app_router.dart';
 import 'package:mawaqit/core/navigation/app_shell.dart';
 import 'package:mawaqit/core/ui/theme/app_theme.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/features/home/home_controller.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Layout regression test for every tab, driven through the real router.
 ///
@@ -157,4 +156,3 @@ class _StubHome extends HomeController {
   @override
   Future<HomeState> build() async => _state;
 }
-
