@@ -5,21 +5,20 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-
+import 'package:mawaqit/core/audio/tone_catalog.dart';
 import 'package:mawaqit/core/const/prayer_keys.dart';
 import 'package:mawaqit/core/navigation/app_navigator.dart';
-import 'package:mawaqit/core/audio/tone_catalog.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/core/utils/timezone_setup.dart';
 import 'package:mawaqit/data/models/alarm_access.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
-import 'package:mawaqit/l10n/ambient_l10n.dart';
-import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/services/muted_prayers_store.dart';
 import 'package:mawaqit/features/home/adhan_overlay_screen.dart';
+import 'package:mawaqit/l10n/ambient_l10n.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 /// Which audible notification an alert belongs to.
 ///
@@ -165,7 +164,6 @@ class NotificationService {
       l10n.channelAppUpdates,
       description: l10n.channelAppUpdatesDescription,
       importance: Importance.high,
-      playSound: true,
     );
   }
 
@@ -179,7 +177,6 @@ class NotificationService {
       l10n.channelPrePrayer,
       description: l10n.channelPrePrayerDescription,
       importance: Importance.high,
-      playSound: true,
       sound: _soundForResource('pre_alert'),
       audioAttributesUsage: AudioAttributesUsage.alarm,
     );
@@ -368,7 +365,7 @@ class NotificationService {
         final granted =
             await _withinDeadline(
               android?.requestNotificationsPermission() ??
-                  Future<bool?>.value(null),
+                  Future<bool?>.value(),
               'POST_NOTIFICATIONS',
             ) ??
             false;
@@ -438,8 +435,7 @@ class NotificationService {
       // the app's notification page when the dialog does not settle it.
       final granted =
           await _withinDeadline(
-            _android?.requestNotificationsPermission() ??
-                Future<bool?>.value(null),
+            _android?.requestNotificationsPermission() ?? Future<bool?>.value(),
             'POST_NOTIFICATIONS',
           ) ??
           false;
@@ -474,8 +470,7 @@ class NotificationService {
     if (!_alarmAccess.notifications) {
       final granted =
           await _withinDeadline(
-            _android?.requestNotificationsPermission() ??
-                Future<bool?>.value(null),
+            _android?.requestNotificationsPermission() ?? Future<bool?>.value(),
             'POST_NOTIFICATIONS',
           ) ??
           false;
@@ -913,9 +908,8 @@ class NotificationService {
         // focus (music ducks out of the way, alarm ends → music resumes).
         await _adhanPlayer.setAudioContext(
           AudioContext(
-            android: AudioContextAndroid(
+            android: const AudioContextAndroid(
               usageType: AndroidUsageType.alarm,
-              contentType: AndroidContentType.music,
               audioFocus: AndroidAudioFocus.gainTransient,
             ),
           ),
@@ -957,7 +951,7 @@ class NotificationService {
       if (!_preAlertAudioContextSet) {
         await _preAlertPlayer.setAudioContext(
           AudioContext(
-            android: AudioContextAndroid(
+            android: const AudioContextAndroid(
               usageType: AndroidUsageType.alarm,
               contentType: AndroidContentType.sonification,
               audioFocus: AndroidAudioFocus.gainTransient,
@@ -1104,8 +1098,6 @@ class NotificationService {
       }
     }
     final route = PageRouteBuilder<void>(
-      opaque: true,
-      barrierDismissible: false,
       transitionDuration: const Duration(milliseconds: 400),
       reverseTransitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (_, _, _) =>
@@ -1292,7 +1284,7 @@ class NotificationService {
     );
     return NotificationDetails(
       android: details,
-      linux: LinuxNotificationDetails(defaultActionName: 'Open'),
+      linux: const LinuxNotificationDetails(defaultActionName: 'Open'),
     );
   }
 
@@ -1317,9 +1309,8 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
           category: AndroidNotificationCategory.recommendation,
-          playSound: true,
         ),
-        linux: LinuxNotificationDetails(defaultActionName: 'Open'),
+        linux: const LinuxNotificationDetails(defaultActionName: 'Open'),
       ),
       payload: version,
     );
@@ -1831,7 +1822,6 @@ class NotificationService {
       preAlertChannel.name,
       description: preAlertChannel.description,
       importance: Importance.high,
-      playSound: true,
       sound: _soundForResource(_preAlertRawResource(settings)),
       audioAttributesUsage: AudioAttributesUsage.alarm,
     );

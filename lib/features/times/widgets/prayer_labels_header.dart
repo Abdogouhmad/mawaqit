@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'package:mawaqit/core/ui/theme/text_theme.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/text_theme.dart';
 import 'package:mawaqit/features/times/widgets/prayer_grid.dart';
 import 'package:mawaqit/features/times/widgets/times_columns.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';

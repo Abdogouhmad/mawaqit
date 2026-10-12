@@ -2,17 +2,16 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:mawaqit/core/audio/tone_catalog.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/services/tone_preview_service.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
-import 'package:mawaqit/l10n/gen/app_localizations.dart';
-import 'package:mawaqit/l10n/enum_localization.dart';
 
 /// Bottom-sheet tone picker shared by the Pre-Prayer and Adhan notification
 /// settings. Parameterized by [kind] so both sections reuse the exact same
@@ -87,7 +86,7 @@ class _ToneSheetState extends State<ToneSheet> {
   String _deviceKey(DeviceTone tone) => 'device:${tone.uri}';
 
   Future<void> _togglePreview(AdhanTone tone) async {
-    HapticFeedback.selectionClick();
+    unawaited(HapticFeedback.selectionClick());
     final key = _builtinKey(tone);
     if (_playing == key) {
       await _preview.stop();
@@ -101,7 +100,7 @@ class _ToneSheetState extends State<ToneSheet> {
   }
 
   Future<void> _toggleDevicePreview(DeviceTone tone) async {
-    HapticFeedback.selectionClick();
+    unawaited(HapticFeedback.selectionClick());
     final key = _deviceKey(tone);
     if (_playing == key) {
       await _preview.stop();
@@ -235,7 +234,6 @@ class _ToneSheetState extends State<ToneSheet> {
               const SizedBox(width: AppSpacing.md),
               UiText(
                 AppLocalizations.of(context).toneSheetReading,
-                type: UiTextType.bodyMedium,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ],
@@ -316,13 +314,7 @@ class _ToneSheetState extends State<ToneSheet> {
             children: [
               Icon(icon, color: scheme.onSurfaceVariant),
               const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: UiText(
-                  message,
-                  type: UiTextType.bodyMedium,
-                  color: scheme.onSurfaceVariant,
-                ),
-              ),
+              Expanded(child: UiText(message, color: scheme.onSurfaceVariant)),
             ],
           ),
         ),
@@ -341,7 +333,6 @@ class _ToneSheetState extends State<ToneSheet> {
     final scheme = Theme.of(context).colorScheme;
     return AppCard(
       padding: EdgeInsets.zero,
-      radius: AppRadius.md,
       borderColor: scheme.outlineVariant.withValues(alpha: 0.4),
       ambient: false,
       child: Column(children: children),
@@ -367,7 +358,7 @@ class _ToneSheetState extends State<ToneSheet> {
           ),
         ListTile(
           title: UiText(title, type: UiTextType.bodyLarge),
-          subtitle: UiText(subtitle, type: UiTextType.bodyMedium),
+          subtitle: UiText(subtitle),
           leading: leading,
           trailing: selected
               ? Icon(

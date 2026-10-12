@@ -44,12 +44,7 @@ class PermissionsScreen extends StatelessWidget {
           ),
           child: defaultTargetPlatform == TargetPlatform.android
               ? const AlarmAccessSection()
-              : AppCard(
-                  child: UiText(
-                    l10n.settingsPermissionsUnavailable,
-                    type: UiTextType.bodyMedium,
-                  ),
-                ),
+              : AppCard(child: UiText(l10n.settingsPermissionsUnavailable)),
         ),
       ),
     );

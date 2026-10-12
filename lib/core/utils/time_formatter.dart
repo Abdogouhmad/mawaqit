@@ -1,9 +1,7 @@
 import 'dart:ui' show Locale;
 
-import 'package:intl/intl.dart';
-
 import 'package:hijri/hijri_calendar.dart';
-
+import 'package:intl/intl.dart';
 import 'package:mawaqit/l10n/ambient_l10n.dart';
 
 /// Pure formatting helpers shared across the app.

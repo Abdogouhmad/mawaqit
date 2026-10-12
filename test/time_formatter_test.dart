@@ -10,7 +10,7 @@ void main() {
   // `flutter_localizations` initializes intl's locale data before the first
   // frame. A plain unit test has no such bootstrap, so the Arabic/French
   // formatting tests would throw `LocaleDataException` without this.
-  setUpAll(() => initializeDateFormatting());
+  setUpAll(initializeDateFormatting);
 
   group('TimeFormatter.countdown', () {
     test('composes hours and minutes', () {
@@ -53,7 +53,7 @@ void main() {
       // Midnight and noon are the cases a 12-hour switch gets wrong, so they
       // are the ones worth pinning down.
       expect(TimeFormatter.clock(DateTime(2026, 9, 21, 0, 5)), '00:05');
-      expect(TimeFormatter.clock(DateTime(2026, 9, 21, 12, 0)), '12:00');
+      expect(TimeFormatter.clock(DateTime(2026, 9, 21, 12)), '12:00');
     });
 
     test('keeps a leading zero on single-digit hours in 24-hour form', () {

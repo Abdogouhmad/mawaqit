@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:mawaqit/core/const/pref_keys.dart';
 import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/core/ui/theme/app_theme.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/repositories/settings_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -137,10 +136,7 @@ void main() {
     });
 
     test('emerald light primary is the brand colour', () {
-      expect(
-        AppTheme.light(palette: AppPalette.emerald).colorScheme.primary,
-        AppColors.primaryEmerald,
-      );
+      expect(AppTheme.light().colorScheme.primary, AppColors.primaryEmerald);
     });
 
     test('each palette yields a different primary container', () {

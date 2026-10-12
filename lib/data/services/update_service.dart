@@ -9,9 +9,8 @@ library;
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:ota_update/ota_update.dart';
-
 import 'package:mawaqit/data/models/update_manifest.dart';
+import 'package:ota_update/ota_update.dart';
 
 /// Compile-time constant so the manifest URL can't drift between the code and
 /// the CI workflow that writes it.

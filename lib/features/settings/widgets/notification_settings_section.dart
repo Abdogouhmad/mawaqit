@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/features/settings/widgets/tone_sheet.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/providers/providers.dart';
+import 'package:mawaqit/shared/components/settings_row.dart';
 import 'package:mawaqit/shared/ui/icon_badge.dart';
 import 'package:mawaqit/shared/ui/segmented_control.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
-import 'package:mawaqit/shared/components/settings_row.dart';
-import 'package:mawaqit/l10n/gen/app_localizations.dart';
-import 'package:mawaqit/l10n/enum_localization.dart';
 
 /// One reusable section for a notification type — **Pre-Prayer** and **Adhan**
 /// both render this exact component parameterized by [kind], so the kill

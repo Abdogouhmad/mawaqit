@@ -167,10 +167,7 @@ class BlurSurface extends StatelessWidget {
         color: tint,
         borderRadius: shape,
         border: border
-            ? Border.all(
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
-                width: 1,
-              )
+            ? Border.all(color: scheme.outlineVariant.withValues(alpha: 0.4))
             : null,
       ),
       child: Padding(padding: padding ?? EdgeInsets.zero, child: child),

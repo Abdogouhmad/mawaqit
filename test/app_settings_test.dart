@@ -23,7 +23,7 @@ void main() {
   });
 
   test('round-trips a fully customised settings object', () async {
-    final custom = const AppSettings(
+    const custom = AppSettings(
       calculationMethod: CalculationMethod.ummAlQura,
       madhab: Madhab.hanafi,
       leadMinutes: 5,

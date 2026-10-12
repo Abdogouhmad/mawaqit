@@ -82,7 +82,7 @@ class _SolarArcPainter extends CustomPainter {
     const inset = 10.0;
     const apexInset = 10.0;
     final baseY = h - 8;
-    final apexY = apexInset;
+    const apexY = apexInset;
 
     double x(double v) => rtl ? w - v : v;
 

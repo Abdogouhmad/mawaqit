@@ -47,6 +47,7 @@ dependencies:
   home_widget: ^0.10.0
   go_router: ^18.0.2
 
+  home_widget_generator: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -59,7 +60,6 @@ dev_dependencies:
   # and `getInstalledWidgets`), so regenerating under 0.2.0 would delete working
   # code. It is also the first version whose `widgetUrl` routes the tap through
   # the plugin's ActivityOptions-aware intent — see prayer_widget.dart.
-  home_widget_generator: ^0.4.0
   home_widget_cli: ^0.4.0
 
 flutter:

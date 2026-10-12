@@ -50,10 +50,10 @@ class _MonthPickerSheetState extends State<_MonthPickerSheet> {
   int get _year => _viewing.year;
 
   bool get _canStepBack =>
-      !DateTime(_year - 1, 1).isBefore(TimesState.earliestMonth);
+      !DateTime(_year - 1).isBefore(TimesState.earliestMonth);
 
   bool get _canStepForward =>
-      !DateTime(_year + 1, 1).isAfter(TimesState.latestMonth);
+      !DateTime(_year + 1).isAfter(TimesState.latestMonth);
 
   @override
   Widget build(BuildContext context) {

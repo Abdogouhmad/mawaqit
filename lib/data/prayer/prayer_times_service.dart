@@ -33,7 +33,7 @@ class PrayerTimesService {
 
     return [
       for (var day = 1; day <= daysInMonth; day++)
-        PrayerTimesRepository().forDate(
+        const PrayerTimesRepository().forDate(
           date: DateTime(month.year, month.month, day),
           latitude: latitude,
           longitude: longitude,
@@ -56,7 +56,7 @@ class PrayerTimesService {
     final start = DateTime(from.year, from.month, from.day);
     return [
       for (var offset = 0; offset < days; offset++)
-        PrayerTimesRepository().forDate(
+        const PrayerTimesRepository().forDate(
           date: start.add(Duration(days: offset)),
           latitude: latitude,
           longitude: longitude,

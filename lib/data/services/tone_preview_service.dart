@@ -132,7 +132,7 @@ class TonePreviewService {
       final process = _process;
       _process = null;
       try {
-        process?.kill(ProcessSignal.sigterm);
+        process?.kill();
       } catch (_) {}
       return;
     }
@@ -179,13 +179,15 @@ class TonePreviewService {
       final process = await Process.start(command, args);
       _process = process;
       _playing = tone.name;
-      process.exitCode.then((_) {
-        if (_process == process) _process = null;
-        if (_playing == tone.name) {
-          _playing = null;
-          onComplete?.call();
-        }
-      });
+      unawaited(
+        process.exitCode.then((_) {
+          if (_process == process) _process = null;
+          if (_playing == tone.name) {
+            _playing = null;
+            onComplete?.call();
+          }
+        }),
+      );
       return true;
     } catch (_) {
       _playing = null;

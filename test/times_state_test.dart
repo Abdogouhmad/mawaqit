@@ -34,7 +34,7 @@ void main() {
         month: DateTime(2026, 3),
         isLoading: false,
         days: [
-          _day(DateTime(2026, 3, 1), {PrayerKind.fajr: 300}),
+          _day(DateTime(2026, 3), {PrayerKind.fajr: 300}),
           _day(DateTime(2026, 3, 31), {PrayerKind.fajr: 315}),
         ],
       );
@@ -53,7 +53,7 @@ void main() {
         month: DateTime(2026, 3),
         isLoading: false,
         days: [
-          _day(DateTime(2026, 3, 1), {PrayerKind.asr: 600}),
+          _day(DateTime(2026, 3), {PrayerKind.asr: 600}),
           _day(DateTime(2026, 3, 31), {PrayerKind.asr: 590}),
         ],
       );
@@ -69,7 +69,7 @@ void main() {
         month: DateTime(2026, 3),
         isLoading: false,
         days: [
-          _uniformDay(DateTime(2026, 3, 1)),
+          _uniformDay(DateTime(2026, 3)),
           _uniformDay(DateTime(2026, 3, 31)),
         ],
       );
@@ -87,7 +87,7 @@ void main() {
       final state = TimesState(
         month: DateTime(2026, 3),
         isLoading: false,
-        days: [_uniformDay(DateTime(2026, 3, 1))],
+        days: [_uniformDay(DateTime(2026, 3))],
       );
 
       expect(state.shifts, isNull);
@@ -98,7 +98,7 @@ void main() {
         month: DateTime(2026, 3),
         isLoading: false,
         days: [
-          _day(DateTime(2026, 3, 1), {PrayerKind.fajr: 300}),
+          _day(DateTime(2026, 3), {PrayerKind.fajr: 300}),
           _day(
             DateTime(2026, 3, 31),
             // Just over the three-hour ceiling: a real calculation flipping
@@ -118,7 +118,7 @@ void main() {
         month: DateTime(2026, 3),
         isLoading: false,
         days: [
-          _day(DateTime(2026, 3, 1), {PrayerKind.fajr: 300}),
+          _day(DateTime(2026, 3), {PrayerKind.fajr: 300}),
           _day(DateTime(2026, 3, 31), {
             PrayerKind.fajr: 300 + TimesState.maxPlausibleShiftMinutes,
           }),
@@ -133,7 +133,7 @@ void main() {
         month: DateTime(2026, 3),
         isLoading: false,
         days: [
-          _uniformDay(DateTime(2026, 3, 1)),
+          _uniformDay(DateTime(2026, 3)),
           _uniformDay(DateTime(2026, 3, 31)),
         ],
       );
@@ -148,7 +148,7 @@ void main() {
         month: DateTime(2026, 3),
         isLoading: false,
         days: [
-          _day(DateTime(2026, 3, 1), {PrayerKind.isha: 12 * 60 - 8}),
+          _day(DateTime(2026, 3), {PrayerKind.isha: 12 * 60 - 8}),
           _day(DateTime(2026, 3, 31), {PrayerKind.isha: 12 * 60 + 3}),
         ],
       );
@@ -166,7 +166,7 @@ void main() {
         month: DateTime(2026, 3),
         isLoading: false,
         days: [
-          _uniformDay(DateTime(2026, 3, 1)),
+          _uniformDay(DateTime(2026, 3)),
           _uniformDay(DateTime(2026, 3, 31)),
         ],
       );

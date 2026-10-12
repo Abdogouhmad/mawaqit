@@ -1,6 +1,5 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:mawaqit/data/services/update_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Persists the OTA updater's bookkeeping across launches
 /// (SharedPreferences, matching [SettingsRepository]).

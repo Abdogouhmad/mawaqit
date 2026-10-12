@@ -34,16 +34,9 @@ class InfoRow extends StatelessWidget {
             Icon(icon, size: 24, color: scheme.onSurfaceVariant),
             const SizedBox(width: AppSpacing.md),
           ],
-          Expanded(
-            child: UiText(
-              label,
-              type: UiTextType.bodyMedium,
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
+          Expanded(child: UiText(label, color: scheme.onSurfaceVariant)),
           UiText(
             value,
-            type: UiTextType.bodyMedium,
             fontWeight: FontWeight.w700,
             color: highlight ? scheme.primary : scheme.onSurface,
           ),

@@ -35,16 +35,12 @@ abstract final class AppSpring {
 
   /// Slightly bouncy — nav pill, press states, list entry.
   static final SpringDescription spatial =
-      SpringDescription.withDurationAndBounce(
-        duration: const Duration(milliseconds: 500),
-        bounce: 0.35,
-      );
+      SpringDescription.withDurationAndBounce(bounce: 0.35);
 
   /// No bounce — colour and opacity, where overshoot reads as a glitch.
   static final SpringDescription effects =
       SpringDescription.withDurationAndBounce(
         duration: const Duration(milliseconds: 350),
-        bounce: 0,
       );
 
   /// Upper bound on a spring's settle window, in seconds. M3 caps every

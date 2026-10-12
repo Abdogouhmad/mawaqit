@@ -1,11 +1,10 @@
 import 'dart:convert';
 
 import 'package:adhan_dart/adhan_dart.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:mawaqit/core/const/pref_keys.dart';
 import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsRepository {
   Future<AppSettings> load() async {
@@ -56,7 +55,8 @@ class SettingsRepository {
       orElse: () => Madhab.shafi,
     ),
     leadMinutes:
-        (json['leadMinutes'] as num?)?.toInt() ?? AppSettings().leadMinutes,
+        (json['leadMinutes'] as num?)?.toInt() ??
+        const AppSettings().leadMinutes,
     prePrayerEnabled: json['prePrayerEnabled'] as bool? ?? true,
     adhanSoundEnabled: json['adhanSoundEnabled'] as bool? ?? true,
     adhanTone: json['adhanTone'] as String? ?? 'Adham Al Sharqawe',

@@ -1,6 +1,5 @@
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:mawaqit/data/models/alarm_access.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// One-time bookkeeping for the "let Mawaqit ignore battery optimisation" ask.
 ///

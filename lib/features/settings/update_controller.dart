@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ota_update/ota_update.dart';
-
 import 'package:mawaqit/data/models/update_manifest.dart';
 import 'package:mawaqit/data/services/update_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_store.dart';
 import 'package:mawaqit/providers/providers.dart';
+import 'package:ota_update/ota_update.dart';
 
 final updateServiceProvider = Provider<UpdateService>(
   (ref) => const UpdateService(),
@@ -179,7 +178,6 @@ class UpdateNotifier extends Notifier<UpdateState> {
       status: UpdateStatus.available,
       manifest: manifest,
       checkResult: outcome,
-      progress: null,
       clearError: true,
     );
 

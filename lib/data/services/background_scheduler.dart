@@ -1,6 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:workmanager/workmanager.dart';
-
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
@@ -8,6 +6,7 @@ import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/repositories/settings_repository.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
 import 'package:mawaqit/data/services/prayer_widget_service.dart';
+import 'package:workmanager/workmanager.dart';
 
 /// Native background scheduling for daily re-computation and notification
 /// (re)scheduling — resilient across reboots via WorkManager.
@@ -138,7 +137,7 @@ abstract final class BackgroundScheduler {
   }
 
   static PrayerDay _dayFor(ResolvedLocation location, AppSettings settings) {
-    return PrayerTimesRepository().forDate(
+    return const PrayerTimesRepository().forDate(
       date: DateTime.now(),
       latitude: location.latitude,
       longitude: location.longitude,

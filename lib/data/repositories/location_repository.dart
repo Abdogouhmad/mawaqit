@@ -3,10 +3,9 @@ import 'dart:io';
 
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:mawaqit/core/const/pref_keys.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Resolved location with human-readable display name.
 class ResolvedLocation {

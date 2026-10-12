@@ -446,7 +446,7 @@ class _PaletteSettingRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              IconBadge(icon: Icons.palette_outlined),
+              const IconBadge(icon: Icons.palette_outlined),
               const SizedBox(width: AppSpacing.xxl),
               Expanded(
                 child: Column(

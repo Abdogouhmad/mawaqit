@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/data/models/alarm_access.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
+import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/shared/components/section_header.dart';
 import 'package:mawaqit/shared/components/settings_group.dart';
@@ -15,8 +16,6 @@ import 'package:mawaqit/shared/components/settings_row.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
 import 'package:mawaqit/shared/ui/icon_badge.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
-import 'package:mawaqit/l10n/gen/app_localizations.dart';
-import 'package:mawaqit/l10n/enum_localization.dart';
 
 /// "Alarm reliability" — the system accesses the adhan and the pre-prayer card
 /// depend on, each with its own grant screen.
