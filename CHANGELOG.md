@@ -13,6 +13,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Second project-hardening pass (see `docs/optimization-notes.md`): more unit
+coverage for core notification policy, CI that also verifies `main`, and a
+correction to the contributing docs.
+
+### Added
+
+- **Unit tests for the notification id and mute policy** — the per-occurrence ids
+  shared by the scheduler, the mute list and the native side, the mute store, and
+  the "is the adhan audible" decision are now covered without a device.
+
+### Changed
+
+- **CI verifies every push, `main` included** — a change that reaches `main`
+  without a pull-request run is still format/analyze/test checked. Publishing
+  still happens only in the release workflow.
+- **Contributing docs corrected** — the "add a language" steps no longer point at
+  a `supported-locales` setting that does not exist.
+
 ## [0.13.1] - 2026-10-12
 
 Project-hardening pass (see `docs/optimization-notes.md`): stricter lints and

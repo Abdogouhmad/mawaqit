@@ -148,3 +148,124 @@ of intent:
 - **`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`**, `SYSTEM_ALERT_WINDOW` and the
   `specialUse` foreground service still need their Play Console declarations
   (pre-existing; see the README release notes).
+
+---
+
+# Second pass — 2026-10-15
+
+A follow-up run of the same brief on a tree where the first pass had already
+landed and shipped as **0.13.1**. Everything the first pass added (strict lints,
+CI, README/CHANGELOG/CONTRIBUTING and the community files) is present and in use,
+so this pass deliberately avoided churn and targeted only the gaps that were
+still open, all of them low-risk.
+
+Environment: **Flutter 3.47.6 (stable)**, **Dart 3.13.5**.
+
+## Baseline vs. after
+
+| Check | Before | After |
+| --- | --- | --- |
+| `dart format --set-exit-if-changed .` | clean | clean |
+| `flutter analyze` | 0 issues | 0 issues |
+| `flutter test` | 164 passed | 182 passed |
+| `flutter test --coverage` (line) | 37.0% | 37.4% |
+| `flutter pub outdated` (direct + dev) | all up-to-date | all up-to-date |
+
+The tree was already green at the start; no pre-existing failure had to be
+repaired this time.
+
+## What changed, by category
+
+### Tests (2.6)
+
+Three pieces of core policy had no automated coverage, and all three are pure
+(no platform channels, no device):
+
+- **`test/prayer_keys_test.dart`** — `PrayerKeys.id`/`fromId`,
+  `occurrenceId`'s zero-padding, and `parseOccurrence`'s inverse/malformed-input
+  behaviour. These strings are persisted by the scheduler, the mute list *and*
+  the native side, so a rename is a data migration; the tests freeze the format
+  and prove unknown ids are skipped rather than thrown on.
+- **`test/muted_prayers_store_test.dart`** — mute round-trips, that unmuting
+  removes only the targeted occurrence, and that unrelated preference keys are
+  ignored. This is the store the lockscreen "Mute" action writes to directly.
+- **`test/notification_policy_test.dart`** — the `adhanIsAudible` truth table
+  (alarm off, `Silent` tone, device-tone override incl. the empty-URI fallback,
+  stale tone names) and `prayerIdFor`'s delegation to the shared occurrence id.
+
+Coverage of `lib/data/services/notification_service.dart` rises from 2.8% to
+4.1%; `lib/core/const/prayer_keys.dart` and `lib/data/services/muted_prayers_store.dart`
+go from 0% to 100%.
+
+### CI/CD (2.7)
+
+- `.github/workflows/ci.yml` now runs on **every push, including `main`**, not
+  only pull requests and non-`main` branches. The release workflow still owns
+  publishing; this only adds post-merge verification so a direct push cannot ship
+  unchecked. (`main` was previously excluded by design; the brief asks for it.)
+
+### Documentation
+
+- `CONTRIBUTING.md` said adding a language needed "an entry in `l10n.yaml`'s
+  supported locales". There is no such key — `flutter gen-l10n` infers the
+  supported set from the ARB files in `arb-dir`. Corrected.
+- `CHANGELOG.md` gained an `[Unreleased]` entry for this pass.
+
+## Checked and left unchanged (already correct)
+
+- **`const` / rebuild hygiene** — no raw `Opacity(`; the animated uses are
+  `AnimatedOpacity`/`FadeTransition` (`floating_nav_bar`, `prayer_labels_header`,
+  `segmented_control`). `RepaintBoundary` is used where the blur surface needs it.
+- **Lazy lists** — the long, unbounded month list already uses
+  `SliverList.builder`; the Home and Settings `ListView`s hold a short fixed
+  child list. `GridView.count` is a fixed small month grid.
+- **Controller disposal** — every `TextEditingController` and `Timer` in `lib/`
+  is cancelled/disposed in a matching `dispose()`; the only `StreamController`s
+  are the widget-tap stream (closed in a `finally`) and the notification
+  service's app-lifetime broadcast controller.
+- **No `print(`** anywhere in `lib/`; diagnostics already use `debugPrint`/`dart:developer`.
+- **Release shrinking** — `isMinifyEnabled` + `isShrinkResources` with
+  `proguard-android-optimize.txt` and the project rules are already on.
+
+## Skipped or deferred (unchanged from the first pass, re-confirmed)
+
+- **Splitting `lib/data/services/notification_service.dart` (~1,930 lines).** Still
+  the largest file and still the highest-risk one — it is the alarm/notification
+  core, and its coverage is single-digit even after this pass, so a pure refactor
+  cannot be validated on-device by the current suite. Extracting its cohesive
+  concerns (channels, permissions, ids, scheduling, playback, OTA) would touch the
+  exact code paths the app exists to get right. This remains a dedicated,
+  carefully device-tested PR rather than part of a docs/hardening pass.
+- **Major dependency upgrades.** None are available for direct or dev
+  dependencies; the remaining outdated packages are transitive and pinned by the
+  Flutter SDK.
+- **`home_widget_generator: any` in `pubspec.yaml`.** An `any` constraint is
+  normally a smell, but here it deliberately tracks whatever version
+  `home_widget_cli` resolves (both are at `0.4.0+1`) so the DSL schema and the
+  generator that produced the checked-in widget code cannot drift. Left as is;
+  flagged below in case the maintainer would rather pin it.
+- **`dart:developer log` adoption**, **Arabic-Indic digits**, and the **Android
+  Gradle "Built-in Kotlin" migration** — see the first pass; all still cosmetic or
+  upstream.
+
+## Open TODOs and questions for the maintainer
+
+Carried over from the first pass and still true:
+
+- **`feat.md` is referenced but absent.** `docs/DECISIONS.md` still cites it (the
+  current README does not). `docs/DECISIONS.md` is also stale in places — it
+  discusses the Qibla screen and `flutter_compass`, both removed in 0.12.1.
+  Recommend either pruning it to the decisions that still apply or adding the
+  missing `feat.md`. Not touched here (it predates this brief).
+- **`update_manifest.json` is one release behind** `pubspec.yaml` (`0.13.0` vs
+  `0.13.1`). Expected between releases — the release workflow rewrites and commits
+  it — but noting it so it is not mistaken for drift.
+- **Screenshots**: none committed; README still carries the
+  `<!-- TODO: add screenshots -->` placeholder.
+- **Security contact**: `SECURITY.md` and `CODE_OF_CONDUCT.md` still use TODO
+  placeholders for a private contact — fill them in.
+- **`stitch_minimal_prayer_times_app/`** design bundle: still tracked; decide
+  whether it belongs in-repo.
+- **Play Console declarations** for `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`,
+  `SYSTEM_ALERT_WINDOW` and the `specialUse` foreground service remain outstanding.
+
