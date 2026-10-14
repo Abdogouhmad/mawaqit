@@ -1,13 +1,12 @@
 name: ci
 
-# Fast feedback on every pull request and every non-main branch push. The
-# release workflow (.github/workflows/release.yml) owns `main`; this workflow
-# never publishes anything, it only verifies the tree.
+# Fast feedback on every pull request and every branch push, `main` included.
+# The release workflow (.github/workflows/release.yml) owns publishing; this
+# workflow never publishes anything, it only verifies the tree — so a change
+# that lands on `main` (via merge or a direct push) is still checked.
 on:
   pull_request:
   push:
-    branches-ignore:
-      - main
   workflow_dispatch:
 
 # One run per ref: a new push cancels the previous, still-running check.
