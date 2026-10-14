@@ -31,8 +31,10 @@ maintainer (see the contact in that file).
 - **Code** — bug fixes, performance work, and features that fit the scope above.
 - **Translations** — the app ships English, Arabic and French. ARB catalogs live
   in `lib/l10n/` (`app_en.arb`, `app_ar.arb`, `app_fr.arb`); adding a locale means
-  a new ARB file, an entry in `l10n.yaml`'s supported locales, and
-  `android/app/src/main/res/xml/locales_config.xml`.
+  a new ARB file (there is no `supported-locales` list in `l10n.yaml` — `gen-l10n`
+  infers the supported set from the ARB files present) and an entry in
+  `android/app/src/main/res/xml/locales_config.xml` so it appears in Android
+  13+'s per-app language picker.
 - **Testing** — trying builds on real devices (OEM Android is where alarm
   behavior varies) and reporting what you find is genuinely useful.
 - **Docs** — corrections and clarifications are welcome.
