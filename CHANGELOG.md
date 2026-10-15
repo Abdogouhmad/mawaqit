@@ -14,20 +14,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 Second project-hardening pass (see `docs/optimization-notes.md`): more unit
-coverage for core notification policy, CI that also verifies `main`, and a
-correction to the contributing docs.
+coverage for core notification policy, CI that also verifies `main`, a
+correction to the contributing docs, and a branded, frosted About surface.
 
 ### Added
 
 - **Unit tests for the notification id and mute policy** — the per-occurrence ids
   shared by the scheduler, the mute list and the native side, the mute store, and
   the "is the adhan audible" decision are now covered without a device.
+- **The app's own mark in Settings** — the About dialog and the Settings footer
+  now show the real launcher art (the emerald mihrab) instead of a stand-in
+  Material icon, so the in-app brand matches the icon on the launcher.
 
 ### Changed
 
 - **CI verifies every push, `main` included** — a change that reaches `main`
   without a pull-request run is still format/analyze/test checked. Publishing
   still happens only in the release workflow.
+- **The About dialog is frosted, not flat** — it now blurs the screen behind it
+  (honouring Reduce transparency), over a lighter scrim, instead of sitting on an
+  opaque card.
 - **Contributing docs corrected** — the "add a language" steps no longer point at
   a `supported-locales` setting that does not exist.
 

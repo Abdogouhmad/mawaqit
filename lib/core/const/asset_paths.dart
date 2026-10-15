@@ -17,6 +17,11 @@ abstract final class AssetPaths {
   /// Directory prefix for the short pre-prayer chimes.
   static const String chimesDir = 'assets/audio/';
 
+  /// The app's launcher art — the emerald mihrab mark. Bundled (via
+  /// `assets/icons/` in `pubspec.yaml`) so the About dialog and the Settings
+  /// footer can draw the real logo instead of a stand-in [Icon] glyph.
+  static const String appIcon = 'assets/icons/icon_e_mihrab_512.png';
+
   /// Bundled offline city list for the manual location picker: an array of
   /// `{name, country, lat, lon, timezone}` objects. Bundled rather than fetched
   /// so city search keeps working in airplane mode (feat.md §1, privacy).

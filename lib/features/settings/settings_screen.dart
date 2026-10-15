@@ -21,6 +21,7 @@ import 'package:mawaqit/shared/components/settings_group.dart';
 import 'package:mawaqit/shared/components/settings_row.dart';
 import 'package:mawaqit/shared/ui/app_button.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
+import 'package:mawaqit/shared/ui/app_mark.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
 import 'package:mawaqit/shared/ui/option_sheet.dart';
 import 'package:mawaqit/shared/ui/segmented_control.dart';
@@ -593,10 +594,8 @@ class _Footer extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Column(
       children: [
-        Icon(
-          Icons.timelapse_outlined,
-          color: scheme.primary.withValues(alpha: 0.45),
-        ),
+        // The app's own mark closes the page, matching the About dialog above.
+        const AppMark(size: AppMark.footerSize),
         const SizedBox(height: AppSpacing.md),
         UiText(
           l10n.appTitle,

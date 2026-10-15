@@ -69,6 +69,7 @@ flutter:
 
   assets:
     - assets/audio/
+    - assets/icons/
 
   fonts:
     # Single variable-font file — one entry is enough (weight axis is inside).
