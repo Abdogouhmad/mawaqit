@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-10-15
+
 Second project-hardening pass (see `docs/optimization-notes.md`): more unit
 coverage for core notification policy, CI that also verifies `main`, a
 correction to the contributing docs, and a redesigned, frosted About surface.
@@ -42,6 +44,12 @@ correction to the contributing docs, and a redesigned, frosted About surface.
   now scrolls rather than overflows at large text scales.
 - **Contributing docs corrected** — the "add a language" steps no longer point at
   a `supported-locales` setting that does not exist.
+
+### Fixed
+
+- **City search identifies itself to OpenStreetMap** — the Nominatim fallback no
+  longer sends a placeholder `dev build` user-agent, which the service's usage
+  policy expects to be a real contact.
 
 ## [0.13.1] - 2026-10-12
 
