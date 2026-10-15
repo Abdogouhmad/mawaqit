@@ -264,8 +264,8 @@ Carried over from the first pass and still true:
   `<!-- TODO: add screenshots -->` placeholder.
 - **Security contact**: `SECURITY.md` and `CODE_OF_CONDUCT.md` still use TODO
   placeholders for a private contact — fill them in.
-- **`stitch_minimal_prayer_times_app/`** design bundle: still tracked; decide
-  whether it belongs in-repo.
+- **`stitch_minimal_prayer_times_app/`** design bundle: removed in 0.14.0 — it
+  was design-reference material (HTML/PNG/`DESIGN.md`), not app code.
 - **Play Console declarations** for `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`,
   `SYSTEM_ALERT_WINDOW` and the `specialUse` foreground service remain outstanding.
 

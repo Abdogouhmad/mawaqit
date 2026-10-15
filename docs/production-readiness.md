@@ -191,15 +191,14 @@ so they are listed rather than silently changed:
   `androidResources.noCompress` block that is not present anywhere in `android/`,
   and a `feat.md §4.4` that is not in the repo. The real adhan audio lives in
   `assets/audio/` and is named per tone in `lib/core/audio/tone_catalog.dart`.
-  Recommend reducing this file to the entries that are used (this pass added the
-  one that is: `appIcon`). Left intact because deleting constants is exactly the
-  kind of change the brief asks to flag first.
+  This pass added the one that is used (`appIcon`); the dead constants were
+  pruned in 0.14.0, leaving only `appIcon`.
 - **The Nominatim online city-search fallback sends
   `User-Agent: MawaqitPrayerApp/1.0 (prayer clock; dev build)`**
   (`location_repository.dart:88`). "dev build" is a leftover and, more
   importantly, OSM's Nominatim usage policy expects a genuinely identifying
   agent with a contact; an anonymous/placeholder UA can be throttled or blocked.
-  Worth a real UA (and ideally a contact URL) before the app is used at any scale.
+  Resolved in 0.14.0: the UA now names the project with a contact URL.
 
 ---
 
@@ -229,12 +228,13 @@ Only the first block is required; the rest is hygiene.
 
 7. Fill the `TODO` contacts in `SECURITY.md` / `CODE_OF_CONDUCT.md`.
 8. Add real screenshots under `docs/screenshots/` and drop the README placeholder.
-9. Refresh `docs/DECISIONS.md`; decide on the tracked
-   `stitch_minimal_prayer_times_app/` bundle.
+9. Refresh `docs/DECISIONS.md` (the tracked `stitch_minimal_prayer_times_app/`
+   bundle was removed in 0.14.0).
 10. Pin `home_widget_generator` if the maintainer prefers a literal over `any`.
 11. Resolve the adhan-recitation licence and credit it (see Open questions).
-12. Give the Nominatim fallback a real `User-Agent` (see Small findings).
-13. Prune the stale constants in `lib/core/const/asset_paths.dart`.
+12. ~~Give the Nominatim fallback a real `User-Agent`~~ — done in 0.14.0.
+13. ~~Prune the stale constants in `lib/core/const/asset_paths.dart`~~ — done in
+    0.14.0.
 
 ---
 
