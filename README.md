@@ -185,6 +185,11 @@ flutter test                          # unit + widget tests
 flutter test --coverage               # writes coverage/lcov.info
 ```
 
+The automated suites cannot exercise the lockscreen alarm, Doze or reboot paths;
+the manual on-device matrix that covers those lives in
+[docs/testing.md](docs/testing.md). Release readiness is assessed in
+[docs/production-readiness.md](docs/production-readiness.md).
+
 ## Contributing
 
 Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for the

@@ -269,3 +269,9 @@ Carried over from the first pass and still true:
 - **Play Console declarations** for `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`,
   `SYSTEM_ALERT_WINDOW` and the `specialUse` foreground service remain outstanding.
 
+> Release-specific findings (distribution/Play fork, the adhan-recitation licence
+> question, the missing time/timezone receiver, the `setAlarmClock` vs
+> `setExactAndAllowWhileIdle` note) are tracked separately in
+> [`production-readiness.md`](production-readiness.md), with the manual device
+> matrix in [`testing.md`](testing.md).
+
