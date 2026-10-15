@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Second project-hardening pass (see `docs/optimization-notes.md`): more unit
 coverage for core notification policy, CI that also verifies `main`, a
-correction to the contributing docs, and a branded, frosted About surface.
+correction to the contributing docs, and a redesigned, frosted About surface.
 
 ### Added
 
@@ -35,6 +35,11 @@ correction to the contributing docs, and a branded, frosted About surface.
   `showBlurredDialog` route frosts the entire backdrop the way the system does
   (honouring Reduce transparency) and floats the card on top, instead of the
   previous opaque card with a blur confined to its own bounds.
+- **The About dialog is rebuilt as an imprint page** — the mark now sits in a
+  mihrab niche (a gold arch lit from within), under the wordmark and its
+  promise, above a rule and the version line, closed by a single full-width
+  action. The old centred icon-title-paragraph-chip stack is gone, and the card
+  now scrolls rather than overflows at large text scales.
 - **Contributing docs corrected** — the "add a language" steps no longer point at
   a `supported-locales` setting that does not exist.
 
