@@ -84,8 +84,12 @@ class LocationRepository {
     String query,
     int limit,
   ) async {
+    // Nominatim's usage policy expects a genuinely identifying agent with a
+    // contact, so name the app and point at the project; a placeholder UA can
+    // be throttled or blocked.
     final client = HttpClient()
-      ..userAgent = 'MawaqitPrayerApp/1.0 (prayer clock; dev build)';
+      ..userAgent =
+          'MawaqitPrayerApp/1.0 (+https://github.com/Abdogouhmad/mawaqit)';
     try {
       final uri = Uri.https('nominatim.openstreetmap.org', '/search', {
         'q': query,
