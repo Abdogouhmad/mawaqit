@@ -31,9 +31,10 @@ correction to the contributing docs, and a branded, frosted About surface.
 - **CI verifies every push, `main` included** — a change that reaches `main`
   without a pull-request run is still format/analyze/test checked. Publishing
   still happens only in the release workflow.
-- **The About dialog is frosted, not flat** — it now blurs the screen behind it
-  (honouring Reduce transparency), over a lighter scrim, instead of sitting on an
-  opaque card.
+- **The About dialog blurs the whole screen, not just its card** — a new
+  `showBlurredDialog` route frosts the entire backdrop the way the system does
+  (honouring Reduce transparency) and floats the card on top, instead of the
+  previous opaque card with a blur confined to its own bounds.
 - **Contributing docs corrected** — the "add a language" steps no longer point at
   a `supported-locales` setting that does not exist.
 

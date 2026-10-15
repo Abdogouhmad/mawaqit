@@ -10,6 +10,7 @@ import 'package:mawaqit/shared/components/settings_group.dart';
 import 'package:mawaqit/shared/components/settings_row.dart';
 import 'package:mawaqit/shared/ui/app_mark.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
+import 'package:mawaqit/shared/ui/blurred_dialog.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// The "About & update" card shown on the settings screen: a software-update
@@ -57,31 +58,26 @@ class UpdateSection extends ConsumerWidget {
   }
 
   void _showAbout(BuildContext context) {
-    showDialog<void>(
+    showBlurredDialog<void>(
       context: context,
-      // Deliberately lighter than the default `Colors.black54`: the frosted
-      // panel below blurs whatever is behind it, and a heavy scrim would leave
-      // it blurring a flat dark wash instead of the screen.
-      barrierColor: Theme.of(context).colorScheme.scrim.withValues(alpha: 0.28),
       builder: (dialogContext) {
         final scheme = Theme.of(dialogContext).colorScheme;
         final l10n = AppLocalizations.of(dialogContext);
 
-        return Dialog(
-          // The frost *is* the dialog: a default Material fill would sit on top
-          // of the BlurSurface and hide the blur behind it.
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.huge,
-            vertical: AppSpacing.giga,
-          ),
+        // The route is not a `Dialog`, so the surface and the `Material` the
+        // Close button needs for its ink are ours to provide. The frost itself
+        // — the whole screen behind the card, not just the card — is painted by
+        // `showBlurredDialog`.
+        return Material(
+          type: MaterialType.transparency,
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 360),
             child: BlurSurface(
               radius: AppRadius.sheet,
-              // The nav bar's glass recipe: a heavier blur, a neutral fill and
-              // a slightly richer backdrop. The tint is left at its default
+              // The screen behind the card is already blurred full-screen by
+              // `showBlurredDialog`; this surface adds the card's own frost on
+              // top — the nav bar's glass recipe (a heavier blur, a neutral fill
+              // and a slightly richer backdrop). The tint stays at its default
               // rather than the bar's very thin 0.5, because this surface carries
               // a paragraph of body text and readability outranks maximum
               // see-through.
