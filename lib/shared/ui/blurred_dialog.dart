@@ -97,13 +97,30 @@ class _BlurredDialogOverlay extends StatelessWidget {
             ),
             Positioned.fill(
               child: SafeArea(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.huge,
-                      vertical: AppSpacing.giga,
+                child: LayoutBuilder(
+                  builder: (context, constraints) => SingleChildScrollView(
+                    // Scroll rather than overflow at large text scales; the
+                    // `minHeight` keeps the card centred whenever it does fit.
+                    // `primary: false` keeps it off any inherited scroll
+                    // controller from the screen below.
+                    primary: false,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.huge,
+                            vertical: AppSpacing.giga,
+                          ),
+                          child: FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          ),
+                        ),
+                      ),
                     ),
-                    child: FadeTransition(opacity: animation, child: child),
                   ),
                 ),
               ),
