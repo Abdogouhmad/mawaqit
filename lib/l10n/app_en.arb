@@ -585,6 +585,14 @@
   "@channelPrePrayerDescription": {
     "description": "Android notification channel: Countdown reminder before each prayer"
   },
+  "channelPrayerLive": "Prayer countdown",
+  "@channelPrayerLive": {
+    "description": "Android notification channel: Prayer countdown"
+  },
+  "channelPrayerLiveDescription": "Live countdown before each prayer",
+  "@channelPrayerLiveDescription": {
+    "description": "Android notification channel: Live countdown before each prayer"
+  },
   "channelAdhanMuted": "Prayer call (muted)",
   "@channelAdhanMuted": {
     "description": "Android notification channel: Prayer call (muted)"
@@ -659,6 +667,48 @@
       "time": {},
       "chime": {}
     }
+  },
+  "notifLiveBody": "Prayer time is at {time}",
+  "@notifLiveBody": {
+    "description": "Live-update supporting line, e.g. the prayer's clock time",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "6:42 PM"
+      }
+    }
+  },
+  "notifLiveChip": "{prayer} · {minutes}m",
+  "@notifLiveChip": {
+    "description": "Live-update status-chip label with the remaining minutes",
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Maghrib"
+      },
+      "minutes": {
+        "type": "String",
+        "example": "9"
+      }
+    }
+  },
+  "notifLiveItIsTime": "It's time for {prayer}",
+  "@notifLiveItIsTime": {
+    "description": "Live-update title once the prayer time has arrived",
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Maghrib"
+      }
+    }
+  },
+  "notifLiveActionPrayed": "Prayed",
+  "@notifLiveActionPrayed": {
+    "description": "Live-update action: mark the prayer as prayed"
+  },
+  "notifLiveActionDismiss": "Dismiss",
+  "@notifLiveActionDismiss": {
+    "description": "Live-update action: dismiss the reminder"
   },
   "homeDayBeginsWith": "The day begins with {prayer}",
   "@homeDayBeginsWith": {
