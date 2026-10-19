@@ -1,63 +1,79 @@
 package com.freesoftware.mawaqit
 
 import android.app.AlarmManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.media.AudioAttributes
-import android.net.Uri
-import android.os.Build
-import androidx.core.app.NotificationManagerCompat
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** Owns the exact-alarm reminders for the decorated prayer notification card. */
+/**
+ * Owns the exact alarms and the payload storage behind the pre-prayer live
+ * update.
+ *
+ * Each occurrence is stored as one JSON payload (see [KEY_*]) keyed by its
+ * native id, and armed as one `AlarmManager` entry. The payload is deliberately
+ * copied into the alarm's `PendingIntent` as well: `SharedPreferences` writes are
+ * asynchronous, and a user swiping the app away right after a reschedule could
+ * otherwise leave an alarm with no stored entry. The receiver then rebuilds the
+ * live update from the intent copy instead of dropping the occurrence.
+ *
+ * The presentation itself lives in [PrayerLiveUpdate]; this object only owns the
+ * alarms and the storage.
+ */
 object PrayerScheduler {
 
     const val ACTION_SHOW = "com.mawaqit.action.SHOW_REMINDER"
-    const val ACTION_MUTE = "com.mawaqit.action.MUTE_REMINDER"
+    const val ACTION_PRAYED = "com.mawaqit.action.PRAYED_REMINDER"
     const val ACTION_DISMISS = "com.mawaqit.action.DISMISS_REMINDER"
-    const val EXTRA_ID = "com.mawaqit.extra.ID"
-    const val EXTRA_NAME = "com.mawaqit.extra.NAME"
-    const val EXTRA_PRAYER_ID = "com.mawaqit.extra.PRAYER_ID"
-    const val EXTRA_PRAYER_MS = "com.mawaqit.extra.PRAYER_MS"
-    const val EXTRA_LEAD_MIN = "com.mawaqit.extra.LEAD_MIN"
 
-    /** Channel (and its sound) the card for one reminder was armed with. */
-    const val EXTRA_SOUND = "com.mawaqit.extra.SOUND"
+    /** Tapping the live update opens the app and takes the occurrence over. */
+    const val ACTION_OPEN = "com.mawaqit.action.OPEN_REMINDER"
+
+    const val EXTRA_ID = "com.mawaqit.extra.ID"
+    const val EXTRA_PRAYER_ID = "com.mawaqit.extra.PRAYER_ID"
 
     /**
-     * Full reminder payload embedded in the alarm [android.app.PendingIntent].
-     * SharedPreferences writes are asynchronous, so a user swiping the app away
-     * right after a reschedule could leave the alarm with no stored entry — the
-     * receiver then falls back to this copy instead of dropping the card.
+     * Full reminder payload embedded in the alarm [PendingIntent]. SharedPreferences
+     * writes are asynchronous, so a user swiping the app away right after a
+     * reschedule could leave the alarm with no stored entry — the receiver then
+     * falls back to this copy instead of dropping the occurrence silently.
      */
     const val EXTRA_REMINDER = "com.mawaqit.extra.REMINDER_JSON"
 
-    // Base pre-prayer alert channel id. The concrete id is derived from the
-    // selected tone's raw resource (see channelIdFor), so each tone gets a
-    // freshly created, sound-correct channel — Android freezes a channel's
-    // sound at first creation, so reusing one id across tone changes would
-    // silently keep ringing the original tone. `_silent` covers the muted
-    // pre-prayer preference.
-    const val CHANNEL_REMINDERS = "pre_prayer_alert_v2"
+    // Payload keys, shared with the Dart reminder maps handed to `schedule`.
+    const val KEY_PRAYER_ID = "prayerId"
+    const val KEY_NAME = "name"
+    const val KEY_PRAYER_MS = "prayerTimestampMs"
+    const val KEY_LEAD_MIN = "leadMinutes"
+    const val KEY_STRINGS = "strings"
+
+    /** Silent channel the live countdown is posted on. */
+    const val CHANNEL_LIVE = "prayer_live_countdown_v1"
+
+    /** One JSON payload per scheduled occurrence. */
     const val PREFS = "mawaqit_reminders"
 
-    /** Ambient footer timestamps shown on the card (shared across that day). */
-    const val KEY_SUNRISE = "info_sunrise"
-    const val KEY_FAJR = "info_fajr"
-    const val KEY_SUNSET = "info_sunset"
-    const val KEY_CHANNEL_SOUND = "info_channel_sound"
+    /**
+     * "This occurrence is already dealt with" marker, kept apart from [PREFS]
+     * because [cancelAll] clears the payloads on every reschedule: a reschedule
+     * must never resurrect a countdown the user dismissed, marked prayed, or
+     * opened.
+     */
+    const val LIVE_PREFS = "mawaqit_live_update"
+    const val KEY_RESOLVED = "resolved"
 
     val TICK_MS = 60_000L
+
     // Distinct request-code buckets keep PendingIntents unique per purpose.
     private const val REQ_SHOW = 4000
-    private const val REQ_MUTE = 5000
+    private const val REQ_PRAYED = 5000
     private const val REQ_DISMISS = 6000
+
+    /** Stable across occurrences: only one live update exists at a time. */
+    private const val REQ_OPEN = 7000
 
     /**
      * Formats an epoch in the device's own clock convention.
@@ -74,75 +90,31 @@ object PrayerScheduler {
             Locale.getDefault(),
         ).format(Date(epochMs))
 
-    fun channelIdFor(sound: String): String =
-        if (sound == "silent") "${CHANNEL_REMINDERS}_silent" else "${CHANNEL_REMINDERS}_$sound"
-
-    fun ensureReminderChannel(context: Context, sound: String = "pre_alert") {
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelIdFor(sound),
-                "Pre-prayer alert",
-                if (sound == "silent") NotificationManager.IMPORTANCE_DEFAULT
-                else NotificationManager.IMPORTANCE_HIGH,
-            ).apply {
-                description = "Countdown reminder before each prayer"
-                if (sound != "silent") {
-                    val audioAttributes = AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_ALARM)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .build()
-                    setSound(Uri.parse("android.resource://${context.packageName}/raw/$sound"), audioAttributes)
-                }
-                setShowBadge(false)
-            }
-            nm.createNotificationChannel(channel)
-        }
-    }
-
-    /** Schedules a daily reminder card for each prayer (lead time in the past). */
-    fun schedule(
-        context: Context,
-        reminders: List<Map<String, Any>>,
-        sunriseMs: Long = 0L,
-        fajrMs: Long = 0L,
-        sunsetMs: Long = 0L,
-        channelSound: String = "pre_alert",
-    ) {
+    /** Schedules a live-update countdown for each upcoming prayer. */
+    fun schedule(context: Context, reminders: List<Map<String, Any>>) {
         cancelAll(context)
-        ensureReminderChannel(context, channelSound)
 
         val editor = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-        editor.putLong(KEY_SUNRISE, sunriseMs)
-        editor.putLong(KEY_FAJR, fajrMs)
-        editor.putLong(KEY_SUNSET, sunsetMs)
-        editor.putString(KEY_CHANNEL_SOUND, channelSound)
-
-        // Collect every entry, persist them all, and only then arm the alarms.
-        // `commit()` (not `apply()`) on purpose: an alarm can fire with the
-        // process already swiped away, and an entry that never reached disk is
-        // a card that is silently never posted — the single most common way the
-        // pre-prayer reminder used to go missing.
-        val armed = mutableListOf<Triple<Int, Long, String>>()
-        reminders.forEach { r ->
-            val id = (r["id"] as? Number)?.toInt() ?: return@forEach
-            val name = (r["name"] as? String) ?: "Prayer"
-            val prayerId = (r["prayerId"] as? String) ?: ""
-            val leadMs = (r["timestampMs"] as? Number)?.toLong() ?: 0L
-            val prayerMs = (r["prayerTimestampMs"] as? Number)?.toLong() ?: 0L
-            val leadMin = (r["leadMinutes"] as? Number)?.toInt() ?: 10
-
-            val payload = JSONObject()
-                .put(EXTRA_PRAYER_ID, prayerId)
-                .put(EXTRA_NAME, name)
-                .put(EXTRA_PRAYER_MS, prayerMs)
-                .put(EXTRA_LEAD_MIN, leadMin)
-                .put(EXTRA_SOUND, channelSound)
-                .toString()
+        val armed = ArrayList<Triple<Int, Long, String>>()
+        for (reminder in reminders) {
+            val id = (reminder["id"] as? Number)?.toInt() ?: continue
+            val leadMs = (reminder["timestampMs"] as? Number)?.toLong() ?: continue
+            val payload = JSONObject(reminder).toString()
             editor.putString("reminder_$id", payload)
             armed += Triple(id, leadMs, payload)
         }
+
+        // commit(), not apply(): an alarm can fire seconds later with the
+        // process already swiped away, and the async disk write of apply() may
+        // not have landed yet — the receiver would then have no payload at all.
         editor.commit()
+
+        // The channel is created once from the first payload's localized copy;
+        // its label follows the active language because createNotificationChannel
+        // updates an existing channel's name and description.
+        armed.firstOrNull()?.let { (_, _, payload) ->
+            PrayerLiveUpdate.ensureChannel(context, JSONObject(payload))
+        }
         armed.forEach { (id, leadMs, payload) -> setAlarm(context, id, leadMs, payload) }
     }
 
@@ -153,15 +125,19 @@ object PrayerScheduler {
         keys.forEach { key ->
             val id = key.removePrefix("reminder_").toIntOrNull() ?: return@forEach
             am.cancel(showPendingIntent(context, id))
-            NotificationManagerCompat.from(context).cancel(id)
         }
         prefs.edit().clear().apply()
+        PrayerLiveUpdate.cancel(context)
     }
 
     fun setAlarm(context: Context, id: Int, atEpochMs: Long, payloadJson: String? = null) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pi = showPendingIntent(context, id, payloadJson)
-        val trigger = maxOf(atEpochMs, System.currentTimeMillis() + TICK_MS)
+        // A lead time already in the past (a reschedule inside the countdown
+        // window, or a reboot mid-window) must post immediately, not be pushed
+        // a minute into the future — hence the one-second floor rather than a
+        // full tick. The receiver itself re-arms the next tick.
+        val trigger = maxOf(atEpochMs, System.currentTimeMillis() + 1000L)
         // Without the "Alarms & reminders" special access Android 12+ refuses
         // exact alarms outright; `setAndAllowWhileIdle` still fires, only
         // batched into the next maintenance window — a reminder the user may
@@ -179,13 +155,15 @@ object PrayerScheduler {
         am.cancel(showPendingIntent(context, id))
     }
 
-    /** Cancels one scheduled reminder: its alarm, its stored preferences and any
-     *  card already posted. Used by the app to take over a reminder live
-     *  (direct chime playback) without the native card also ringing. */
+    /**
+     * Cancels one scheduled reminder: its alarm, its stored payload and the live
+     * update. Used when the in-app path takes an occurrence over, or when the
+     * user removes it from Settings.
+     */
     fun cancelOne(context: Context, id: Int) {
         cancelAlarm(context, id)
         removePref(context, id)
-        NotificationManagerCompat.from(context).cancel(id)
+        PrayerLiveUpdate.cancel(context)
     }
 
     fun removePref(context: Context, id: Int) {
@@ -204,6 +182,17 @@ object PrayerScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
+    /** The occurrence id (`2026-09-21_maghrib`) backing a scheduled reminder. */
+    fun prayerId(context: Context, id: Int): String? {
+        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getString("reminder_$id", null) ?: return null
+        return try {
+            JSONObject(raw).optString(KEY_PRAYER_ID).takeIf { it.isNotBlank() }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     fun actionPendingIntent(
         context: Context,
         id: Int,
@@ -218,28 +207,31 @@ object PrayerScheduler {
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
 
-    /** The occurrence id (`2026-09-21_maghrib`) backing the reminder card. */
-    fun prayerId(context: Context, id: Int): String? {
-        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getString("reminder_$id", null) ?: return null
-        return try {
-            JSONObject(raw).optString(EXTRA_PRAYER_ID).takeIf { it.isNotBlank() }
-        } catch (_: Exception) {
-            null
-        }
-    }
-
-    /** PendingIntent used by the [MutePrayerReceiver] lifecycle callback. */
-    fun mutePendingIntent(context: Context, id: Int): PendingIntent =
-        PendingIntent.getBroadcast(
-            context,
-            REQ_MUTE + id,
-            Intent(context, MutePrayerReceiver::class.java)
-                .setAction(ACTION_MUTE)
-                .putExtra(EXTRA_ID, id),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
+    fun prayedPendingIntent(context: Context, id: Int): PendingIntent =
+        actionPendingIntent(context, id, ACTION_PRAYED, REQ_PRAYED)
 
     fun dismissPendingIntent(context: Context, id: Int): PendingIntent =
         actionPendingIntent(context, id, ACTION_DISMISS, REQ_DISMISS)
+
+    /**
+     * Opens the app when the live update is tapped. A plain activity intent
+     * (rather than a broadcast) is deliberate: the system exempts a
+     * notification tap from the background-activity-start restrictions, so the
+     * app comes forward even though the reminder outlives the process. The
+     * occurrence is carried along so [MainActivity] can retire the notification.
+     */
+    fun openPendingIntent(context: Context, prayerId: String): PendingIntent =
+        PendingIntent.getActivity(
+            context,
+            REQ_OPEN,
+            Intent(context, MainActivity::class.java)
+                .setAction(PrayerScheduler.ACTION_OPEN)
+                .putExtra(EXTRA_PRAYER_ID, prayerId)
+                .addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP,
+                ),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
 }

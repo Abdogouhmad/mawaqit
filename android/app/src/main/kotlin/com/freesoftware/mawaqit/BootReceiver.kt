@@ -6,16 +6,21 @@ import android.content.Intent
 import android.util.Log
 
 /**
- * Re-arms today's adhans and reminders after the phone restarts, or after the
- * app is updated in place.
+ * Re-arms today's adhans and reminders after the phone restarts, after the app
+ * is updated in place, and whenever the clock or timezone moves.
  *
  * `AlarmManager` drops every alarm it is holding when the package is replaced,
- * so both of these leave the day unarmed: a reboot clears them outright, and an
- * OTA update (this app ships its own updater) replaces the package and takes
- * them with it. Nothing re-arms them until the next 12-hourly WorkManager task,
- * which can be most of a day away — a phone that restarted at breakfast can
+ * so both of the first two leave the day unarmed: a reboot clears them outright,
+ * and an OTA update (this app ships its own updater) replaces the package and
+ * takes them with it. Nothing re-arms them until the next 12-hourly WorkManager
+ * task, which can be most of a day away — a phone that restarted at breakfast can
  * reach Isha with no adhan scheduled at all, and an update can silently cost
  * the user the rest of the day.
+ *
+ * A manual clock change or a timezone move is subtler but just as wrong: the
+ * stored alarms are absolute `RTC` timestamps computed from the prayer times of
+ * the *old* offset, so every one of them now fires at the wrong local moment.
+ * Rebuilding the day from the new wall clock is the only correct response.
  *
  * The re-arm itself needs today's prayer times, which only the Dart side can
  * compute (it owns the location cache, the calculation method and the user's
@@ -24,7 +29,7 @@ import android.util.Log
  * where a `BOOT_COMPLETED` receiver may not launch several foreground-service
  * types at all.
  *
- * Both actions are post-unlock, so the credential-protected stores this and
+ * Both boot actions are post-unlock, so the credential-protected stores this and
  * [AdhanScheduler] read are available; `LOCKED_BOOT_COMPLETED` is deliberately
  * not handled.
  */
@@ -32,9 +37,7 @@ class BootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action ?: return
-        if (action != Intent.ACTION_BOOT_COMPLETED && action != Intent.ACTION_MY_PACKAGE_REPLACED) {
-            return
-        }
+        if (!HANDLED_ACTIONS.contains(action)) return
 
         // Fail quietly: a reboot with no re-arm degrades to the 12-hourly task
         // rather than crashing the receiver, which would only hide the cause.
@@ -43,6 +46,14 @@ class BootReceiver : BroadcastReceiver() {
         } catch (e: Exception) {
             Log.w("BootReceiver", "Could not queue the post-$action re-arm: $e")
         }
+    }
 
+    private companion object {
+        val HANDLED_ACTIONS = setOf(
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+        )
     }
 }
