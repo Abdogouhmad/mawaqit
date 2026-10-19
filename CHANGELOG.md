@@ -13,6 +13,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Promoted live countdown before each prayer.** The pre-prayer reminder is now a
+  single ongoing notification instead of a per-tone tray card. On Android 16+ the
+  system promotes it to a status-bar chip, the top of the shade and the
+  lockscreen: the prayer name, a system chronometer counting down and a progress
+  bar that fills across the whole lead time (5/10/15 minutes, as configured). On
+  older Androids the same content renders as a standard ongoing notification with
+  a progress bar. It is posted on its own silent channel — the chime the user
+  picked is still played by the app itself, so nothing rings twice.
+- **Prayed and Dismiss actions on the reminder.** At the prayer time the card
+  flips to "It's time for …" and offers **Prayed** and **Dismiss**; either one
+  retires the card for that occurrence, and leaving it alone removes it after
+  30 minutes. Tapping the countdown opens the app and retires it too. Exactly one
+  reminder exists at a time, so a new prayer replaces the previous countdown
+  rather than stacking a second card.
+
+### Changed
+
+- **Clock and timezone changes re-arm the schedule.** `BootReceiver` now also
+  handles `TIME_SET` and `TIMEZONE_CHANGED`, so a moved clock or a traveller's
+  timezone no longer leaves the stored alarms firing at the wrong local moment
+  until the app is next opened.
+- **The pre-prayer reminder is localized from the app's own strings.** Its
+  channel name, title, countdown chip and action labels come from the ARB
+  translations (English, Arabic, French) and follow the app language, instead of
+  a hard-coded card.
+
 ## [0.14.0] - 2026-10-15
 
 Second project-hardening pass (see `docs/optimization-notes.md`): more unit

@@ -32,9 +32,13 @@ like a real alarm clock — plus a Linux desktop target for development.
 - **Home-screen widget.** A framed 2×2 Glance card with the location, next
   prayer, a countdown to the second and a five-dot day sequence. It keeps
   advancing while the app is closed and refreshes at every prayer rollover.
-- **Decorated lockscreen reminder card** with a live countdown, a pulsing status
-  dot, a synchronized progress bar, and **Mute this adhan** / **Dismiss**
-  actions; the same mute can be toggled per-occurrence in-app.
+- **Promoted live countdown before each prayer.** The pre-prayer reminder is a
+  single ongoing notification: on Android 16+ the system promotes it to a
+  status-bar chip, the top of the shade and the lockscreen, showing the prayer
+  name, a system chronometer counting down and a progress bar that fills across
+  the lead time. At the prayer time it flips to "It's time for …" with **Prayed**
+  and **Dismiss** actions and retires itself; older Androids render the same
+  content as a standard ongoing card with a progress bar.
 - **In-app OTA updates.** Settings checks the release manifest, shows installed
   vs. latest with the "What's new" notes, and downloads, verifies (SHA-256) and
   installs the new APK.
@@ -134,9 +138,8 @@ lib/
 
 Native Android code lives under
 `android/app/src/main/kotlin/com/freesoftware/mawaqit/` (`PrayerScheduler.kt`,
-`AdhanScheduler.kt`, `AdhanPlaybackService.kt`, `AlarmAccess.kt`,
-`PrayerWidgetHomeWidget.kt`, boot receivers, and so on), with the decorated
-notification layouts under `android/app/src/main/res/layout/`.
+`PrayerLiveUpdate.kt`, `AdhanScheduler.kt`, `AdhanPlaybackService.kt`,
+`AlarmAccess.kt`, `PrayerWidgetHomeWidget.kt`, boot receivers, and so on).
 
 ## Architecture
 

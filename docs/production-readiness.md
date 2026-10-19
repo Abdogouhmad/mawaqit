@@ -125,7 +125,7 @@ goal. Do not do it "on the way to" a release; it is its own release.
 |---|---|---|---|
 | Alarm/notification core under-tested | High | `lib/data/services/notification_service.dart` (~1,930 lines, ~4% line coverage) | Manual on-device matrix (`docs/testing.md`); split the file only in a device-validated PR |
 | Adhan uses `setExactAndAllowWhileIdle`, not `setAlarmClock` | Medium | `AdhanScheduler.schedule()` | See "Reliability observations" below |
-| No receiver for time/timezone/date changes | Medium | `AndroidManifest.xml`, `BootReceiver.kt` | See "Reliability observations" below |
+| No receiver for `ACTION_DATE_CHANGED` | Low | `AndroidManifest.xml`, `BootReceiver.kt` | See "Reliability observations" below |
 | OEM battery killers silently drop adhans | High | Doze/Xiaomi/Huawei/Oppo/Samsung | Onboarding already requests exemption + autostart hint; keep the in-app reliability checks |
 | Self-updater vs Play (above) | Decision | `ota_update`, manifest | Choose a channel |
 | Doctor/`flutter` version drift in CI | Low | workflows use `channel: stable` | Pin to a version if reproducibility is wanted |
@@ -149,20 +149,16 @@ goal. Do not do it "on the way to" a release; it is its own release.
   device, so it belongs in its own PR with the `docs/testing.md` matrix run before
   and after.
 
-- **Nothing listens for `TIMEZONE_CHANGED`, `TIME_SET` or `ACTION_DATE_CHANGED`.**
-  The manifest registers `BootReceiver` for `BOOT_COMPLETED` and
-  `MY_PACKAGE_REPLACED` only; the rest of the re-arming comes from app launches
-  and a 12-hourly WorkManager periodic task (`background_scheduler.dart` →
-  `registerPeriodicTask(..., frequency: Duration(hours: 12))`; `BootReceiver` →
-  `BootRescheduleWork` handles only the reboot/update case). A user who crosses a
-  timezone or whose clock is corrected while the app stays closed can therefore
-  hold a schedule computed for the old zone for up to twelve hours. Real-world
-  impact is a traveller's adhan arriving at the wrong local time until they open
-  the app — which is exactly the class of bug this app exists to avoid, so it is
-  worth fixing. The fix is contained (one receiver covering the three actions,
-  reusing the existing reschedule path) but it is native, needs a rebuild and the
-  on-device matrix, and so was deliberately left out of a docs/UI pass. The
-  Kotlin-rewrite brief already lists these three actions as required triggers.
+- **Nothing listens for `ACTION_DATE_CHANGED`.** The manifest registers
+  `BootReceiver` for `BOOT_COMPLETED`, `MY_PACKAGE_REPLACED`, `TIME_SET` and
+  `TIMEZONE_CHANGED`, so a clock correction or a timezone move re-arms through
+  the same `BootRescheduleWork` path as a reboot. A device whose calendar date
+  rolls over while the app stays closed still relies on the 12-hourly WorkManager
+  periodic task (`background_scheduler.dart` →
+  `registerPeriodicTask(..., frequency: Duration(hours: 12))`) to arm the new
+  day's occurrences. Real-world impact is small — the date does not change on its
+  own without an app launch or a periodic task in between for most users — but
+  adding `ACTION_DATE_CHANGED` to the same receiver would close it.
 
 ### Open questions for the maintainer
 
@@ -220,7 +216,8 @@ Only the first block is required; the rest is hygiene.
 
 5. Run the manual matrix in `docs/testing.md` on a real device: screen off,
    Doze (`adb shell dumpsys deviceidle force-idle`), app swiped away, reboot,
-   timezone change, airplane mode — for both adhan and pre-prayer.
+   timezone change, airplane mode — for both adhan and pre-prayer, including the
+   Android 16+ live-update promotion and its Prayed/Dismiss actions.
 6. Confirm the release-secrets (`WAQT_*`) are present so CI does not refuse to
    sign.
 
