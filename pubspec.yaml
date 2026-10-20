@@ -12,7 +12,7 @@ publish_to: "none"
 # never run the Gradle arithmetic above — so without a literal number here
 # there is no versionCode for their update checker to find and every release is
 # invisible to them. build.sh fails the build if the two ever disagree.
-version: 0.14.0+1400
+version: 0.15.0+1500
 
 environment:
   sdk: ^3.13.4

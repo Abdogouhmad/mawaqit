@@ -126,6 +126,13 @@ class NotificationService {
   /// start (2_000_000) to avoid collisions with scheduled prayer ids.
   static const int _testNotificationId = 1_999_999;
 
+  /// Native-card id used by the debug live-update preview.
+  ///
+  /// Outside every occurrence bucket (`_nativeCardBucket` and up), so a preview
+  /// can never cancel or collide with a real prayer's alarm, and stable, so
+  /// tapping the preview twice replaces the single card instead of stacking.
+  static const int _previewCardId = 1_999_998;
+
   /// Payload for the debug adhan trigger. It deliberately uses the live-adhan
   /// `adhan:` prefix so a full-screen-intent launch (screen locked / device
   /// asleep) is recognised by [`_raiseAdhanFromLaunch`] and raises the alarm
@@ -654,6 +661,58 @@ class NotificationService {
       notificationDetails: details,
       payload: '${_preAlertPrefix}test',
     );
+  }
+
+  /// Fires a debug live-update preview for the pre-prayer countdown.
+  ///
+  /// Uses [_previewCardId], which is outside every occurrence bucket
+  /// (`_nativeCardBucket` and up), so a preview never cancels or collides with
+  /// a real prayer's alarm, and is stable, so firing twice replaces the single
+  /// card instead of stacking.
+  ///
+  /// On Android, posts the promoted ongoing card (API 36+ ProgressStyle or
+  /// ongoing fallback) immediately with a simulated countdown using the
+  /// configured lead time.
+  Future<bool> fireLiveUpdatePreview({AppSettings? settings}) async {
+    final currentSettings = settings ?? const AppSettings();
+    if (!currentSettings.prePrayerEnabled) return false;
+    if (_isAndroid) {
+      final granted = await ensurePermissions();
+      if (!granted) return false;
+      try {
+        final now = DateTime.now();
+        final leadMin = currentSettings.leadMinutes > 0
+            ? currentSettings.leadMinutes
+            : 10;
+        final prayerTime = now.add(Duration(minutes: leadMin));
+        final name = PrayerKind.asr.localized(AmbientL10n.instance);
+        final payload = {
+          'id': _previewCardId,
+          'flutterId': _previewCardId,
+          'prayerId': 'preview_${now.millisecondsSinceEpoch}',
+          'name': name,
+          'timestampMs': now.millisecondsSinceEpoch,
+          'prayerTimestampMs': prayerTime.millisecondsSinceEpoch,
+          'leadMinutes': leadMin,
+          'strings': _liveStrings(name),
+        };
+        await _channel.invokeMethod('showReminderNow', {'reminder': payload});
+        return true;
+      } catch (e, st) {
+        debugPrint('Live update preview failed: $e\n$st');
+        return false;
+      }
+    }
+    return false;
+  }
+
+  /// Cancels any active debug live-update preview.
+  Future<void> cancelLiveUpdatePreview() async {
+    if (_isAndroid) {
+      try {
+        await _channel.invokeMethod('cancelReminder', {'id': _previewCardId});
+      } catch (_) {}
+    }
   }
 
   Future<void> _fireAdhanTest(AppSettings settings) async {

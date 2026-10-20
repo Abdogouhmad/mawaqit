@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -99,6 +100,11 @@ object PrayerLiveUpdate {
     fun showNow(context: Context, reminder: Map<String, Any>) {
         val id = (reminder["id"] as? Number)?.toInt() ?: return
         val payload = JSONObject(reminder)
+        val prayerId = payload.optString(PrayerScheduler.KEY_PRAYER_ID)
+        if (prayerId.isNotEmpty() && prayerId == resolvedPrayerId(context)) {
+            context.getSharedPreferences(PrayerScheduler.LIVE_PREFS, Context.MODE_PRIVATE)
+                .edit().remove(PrayerScheduler.KEY_RESOLVED).commit()
+        }
         context.getSharedPreferences(PrayerScheduler.PREFS, Context.MODE_PRIVATE)
             .edit().putString("reminder_$id", payload.toString()).commit()
         show(context, id, payload)
@@ -215,7 +221,15 @@ object PrayerLiveUpdate {
                 .setWhen(prayerMs)
                 .setUsesChronometer(true)
                 .setChronometerCountDown(true)
-                .setStyle(Notification.ProgressStyle().setProgress(percent))
+                .setStyle(
+                    Notification.ProgressStyle()
+                        .setProgressSegments(
+                            listOf(
+                                Notification.ProgressStyle.Segment(100).setColor(ACCENT_COLOR)
+                            )
+                        )
+                        .setProgress(percent)
+                )
                 .setContentIntent(contentIntent)
                 .setCategory(Notification.CATEGORY_REMINDER)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
@@ -279,8 +293,20 @@ object PrayerLiveUpdate {
                 .setTimeoutAfter(IT_IS_TIME_TIMEOUT_MS)
                 .setCategory(Notification.CATEGORY_REMINDER)
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
-                .addAction(R.drawable.ic_check, strings.actionPrayed, prayed)
-                .addAction(R.drawable.ic_close, strings.actionDismiss, dismiss)
+                .addAction(
+                    Notification.Action.Builder(
+                        Icon.createWithResource(context, R.drawable.ic_check),
+                        strings.actionPrayed,
+                        prayed,
+                    ).build()
+                )
+                .addAction(
+                    Notification.Action.Builder(
+                        Icon.createWithResource(context, R.drawable.ic_close),
+                        strings.actionDismiss,
+                        dismiss,
+                    ).build()
+                )
                 .build()
         }
 

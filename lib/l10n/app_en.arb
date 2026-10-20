@@ -372,6 +372,18 @@
   "@notifTestPrePrayerSubtitle": {
     "description": "Fires the reminder in 3 seconds"
   },
+  "notifTestLiveUpdateAction": "Test Live Update",
+  "@notifTestLiveUpdateAction": {
+    "description": "Button to test the pre-prayer live update notification"
+  },
+  "notifTestLiveUpdateSubtitle": "Preview the Android 16+ countdown live update card",
+  "@notifTestLiveUpdateSubtitle": {
+    "description": "Subtitle explaining the live update preview test"
+  },
+  "notifTestLiveUpdateConfirmation": "Live update preview posted",
+  "@notifTestLiveUpdateConfirmation": {
+    "description": "Confirmation snackbar when the live update preview is shown"
+  },
   "notifEnabledPrePrayerHint": "Reminds you before each prayer",
   "@notifEnabledPrePrayerHint": {
     "description": "Reminds you before each prayer"
