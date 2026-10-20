@@ -13,6 +13,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-10-20
+
+### Fixed
+
+- **The adhan alarm takes over the lock screen again on Android 12+ (including
+  Android 16).** Adhan alarms are now armed with the system's alarm-clock API
+  (`AlarmManager.setAlarmClock`) instead of a plain exact alarm. Android 14+
+  restricts full-screen intents (the mechanism that wakes the display and shows
+  the adhan card over the lock screen) to apps the platform recognises as alarm
+  apps, and since the move to Flutter 3.47 / targetSdk 36 the adhan silently
+  degraded to a tray notification. The alarm-clock classification restores both
+  the lock-screen takeover and the foreground-service start that keeps the clip
+  ringing with the app killed; where the access is still denied, the card
+  degrades gracefully to a visible heads-up card with a Stop action, and
+  Settings → Alarm reliability still offers the grant screen.
+
+## [0.15.0] - 2026-10-19
+
+### Added
+
+- **Promoted live countdown before each prayer.** The pre-prayer reminder is now a
+  single ongoing notification instead of a per-tone tray card. On Android 16+ the
+  system promotes it to a status-bar chip, the top of the shade and the
+  lockscreen: the prayer name, a system chronometer counting down and a progress
+  bar that fills across the whole lead time (5/10/15 minutes, as configured). On
+  older Androids the same content renders as a standard ongoing notification with
+  a progress bar. It is posted on its own silent channel — the chime the user
+  picked is still played by the app itself, so nothing rings twice.
+- **Prayed and Dismiss actions on the reminder.** At the prayer time the card
+  flips to "It's time for …" and offers **Prayed** and **Dismiss**; either one
+  retires the card for that occurrence, and leaving it alone removes it after
+  30 minutes. Tapping the countdown opens the app and retires it too. Exactly one
+  reminder exists at a time, so a new prayer replaces the previous countdown
+  rather than stacking a second card.
+- **Test Live Update button in Settings.** Added a dedicated firing button under
+  Settings > Notifications to immediately preview and test the Android 16+
+  pre-prayer live countdown card with simulated progress, chronometer, and action buttons.
+
+### Changed
+
+- **Clock and timezone changes re-arm the schedule.** `BootReceiver` now also
+  handles `TIME_SET` and `TIMEZONE_CHANGED`, so a moved clock or a traveller's
+  timezone no longer leaves the stored alarms firing at the wrong local moment
+  until the app is next opened.
+- **The pre-prayer reminder is localized from the app's own strings.** Its
+  channel name, title, countdown chip and action labels come from the ARB
+  translations (English, Arabic, French) and follow the app language, instead of
+  a hard-coded card.
+
 ## [0.14.0] - 2026-10-15
 
 Second project-hardening pass (see `docs/optimization-notes.md`): more unit
@@ -1046,6 +1095,8 @@ release (0.x): feedback is welcome, stability guarantees come later.
 [0.11.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.10.0...v0.11.0
 [0.11.1]: https://github.com/Abdogouhmad/mawaqit/compare/v0.11.0...v0.11.1
 [0.12.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.11.1...v0.12.0
-[Unreleased]: https://github.com/Abdogouhmad/mawaqit/compare/v0.13.1...HEAD
+[Unreleased]: https://github.com/Abdogouhmad/mawaqit/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.14.0...v0.15.0
+[0.14.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.13.1...v0.14.0
 [0.13.1]: https://github.com/Abdogouhmad/mawaqit/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/Abdogouhmad/mawaqit/compare/v0.12.1...v0.13.0

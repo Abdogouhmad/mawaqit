@@ -41,13 +41,16 @@ enum NotificationType { preAlert, adhan }
 ///   dead and the in-app presenter ([`AdhanOverlayScreen`]) takes over the
 ///   display. Flutter stays the controller — prayer times, tone, mute and IDs
 ///   — and never "double-rings" the adhan.
-/// - **Muted adhans, pre-prayer alerts and Linux** use `zonedSchedule` (exact
-///   timers) / local timers that post via the plugin's `show`, still behind
-///   the same scheduling math.
+/// - **Pre-prayer alerts on Android** are handed to the native live-update
+///   engine (`PrayerScheduler` / `PrayerLiveUpdate` behind the same channel): an
+///   `AlarmManager` entry posts a single promoted ongoing countdown (see
+///   [`PrayerLiveUpdate`]), re-arming its one-minute tick from the receiver.
+///   Everywhere else — and as the Android fallback when the native engine is
+///   unavailable — they use `zonedSchedule` (exact timers) / local timers that
+///   post via the plugin's `show`, behind the same scheduling math.
 ///
-/// Android-only details (exact-alarm permission, the silent cards, the custom
-/// RemoteViews pre-prayer card) stay guarded by the platform checks in this
-/// file and the native side.
+/// Android-only details (exact-alarm permission, the promoted countdown channel)
+/// stay guarded by the platform checks in this file and the native side.
 class NotificationService {
   /// Single shared instance: the daily task, the home controller and settings
   /// changes must all cancel the *same* timer map on Linux, or old timers
@@ -122,6 +125,13 @@ class NotificationService {
   /// this (max = 2^31-1 = 2,147,483,647). Kept well below the nativeCard bucket
   /// start (2_000_000) to avoid collisions with scheduled prayer ids.
   static const int _testNotificationId = 1_999_999;
+
+  /// Native-card id used by the debug live-update preview.
+  ///
+  /// Outside every occurrence bucket (`_nativeCardBucket` and up), so a preview
+  /// can never cancel or collide with a real prayer's alarm, and stable, so
+  /// tapping the preview twice replaces the single card instead of stacking.
+  static const int _previewCardId = 1_999_998;
 
   /// Payload for the debug adhan trigger. It deliberately uses the live-adhan
   /// `adhan:` prefix so a full-screen-intent launch (screen locked / device
@@ -532,10 +542,6 @@ class NotificationService {
       try {
         await _channel.invokeMethod('scheduleReminders', {
           'reminders': _buildReminders(day, settings.leadMinutes),
-          'sunriseMs': _nextSunrise(day).millisecondsSinceEpoch,
-          'fajrMs': _nextFajr(day).millisecondsSinceEpoch,
-          'sunsetMs': day.sunset.millisecondsSinceEpoch,
-          'channelSound': _preAlertRawResource(settings),
         });
         return;
       } on MissingPluginException {
@@ -655,6 +661,58 @@ class NotificationService {
       notificationDetails: details,
       payload: '${_preAlertPrefix}test',
     );
+  }
+
+  /// Fires a debug live-update preview for the pre-prayer countdown.
+  ///
+  /// Uses [_previewCardId], which is outside every occurrence bucket
+  /// (`_nativeCardBucket` and up), so a preview never cancels or collides with
+  /// a real prayer's alarm, and is stable, so firing twice replaces the single
+  /// card instead of stacking.
+  ///
+  /// On Android, posts the promoted ongoing card (API 36+ ProgressStyle or
+  /// ongoing fallback) immediately with a simulated countdown using the
+  /// configured lead time.
+  Future<bool> fireLiveUpdatePreview({AppSettings? settings}) async {
+    final currentSettings = settings ?? const AppSettings();
+    if (!currentSettings.prePrayerEnabled) return false;
+    if (_isAndroid) {
+      final granted = await ensurePermissions();
+      if (!granted) return false;
+      try {
+        final now = DateTime.now();
+        final leadMin = currentSettings.leadMinutes > 0
+            ? currentSettings.leadMinutes
+            : 10;
+        final prayerTime = now.add(Duration(minutes: leadMin));
+        final name = PrayerKind.asr.localized(AmbientL10n.instance);
+        final payload = {
+          'id': _previewCardId,
+          'flutterId': _previewCardId,
+          'prayerId': 'preview_${now.millisecondsSinceEpoch}',
+          'name': name,
+          'timestampMs': now.millisecondsSinceEpoch,
+          'prayerTimestampMs': prayerTime.millisecondsSinceEpoch,
+          'leadMinutes': leadMin,
+          'strings': _liveStrings(name),
+        };
+        await _channel.invokeMethod('showReminderNow', {'reminder': payload});
+        return true;
+      } catch (e, st) {
+        debugPrint('Live update preview failed: $e\n$st');
+        return false;
+      }
+    }
+    return false;
+  }
+
+  /// Cancels any active debug live-update preview.
+  Future<void> cancelLiveUpdatePreview() async {
+    if (_isAndroid) {
+      try {
+        await _channel.invokeMethod('cancelReminder', {'id': _previewCardId});
+      } catch (_) {}
+    }
   }
 
   Future<void> _fireAdhanTest(AppSettings settings) async {
@@ -820,12 +878,15 @@ class NotificationService {
 
   /// Fires the live pre-prayer reminder the moment its lead-time boundary is
   /// crossed while the app is open — mirroring [`firePrayerAdhan`]: the chime
-  /// plays **directly** (alarm stream) and the scheduled occurrence for that
-  /// prayer (native AlarmManager card or the plain-flutter fallback) is
-  /// cancelled first, so the real reminder rings the selected tone
-  /// deterministically instead of depending on a channel sound Android may have
-  /// frozen. When the app is closed there is no Dart engine, so the scheduled
-  /// per-tone channel sound still covers that case on its own.
+  /// plays **directly** (alarm stream) so the selected tone is deterministic
+  /// instead of depending on a channel sound Android may have frozen, and the
+  /// scheduled occurrence for that prayer is cancelled first so it cannot also
+  /// fire.
+  ///
+  /// On Android the card itself is handed to the native live-update engine
+  /// immediately, so the in-app and scheduled cases render the same promoted
+  /// notification (ticks and Prayed/Dismiss actions included). Desktop has no
+  /// live-update surface, so it keeps a plain silent Flutter reminder.
   Future<void> firePrayerReminder({
     required PrayerDay day,
     required PrayerTime prayer,
@@ -835,11 +896,10 @@ class NotificationService {
     final index = day.prayers.indexWhere((p) => p.kind == prayer.kind);
     if (index < 0) return;
 
-    // Cancel the scheduled occurrence before ringing, in whichever id space
-    // that occurrence was scheduled into (see [_buildReminders]): the native
-    // AlarmManager card on Android, the plugin's `zonedSchedule` entry
-    // everywhere else. Cancelling an id that was never posted is a no-op, so
-    // both are safe to issue unconditionally.
+    // Cancel the scheduled occurrence before firing, in whichever id space it
+    // was armed (see [_buildReminders]): the native live-update alarm on
+    // Android, the plugin's `zonedSchedule` entry everywhere else. Cancelling
+    // an id that was never posted is a no-op, so both are safe to issue.
     final nativeId = _nativeCardId(day.date, index);
     try {
       if (_isAndroid) {
@@ -855,8 +915,25 @@ class NotificationService {
     final audible = !tone.silent && tone.assetPath.isNotEmpty;
     if (audible) await playPreAlertNow(settings);
 
-    // Silent tray card on the same channel the debug trigger uses — the chime
-    // already rang directly, a second channel sound would echo on top.
+    if (_isAndroid) {
+      // The chime (if any) already rang directly, so the native card is posted
+      // with no channel sound. Handing it the same map the scheduler uses keeps
+      // it identical to the scheduled card, actions and one-minute tick included.
+      try {
+        await _channel.invokeMethod('showReminderNow', {
+          'reminder': _reminderPayload(
+            date: day.date,
+            index: index,
+            kind: prayer.kind,
+            prayerTime: prayer.time,
+            leadMinutes: settings.leadMinutes,
+          ),
+        });
+      } catch (_) {}
+      return;
+    }
+
+    // Desktop: no live-update surface, so keep the plain silent reminder.
     final l10n = AmbientL10n.instance;
     final prayerName = prayer.kind.localized(l10n);
     await _plugin.show(
@@ -868,17 +945,15 @@ class NotificationService {
         TimeFormatter.clock(prayer.time),
         audible ? tone.name : l10n.chimeMuted,
       ),
-      notificationDetails: _isAndroid
-          ? _preAlertTestDetails()
-          : _detailsFor(
-              NotificationType.preAlert,
-              settings: settings,
-              muted: true,
-            ),
+      notificationDetails: _detailsFor(
+        NotificationType.preAlert,
+        settings: settings,
+        muted: true,
+      ),
       // Opaque identifier; nothing parses it (only `adhan:`-prefixed payloads
       // are acted on). Using the enum name rather than the display label keeps it
       // locale-independent.
-      payload: prayer.kind.name,
+      payload: '$_preAlertPrefix${prayer.kind.name}',
     );
   }
 
@@ -1599,20 +1674,14 @@ class NotificationService {
     return (raw: tone.androidRawResource, uri: '');
   }
 
-  /// Builds the reminder entries shared by the native decorated-card path and
-  /// the plain-Flutter fallback.
+  /// Builds the reminder entries shared by the native live-update path and the
+  /// plain-Flutter fallback.
   ///
   /// Each entry carries **two** ids, because the two delivery paths schedule
   /// into different Android id spaces: [`_nativeCardId`] for the native
-  /// `AlarmManager` PendingIntent and its RemoteViews card, and
-  /// [`_reminderId`] for the plugin's `zonedSchedule`. `firePrayerReminder`
-  /// cancels the one matching the path it is about to deliver, and
-  /// `_cancelFlutterDayRange` sweeps both — so a live chime can no longer ring
-  /// on top of a scheduled card it meant to replace.
-  ///
-  /// Tomorrow's Fajr is included for the same reason the adhan arms it: without
-  /// it the lead time before the next day's first prayer is the one reminder
-  /// that only exists if the app happens to be open.
+  /// `AlarmManager` alarm that posts the live update, and [`_reminderId`] for
+  /// the plugin's `zonedSchedule`. `firePrayerReminder` cancels the one matching
+  /// the path it is about to deliver, and `_cancelFlutterDayRange` sweeps both.
   List<Map<String, dynamic>> _buildReminders(PrayerDay day, int leadMinutes) {
     final result = <Map<String, dynamic>>[];
     final occurrences = <({PrayerTime prayer, DateTime date, int index})>[
@@ -1625,29 +1694,77 @@ class NotificationService {
       ),
     ];
 
+    final now = DateTime.now();
     for (final occurrence in occurrences) {
       final p = occurrence.prayer;
-      // Offset is SUBTRACTED from the prayer time — the only place the lead is
-      // applied, so rescheduling (daily task or settings change) can never
-      // double-apply it.
-      final at = p.time.subtract(Duration(minutes: leadMinutes));
-      if (at.isAfter(DateTime.now())) {
-        result.add({
-          'id': _nativeCardId(occurrence.date, occurrence.index),
-          'flutterId': _reminderId(occurrence.date, occurrence.index),
-          'prayerId': prayerIdFor(occurrence.date, p.kind),
-          'name': p.kind.localized(AmbientL10n.instance),
-          'timestampMs': at.millisecondsSinceEpoch,
-          'prayerTimestampMs': p.time.millisecondsSinceEpoch,
-          'leadMinutes': leadMinutes,
-        });
-      }
+      // Keep an occurrence whose *prayer* is still ahead, not whose lead
+      // boundary is: one whose countdown already started (the app was closed
+      // through the boundary) still has to be armed, and the native engine posts
+      // it immediately when the lead instant has passed. Tomorrow's Fajr is
+      // included for the same reason the adhan arms it: without it the lead time
+      // before the next day's first prayer is the one reminder that only exists
+      // if the app happens to be open.
+      if (!p.time.isAfter(now)) continue;
+      result.add(
+        _reminderPayload(
+          date: occurrence.date,
+          index: occurrence.index,
+          kind: p.kind,
+          prayerTime: p.time,
+          leadMinutes: leadMinutes,
+        ),
+      );
     }
     return result;
   }
 
-  /// Plain (non-decorated) reminder used on Linux and as the Android fallback
-  /// when the native card is unavailable.
+  /// One reminder entry in the shape both the native scheduler
+  /// (`scheduleReminders` / `showReminderNow`) and the plain-Flutter fallback
+  /// understand; see [_buildReminders] for the two id spaces.
+  Map<String, dynamic> _reminderPayload({
+    required DateTime date,
+    required int index,
+    required PrayerKind kind,
+    required DateTime prayerTime,
+    required int leadMinutes,
+  }) {
+    final name = kind.localized(AmbientL10n.instance);
+    return {
+      'id': _nativeCardId(date, index),
+      'flutterId': _reminderId(date, index),
+      'prayerId': prayerIdFor(date, kind),
+      'name': name,
+      // Offset is SUBTRACTED from the prayer time — the only place the lead is
+      // applied, so rescheduling (daily task or settings change) can never
+      // double-apply it.
+      'timestampMs': prayerTime
+          .subtract(Duration(minutes: leadMinutes))
+          .millisecondsSinceEpoch,
+      'prayerTimestampMs': prayerTime.millisecondsSinceEpoch,
+      'leadMinutes': leadMinutes,
+      'strings': _liveStrings(name),
+    };
+  }
+
+  /// The localized copy for the live update, with `{time}` / `{minutes}`
+  /// sentinels left in place so the native one-minute tick can refresh them
+  /// without another Dart round-trip. Sent in every payload because the ambient
+  /// locale is only reachable from Dart.
+  Map<String, String> _liveStrings(String prayerName) {
+    final l10n = AmbientL10n.instance;
+    return {
+      'channelName': l10n.channelPrayerLive,
+      'channelDescription': l10n.channelPrayerLiveDescription,
+      'body': l10n.notifLiveBody('{time}'),
+      'chip': l10n.notifLiveChip(prayerName, '{minutes}'),
+      'itIsTime': l10n.notifLiveItIsTime(prayerName),
+      'actionPrayed': l10n.notifLiveActionPrayed,
+      'actionDismiss': l10n.notifLiveActionDismiss,
+    };
+  }
+
+  /// Plain reminder used on Linux and as the Android fallback when the native
+  /// live-update engine is unavailable.
   Future<void> _scheduleFlutterReminders(
     List<Map<String, dynamic>> reminders,
     AppSettings? settings,
@@ -1657,6 +1774,9 @@ class NotificationService {
     for (var i = 0; i < reminders.length; i++) {
       final r = reminders[i];
       final when = DateTime.fromMillisecondsSinceEpoch(r['timestampMs'] as int);
+      // A boundary already crossed cannot be scheduled; unlike the native path
+      // this fallback has no live-update surface to post it on immediately.
+      if (!when.isAfter(DateTime.now())) continue;
       final prayerTime = DateTime.fromMillisecondsSinceEpoch(
         r['prayerTimestampMs'] as int,
       );
@@ -1827,29 +1947,15 @@ class NotificationService {
     );
   }
 
-  /// Raw resource used by the native countdown-card channel. Uses the
-  /// per-tone channel's resource when the selected tone is audible, otherwise
-  /// falls back to the default `'pre_alert'`.
+  /// Raw resource used by the plain-Flutter pre-prayer fallback channel. Uses
+  /// the per-tone channel's resource when the selected tone is audible,
+  /// otherwise falls back to the default `'pre_alert'`.
   static String _preAlertRawResource(AppSettings settings) {
     final tone = ToneCatalog.byName(settings.preAlertTone);
     if (tone.silent) return 'silent';
     return tone.androidRawResource.isEmpty
         ? 'pre_alert'
         : tone.androidRawResource;
-  }
-
-  DateTime _nextSunrise(PrayerDay day) {
-    final now = DateTime.now();
-    return day.sunrise.isAfter(now)
-        ? day.sunrise
-        : day.sunrise.add(const Duration(days: 1));
-  }
-
-  DateTime _nextFajr(PrayerDay day) {
-    final now = DateTime.now();
-    final today = day.prayer(PrayerKind.fajr)?.time;
-    if (today != null && today.isAfter(now)) return today;
-    return day.nextDayFajr;
   }
 
   /// Cancels every *scheduled* alert so a recompute can re-arm the day from
@@ -1914,7 +2020,7 @@ class NotificationService {
   static int _reminderId(DateTime date, int prayerIndex) =>
       _idFor(date, prayerIndex, _reminderBucket);
 
-  /// Native decorated-card id for one occurrence.
+  /// Native live-update id for one occurrence.
   static int _nativeCardId(DateTime date, int prayerIndex) =>
       _idFor(date, prayerIndex, _nativeCardBucket);
 }

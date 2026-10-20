@@ -79,20 +79,29 @@ wait. Prefer the earliest prayer of the day to keep the wait short.
 | 4 | Reboot | `adb reboot`, then wait for the next prayer | alarms re-armed by `BootReceiver`; adhan fires |
 | 5 | App updated | `adb install -r <apk>` over the running app | `MY_PACKAGE_REPLACED` re-arms; adhan fires |
 | 6 | Timezone change | Settings → change timezone, reopen the app, wait | see note below — **known soft spot** |
-| 7 | Pre-prayer lead | set lead to 5/10/15 min, wait | card fires exactly that many minutes before |
+| 7 | Pre-prayer lead | set lead to 5/10/15 min, wait | the promoted live countdown appears exactly that many minutes before, chip/chronometer counting down, progress filling |
 | 8 | Airplane mode | enable airplane mode, wait | on-device times still fire (no network needed) |
 | 9 | Muted prayer | mute one occurrence from its card | muted occurrence stays silent but still posts its card |
 | 10 | DND / silent | enable silent or DND, wait | with DND access granted, "Force the adhan" rings anyway and restores the mode after Stop |
+| 11 | Live update actions | tap **Prayed** / **Dismiss** on the countdown card, then reschedule (toggle a setting) | card retires and does not come back for that occurrence; the next prayer still gets its own card |
+| 12 | Live update at prayer time | wait out the countdown | card flips to "It's time for …" with **Prayed** / **Dismiss** and removes itself after 30 min |
+| 13 | Live update from a cold stop | `adb shell am force-stop $PKG`, then cross the lead boundary | card still posts and ticks (native `AlarmManager`, not a Dart timer) |
 
-> **Known gap — time/timezone changes.** There is no `TIMEZONE_CHANGED`,
-> `TIME_SET` or `ACTION_DATE_CHANGED` receiver in the manifest; the schedule is
-> rebuilt when the app runs and by the 12-hourly WorkManager periodic task
-> (`background_scheduler.dart`), with `BootReceiver` handling only reboot and
-> in-place update. So a device whose clock or timezone moves while the app stays
-> closed can hold a stale schedule for up to half a day. Opening the app fixes it
-> immediately. Treat scenario #6 failing after a change *without* reopening the
-> app as a known gap, not a regression; fixing it (a receiver for those three
-> actions) is listed in `docs/production-readiness.md`.
+> **Android 16+ promotion.** On the countdown card, verify the status-bar chip and
+> the top-of-shade/lockscreen placement; the chip label reads "{prayer} · {n}m" and
+> refreshes about once a minute. On older Androids the same card must render as a
+> standard ongoing notification with a progress bar — never an empty or
+> promotion-blocked card. `adb shell dumpsys notification --noredact | grep -i
+> requestPromoted` shows the promotion extras; the system still decides whether to
+> promote.
+
+> **Known gap — time/timezone changes.** The schedule is rebuilt when the app runs,
+> by the 12-hourly WorkManager periodic task (`background_scheduler.dart`), and by
+> `BootReceiver`, which handles reboot, in-place update, `TIME_SET` and
+> `TIMEZONE_CHANGED`. A device whose clock or timezone moves while the app stays
+> closed is re-armed by that receiver; if the re-arm cannot compute today's times it
+> still degrades to the periodic task. Treat scenario #6 failing *without* a re-arm
+> as a regression.
 
 ### 3. Overlay / Stop
 
@@ -109,8 +118,8 @@ adb shell dumpsys alarm | grep -A3 $PKG      # is the alarm actually armed?
 adb shell dumpsys deviceidle whitelist | grep $PKG
 ```
 
-`AdhanScheduler` logs a warning when `setExactAndAllowWhileIdle` had to fall back
-(exact-alarm access missing) or when `USE_FULL_SCREEN_INTENT` is denied — those two
+`AdhanScheduler` logs a warning when the alarm-clock arm (`setAlarmClock`) had to
+fall back (exact-alarm access missing) or when `USE_FULL_SCREEN_INTENT` is denied — those two
 lines explain most "it didn't ring" reports.
 
 ### 5. OEM spot-checks

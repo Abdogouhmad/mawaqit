@@ -54,12 +54,24 @@ class MainActivity : FlutterActivity() {
             registerReceiver(alarmStopReceiver, filter)
         }
         handleAdhanIntent(intent)
+        handleReminderIntent(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handleAdhanIntent(intent)
+        handleReminderIntent(intent)
+    }
+
+    /**
+     * The pre-prayer live update was tapped: retire it for that occurrence.
+     * Marking it resolved also stops the one-minute tick from re-posting it.
+     */
+    private fun handleReminderIntent(intent: Intent?) {
+        if (intent?.action != PrayerScheduler.ACTION_OPEN) return
+        val prayerId = intent.getStringExtra(PrayerScheduler.EXTRA_PRAYER_ID) ?: return
+        PrayerLiveUpdate.onOpened(this, prayerId)
     }
 
     /**
@@ -138,11 +150,12 @@ class MainActivity : FlutterActivity() {
                     "scheduleReminders" -> {
                         val reminders =
                             call.argument<List<Map<String, Any>>>("reminders") ?: emptyList()
-                        val sunriseMs = call.argument<Number>("sunriseMs")?.toLong() ?: 0L
-                        val fajrMs = call.argument<Number>("fajrMs")?.toLong() ?: 0L
-                        val sunsetMs = call.argument<Number>("sunsetMs")?.toLong() ?: 0L
-                        val channelSound = call.argument<String>("channelSound") ?: "silent"
-                        PrayerScheduler.schedule(activity, reminders, sunriseMs, fajrMs, sunsetMs, channelSound)
+                        PrayerScheduler.schedule(activity, reminders)
+                        result.success(true)
+                    }
+                    "showReminderNow" -> {
+                        val reminder = call.argument<Map<String, Any>>("reminder")
+                        if (reminder != null) PrayerLiveUpdate.showNow(activity, reminder)
                         result.success(true)
                     }
                     "cancelReminders" -> {

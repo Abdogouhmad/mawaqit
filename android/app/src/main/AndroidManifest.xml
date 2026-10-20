@@ -2,6 +2,11 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Live update promotion (Android 16+). A normal, auto-granted permission
+         that lets the pre-prayer countdown be promoted to a status-bar chip and
+         the top of the shade/lockscreen; without it the same notification still
+         posts as a standard ongoing card. -->
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <!-- Alarm-card vibration (the native alarm notification buzzes even if the
          media volume is off — the Adhan clip itself plays on the alarm stream). -->
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -79,14 +84,10 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <!-- Prayer reminder card (exact alarms + progress updates) -->
+        <!-- Pre-prayer live update: posts the promoted countdown and re-arms its
+             one-minute tick. No custom RemoteViews, so the card is promotable. -->
         <receiver
             android:name=".PrayerReminderReceiver"
-            android:enabled="true"
-            android:exported="false" />
-        <!-- Mute an individual prayer occurrence from the card (FIX 5) -->
-        <receiver
-            android:name=".MutePrayerReceiver"
             android:enabled="true"
             android:exported="false" />
         <!-- Native Adhan alarm engine: exact-alarm broadcast fires the alarm
@@ -108,7 +109,9 @@
              AlarmManager drops every alarm when the package is replaced, and the
              12-hourly WorkManager task can be up to half a day away from
              re-arming them — which is how a phone comes back from a restart
-             with no adhan scheduled at all. -->
+             with no adhan scheduled at all. TIME_SET / TIMEZONE_CHANGED are here
+             for the same reason: the stored alarms are absolute timestamps, so a
+             moved clock makes every one of them fire at the wrong local moment. -->
         <receiver
             android:name=".BootReceiver"
             android:enabled="true"
@@ -116,6 +119,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
             </intent-filter>
         </receiver>
         <!-- OTA update file provider (package installer handoff) -->

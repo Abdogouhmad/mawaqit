@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -134,6 +135,24 @@ class NotificationSettingsSection extends ConsumerWidget {
             onTap: () => _fireTest(context, ref, settings),
             trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
           ),
+          if (kind == NotificationKind.prePrayer &&
+              defaultTargetPlatform == TargetPlatform.android) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
+              child: Divider(
+                height: 1,
+                color: scheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+            ),
+            SettingsRow(
+              icon: Icons.hourglass_top_rounded,
+              title: AppLocalizations.of(context).notifTestLiveUpdateAction,
+              subtitle: AppLocalizations.of(context)
+                  .notifTestLiveUpdateSubtitle,
+              onTap: () => _fireLiveUpdateTest(context, ref, settings),
+              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+            ),
+          ],
         ],
       ],
     );
@@ -281,5 +300,41 @@ class NotificationSettingsSection extends ConsumerWidget {
     if (!service.canUseFullScreenIntents) return l10n.notifTestAdhanHeadsUp;
     if (!service.canShowOverOtherApps) return l10n.notifTestAdhanOverApps;
     return l10n.notifTestAdhanFull;
+  }
+
+  Future<void> _fireLiveUpdateTest(
+    BuildContext context,
+    WidgetRef ref,
+    AppSettings settings,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    final service = ref.read(notificationServiceProvider);
+    if (!settings.notifEnabled(kind)) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.notifKindDisabledWarning(kind.localized(l10n))),
+        ),
+      );
+      return;
+    }
+    try {
+      await service.init();
+      final armed = await service.fireLiveUpdatePreview(settings: settings);
+      if (!armed) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(l10n.notifAccessWarning)),
+        );
+        return;
+      }
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.notifTestLiveUpdateConfirmation)),
+      );
+    } catch (e, st) {
+      debugPrint('Live update test failed: $e\n$st');
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.notifTestFailed('Live Update', '$e'))),
+      );
+    }
   }
 }

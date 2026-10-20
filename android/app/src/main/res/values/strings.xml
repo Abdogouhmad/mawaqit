@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Mawaqit</string>
-    <string name="notif_app_name">MAWAQIT</string>
-    <string name="notif_label_now">now</string>
-    <string name="notif_mute">Mute this adhan</string>
-    <string name="notif_dismiss">Dismiss</string>
-    <string name="notif_min_short">m</string>
-    <string name="notif_now">%1$s now</string>
-    <string name="notif_title_in_min">%1$s in %2$d minutes</string>
-    <string name="notif_title_in_one_min">%1$s in 1 minute</string>
-    <string name="notif_subtitle">Prayer time is at %1$s</string>
-    <string name="notif_subtitle_with_sunset">Prayer time is at %1$s • Sunset at %2$s</string>
-    <string name="notif_sunrise">Sunrise: %1$s</string>
-    <string name="notif_fajr">Fajr %1$s</string>
-    <string name="notif_prayer_time">%1$s — prayer time</string>
-    <string name="notif_prayer_time_body">It is now time for the prayer at %1$s</string>
-    <string name="widget_placeholder_subtitle">Loading prayer times…</string>
+    <!-- English fallbacks for the pre-prayer live update. The copy that is
+         actually shown is passed from Dart in the reminder payload (ARB, so it
+         follows the app language); these are only used when a payload somehow
+         carries none. Keep the {prayer}/{time}/{minutes} sentinels literally —
+         the native side substitutes them. -->
+    <string name="notif_live_channel">Prayer countdown</string>
+    <string name="notif_live_channel_description">Live countdown to the next prayer</string>
+    <string name="notif_live_body">Prayer time is at {time}</string>
+    <string name="notif_live_chip">{prayer} · {minutes}m</string>
+    <!-- Every entry uses the same {…} sentinels: the native side substitutes
+         them, and a resource with several format arguments would have its
+         positional markers stripped by aapt2 when formatted="false". -->
+    <string name="notif_live_it_is_time">{prayer} — it\'s time</string>
+    <string name="notif_live_action_prayed">Prayed</string>
+    <string name="notif_live_action_dismiss">Dismiss</string>
 </resources>

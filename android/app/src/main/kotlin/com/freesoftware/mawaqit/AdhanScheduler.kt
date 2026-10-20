@@ -200,7 +200,28 @@ object AdhanScheduler {
         val am = alarmManager(context)
         val pi = pendingIntent(context, id, snapshot)
         if (AlarmAccess.canScheduleExactAlarms(context)) {
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pi)
+            // setAlarmClock, not setExactAndAllowWhileIdle: the alarm-clock API
+            // is what makes the platform treat Mawaqit as an *alarm app*, and
+            // on Android 12+ (strictest on 14+/16) that classification is what
+            // the two halves of the takeover actually depend on. The fire is
+            // exempt from Doze and delivers the alarm-clock allowlist window,
+            // which is what lets AdhanAlarmReceiver start the playback
+            // foreground service from the background; and the alarm-clock use
+            // case is what keeps USE_FULL_SCREEN_INTENT auto-granted at install
+            // on Android 14+, where it is otherwise denied for non-alarm apps —
+            // which silently downgraded the lockscreen card to a tray
+            // notification after the targetSdk/Flutter bump. The show intent
+            // feeds the system's "next alarm" indicator (status bar tap opens
+            // the app). The try/catch mirrors the inexact path for the window
+            // where the access is revoked between the check and the call.
+            try {
+                am.setAlarmClock(
+                    AlarmManager.AlarmClockInfo(trigger, openAppPendingIntent(context, id)),
+                    pi,
+                )
+            } catch (_: SecurityException) {
+                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pi)
+            }
         } else {
             am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pi)
         }
@@ -512,15 +533,20 @@ object AdhanScheduler {
         // by [stopActive] on every teardown path.
         AlarmAccess.forceAdhanThroughDnd(context)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            val nm = context.getSystemService(NotificationManager::class.java)
-            if (nm != null && !nm.canUseFullScreenIntent()) {
-                Log.w(
-                    "AdhanScheduler",
-                    "USE_FULL_SCREEN_INTENT denied — the lockscreen takeover " +
-                        "degrades to a heads-up card until granted in Settings.",
-                )
-            }
+        // Android 14+/16: with USE_FULL_SCREEN_INTENT denied the system drops
+        // the card's full-screen intent, so the lockscreen takeover degrades —
+        // the card itself still posts as a public, alarm-category, vibrating
+        // notification (see buildAlarmNotification), which is exactly what the
+        // user sees on the lockscreen until the access is granted again. The
+        // alarm-clock scheduling in [schedule] is what keeps this access
+        // auto-granted on Android 16; this branch is the honest log for the
+        // devices where it was revoked anyway.
+        if (!AlarmAccess.canUseFullScreenIntent(context)) {
+            Log.w(
+                "AdhanScheduler",
+                "USE_FULL_SCREEN_INTENT denied — the lockscreen takeover " +
+                    "degrades to a heads-up card until granted in Settings.",
+            )
         }
 
         // 1) The foreground service owns both the audio *and* the one card for
