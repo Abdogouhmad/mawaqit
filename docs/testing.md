@@ -118,8 +118,8 @@ adb shell dumpsys alarm | grep -A3 $PKG      # is the alarm actually armed?
 adb shell dumpsys deviceidle whitelist | grep $PKG
 ```
 
-`AdhanScheduler` logs a warning when `setExactAndAllowWhileIdle` had to fall back
-(exact-alarm access missing) or when `USE_FULL_SCREEN_INTENT` is denied — those two
+`AdhanScheduler` logs a warning when the alarm-clock arm (`setAlarmClock`) had to
+fall back (exact-alarm access missing) or when `USE_FULL_SCREEN_INTENT` is denied — those two
 lines explain most "it didn't ring" reports.
 
 ### 5. OEM spot-checks

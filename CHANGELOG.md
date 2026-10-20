@@ -13,6 +13,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-10-20
+
+### Fixed
+
+- **The adhan alarm takes over the lock screen again on Android 12+ (including
+  Android 16).** Adhan alarms are now armed with the system's alarm-clock API
+  (`AlarmManager.setAlarmClock`) instead of a plain exact alarm. Android 14+
+  restricts full-screen intents (the mechanism that wakes the display and shows
+  the adhan card over the lock screen) to apps the platform recognises as alarm
+  apps, and since the move to Flutter 3.47 / targetSdk 36 the adhan silently
+  degraded to a tray notification. The alarm-clock classification restores both
+  the lock-screen takeover and the foreground-service start that keeps the clip
+  ringing with the app killed; where the access is still denied, the card
+  degrades gracefully to a visible heads-up card with a Stop action, and
+  Settings → Alarm reliability still offers the grant screen.
+
 ## [0.15.0] - 2026-10-19
 
 ### Added

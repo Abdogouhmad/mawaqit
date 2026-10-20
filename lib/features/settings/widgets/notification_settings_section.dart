@@ -147,7 +147,8 @@ class NotificationSettingsSection extends ConsumerWidget {
             SettingsRow(
               icon: Icons.hourglass_top_rounded,
               title: AppLocalizations.of(context).notifTestLiveUpdateAction,
-              subtitle: AppLocalizations.of(context).notifTestLiveUpdateSubtitle,
+              subtitle: AppLocalizations.of(context)
+                  .notifTestLiveUpdateSubtitle,
               onTap: () => _fireLiveUpdateTest(context, ref, settings),
               trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
             ),
