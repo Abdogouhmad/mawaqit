@@ -152,8 +152,6 @@ class _HomeBody extends ConsumerWidget {
 
     final now = state.now;
     final next = state.nextPrayer;
-    final sunset = day.sunset;
-    final sunsetIn = sunset.difference(now);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -196,11 +194,9 @@ class _HomeBody extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.block),
-        CountdownHero(
+        _LiveCountdown(
           nextPrayer: next,
           currentPrayer: state.currentPrayer,
-          nextIn: state.nextIn,
-          progress: state.progress,
         ),
         const SizedBox(height: AppSpacing.emphasis),
         SectionHeader(
@@ -233,50 +229,7 @@ class _HomeBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.xl),
         SolarCard(day: day),
         const SizedBox(height: AppSpacing.xxxl),
-        Row(
-          children: [
-            // Both labels are `Flexible` rather than one being `Expanded`: a
-            // countdown grows through the day ("IN 4H 12M" -> "IN 4M"), and an
-            // `Expanded` sibling would take the slack and squeeze it out of the
-            // row entirely rather than let the two share.
-            Flexible(
-              child: UiText(
-                state.methodLabel.toUpperCase(),
-                type: UiTextType.labelSmall,
-                letterSpacing: 0.8,
-                color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
-                // Truncates rather than wrapping: this row is a single line by
-                // design, and a two-line method name would break the gap between
-                // the Solar card and the row below.
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.end,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Icon(
-              Icons.wb_twilight,
-              size: AppIconSize.sm,
-              color: scheme.primary,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Flexible(
-              child: UiText(
-                (sunsetIn.isNegative
-                        ? l10n.homeSunsetAt(TimeFormatter.clock(sunset))
-                        : l10n.homeSunsetIn(
-                            TimeFormatter.longCountdown(sunsetIn),
-                          ))
-                    .toUpperCase(),
-                type: UiTextType.labelSmall,
-                letterSpacing: 0.8,
-                color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        _SunsetFooter(methodLabel: state.methodLabel, sunset: day.sunset),
         const SizedBox(height: AppSpacing.huge),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -321,6 +274,105 @@ class _HomeBody extends ConsumerWidget {
       return PrayerTileStatus.upcoming;
     }
     return PrayerTileStatus.passed;
+  }
+}
+
+/// Rebuilds only the countdown, once a second.
+///
+/// [HomeState] is emitted on prayer boundaries; the second hand lives here so
+/// the date line, prayer list and solar card are not rebuilt sixty times a
+/// minute for a string only this hero shows.
+class _LiveCountdown extends ConsumerWidget {
+  const _LiveCountdown({required this.nextPrayer, required this.currentPrayer});
+
+  final PrayerTime? nextPrayer;
+  final PrayerTime? currentPrayer;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final next = nextPrayer;
+    if (next == null) {
+      return const CountdownHero(
+        nextPrayer: null,
+        currentPrayer: null,
+        nextIn: Duration.zero,
+        progress: 0,
+      );
+    }
+
+    final now = ref.watch(homeClockProvider).value ?? DateTime.now();
+    final start =
+        currentPrayer?.time ?? DateTime(now.year, now.month, now.day);
+    final total = next.time.difference(start).inSeconds;
+    final elapsed = now.difference(start).inSeconds;
+    final remaining = next.time.difference(now);
+
+    return CountdownHero(
+      nextPrayer: next,
+      currentPrayer: currentPrayer,
+      nextIn: remaining.isNegative ? Duration.zero : remaining,
+      progress: total <= 0 ? 0 : (elapsed / total).clamp(0.0, 1.0),
+    );
+  }
+}
+
+/// The method name and the sunset countdown. Ticks with the same shared clock
+/// as [_LiveCountdown] rather than forcing a whole-body rebuild.
+class _SunsetFooter extends ConsumerWidget {
+  const _SunsetFooter({required this.methodLabel, required this.sunset});
+
+  final String methodLabel;
+  final DateTime sunset;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
+    final now = ref.watch(homeClockProvider).value ?? DateTime.now();
+    final sunsetIn = sunset.difference(now);
+
+    return Row(
+      children: [
+        // Both labels are `Flexible` rather than one being `Expanded`: a
+        // countdown grows through the day ("IN 4H 12M" -> "IN 4M"), and an
+        // `Expanded` sibling would take the slack and squeeze it out of the
+        // row entirely rather than let the two share.
+        Flexible(
+          child: UiText(
+            methodLabel.toUpperCase(),
+            type: UiTextType.labelSmall,
+            letterSpacing: 0.8,
+            color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
+            // Truncates rather than wrapping: this row is a single line by
+            // design, and a two-line method name would break the gap between
+            // the Solar card and the row below.
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.end,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Icon(
+          Icons.wb_twilight,
+          size: AppIconSize.sm,
+          color: scheme.primary,
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Flexible(
+          child: UiText(
+            (sunsetIn.isNegative
+                    ? l10n.homeSunsetAt(TimeFormatter.clock(sunset))
+                    : l10n.homeSunsetIn(TimeFormatter.longCountdown(sunsetIn)))
+                .toUpperCase(),
+            type: UiTextType.labelSmall,
+            letterSpacing: 0.8,
+            color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 }
 

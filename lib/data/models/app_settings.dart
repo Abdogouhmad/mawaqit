@@ -110,6 +110,37 @@ class AppSettings {
 
   static const List<int> leadOptions = [0, 5, 10, 15];
 
+  /// Whether moving from [previous] to this value changes any prayer time.
+  ///
+  /// Used to keep a theme or palette change from recomputing a whole month of
+  /// times it cannot affect. The location fields are part of the answer because
+  /// a new city (or a switch between GPS and a city) moves every time.
+  bool changesPrayerTimesFrom(AppSettings previous) =>
+      calculationMethod != previous.calculationMethod ||
+      madhab != previous.madhab ||
+      locationMode != previous.locationMode ||
+      cityName != previous.cityName ||
+      cityLatitude != previous.cityLatitude ||
+      cityLongitude != previous.cityLongitude;
+
+  /// Whether moving from [previous] to this value changes anything the alarm
+  /// scheduler reads.
+  ///
+  /// `SettingsController.save` reschedules the day after every write. Without
+  /// this gate that meant a full cancel + 31-id sweep + re-arm for toggling
+  /// AMOLED or reduce-motion, none of which a notification can observe.
+  /// Language is included on purpose: the title and body copy are localized
+  /// when they are armed, so a language switch has to re-post them.
+  bool changesNotificationsFrom(AppSettings previous) =>
+      changesPrayerTimesFrom(previous) ||
+      leadMinutes != previous.leadMinutes ||
+      prePrayerEnabled != previous.prePrayerEnabled ||
+      adhanSoundEnabled != previous.adhanSoundEnabled ||
+      adhanTone != previous.adhanTone ||
+      adhanDeviceToneUri != previous.adhanDeviceToneUri ||
+      preAlertTone != previous.preAlertTone ||
+      language != previous.language;
+
   bool get hasCityCoordinates => cityLatitude != null && cityLongitude != null;
 
   /// Whether a device sound overrides the bundled tone.

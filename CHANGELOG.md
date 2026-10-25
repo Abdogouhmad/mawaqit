@@ -13,6 +13,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.2] - 2026-10-25
+
+### Fixed
+
+- **The system "next alarm" indicator opens the phone's clock app, not
+  Mawaqit.** Adhan alarms still use the alarm-clock API for the lockscreen
+  takeover, but tapping the alarm icon in the notification panel now goes to
+  the device's own Clock app instead of unexpectedly relaunching Mawaqit.
+  The adhan itself is still managed from Mawaqit's alarm card.
+- **Paging the monthly calendar no longer risks showing one month's header over
+  another month's days**, and a settings change that lands mid-page can no
+  longer overwrite the month the user just selected.
+- **One denied exact alarm no longer drops the rest of the day's prayers.**
+  Scheduling retries the occurrence as an inexact alarm and keeps arming the
+  remaining ones; a failed cancel during a reschedule is logged instead of
+  aborting the whole sweep.
+- **Overlapping reschedules can no longer cancel each other's alarms**, and a
+  failed notification-service start-up can be retried instead of disabling
+  scheduling until the next launch.
+- **The OTA "new release" notification no longer breaks adhan notification
+  taps** for the rest of the process.
+- Muting a prayer while its adhan is due now reads the single mute flag directly
+  instead of scanning every stored preference.
+
+### Changed
+
+- **Home updates its countdown without rebuilding the whole page every second.**
+  Only the countdown and sunset line tick; the date line, prayer tiles and solar
+  card rebuild when a prayer boundary actually arrives. The ticker also pauses
+  while another tab is open.
+- **Appearance-only settings no longer reschedule notifications**, and the
+  monthly Times tab no longer recomputes all 31 days for a palette or motion
+  preference.
+- Cached Hijri conversions, locale date formatters, calendar measurements and
+  palette colour schemes; released text-painter resources used for grid
+  measurement.
+- Notification fallback copy and pre-prayer reminders now use the selected app
+  language instead of hardcoded English.
+- Native alarm cancellation only touches pending adhan entries and leaves a
+  ringing alarm's active id intact.
+
 ## [0.15.1] - 2026-10-20
 
 ### Fixed

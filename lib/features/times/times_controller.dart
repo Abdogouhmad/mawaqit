@@ -180,9 +180,14 @@ class TimesController extends AsyncNotifier<TimesState> {
     // changes. Watching (rather than reading) is right here precisely *because*
     // this notifier owns no side effects — unlike the home controller, whose
     // `build` re-initialises the alarm pipeline.
-    ref.listen<AsyncValue<AppSettings>>(settingsProvider, (_, next) {
+    ref.listen<AsyncValue<AppSettings>>(settingsProvider, (previous, next) {
       final value = next.value;
       if (value == null) return;
+      final before = previous?.value;
+      // A palette, theme mode or motion preference cannot move a prayer time.
+      // Recomputing 31 days for one used to be the single most expensive thing
+      // a Settings tap did.
+      if (before != null && !value.changesPrayerTimesFrom(before)) return;
       _recompute(value);
     });
 
@@ -226,6 +231,8 @@ class TimesController extends AsyncNotifier<TimesState> {
     final home = await ref.read(homeControllerProvider.future);
     if (!home.hasLocationResolved) return;
 
+    final target = DateTime(month.year, month.month);
+
     // Show the new header immediately and fill it in, rather than dropping back
     // to a spinner: paging a month is a sub-10 ms computation and a full-screen
     // spinner for that reads as a stutter.
@@ -234,21 +241,22 @@ class TimesController extends AsyncNotifier<TimesState> {
     // location" for the screen. Without it the empty `days` here reads as a lost
     // location and the tab flashes its "pick a location" state on every page.
     state = AsyncData(
-      previous.copyWith(
-        month: DateTime(month.year, month.month),
-        days: const [],
-        isLoading: true,
-      ),
+      previous.copyWith(month: target, days: const [], isLoading: true),
     );
 
     final days = const PrayerTimesService().forMonth(
-      month: DateTime(month.year, month.month),
+      month: target,
       latitude: home.latitude!,
       longitude: home.longitude!,
       parameters: settings.parameters,
     );
     if (!ref.mounted) return;
-    state = AsyncData(previous.copyWith(days: days, isLoading: false));
+    // Copy from `previous` with the *target* month: the loading state above is
+    // not the value this replaces, and reusing `previous` alone would publish
+    // the new days under the old month's header.
+    state = AsyncData(
+      previous.copyWith(month: target, days: days, isLoading: false),
+    );
   }
 
   Future<void> step(int delta) async {
@@ -272,7 +280,17 @@ class TimesController extends AsyncNotifier<TimesState> {
       parameters: settings.parameters,
     );
     if (!ref.mounted) return;
-    state = AsyncData(previous.copyWith(days: days, clearError: true));
+
+    // The user may have paged while the month was being computed. Writing the
+    // result unconditionally would put the *old* month's days under the new
+    // month's header. Apply only if the selection is still the one computed.
+    final current = state.value;
+    if (current == null ||
+        current.month.year != previous.month.year ||
+        current.month.month != previous.month.month) {
+      return;
+    }
+    state = AsyncData(current.copyWith(days: days, clearError: true));
   }
 }
 

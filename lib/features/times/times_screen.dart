@@ -163,14 +163,28 @@ class _MonthState extends ConsumerState<_Month> {
   /// a 360dp portrait phone is a grid that overflows a landscape one.
   PrayerGrid? _grid;
 
+  /// Memoised answer to [_widestText], keyed by the exact inputs it depends on.
+  ///
+  /// Formatting 186 clock strings is cheap once and wasteful on every theme or
+  /// text-scale rebuild, which is what this screen gets while a sheet is open.
+  String? _widestKey;
+  String? _widestValue;
+
   /// Guards the one-time scroll to today, so a rebuild (theme change, pull to
   /// refresh) does not yank the user back down the month.
   bool _didRevealToday = false;
+
+  /// Whether a reveal has already been scheduled for this frame. Without it a
+  /// post-frame callback was registered on every build, all of them no-ops.
+  bool _revealScheduled = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _grid = null;
+    // The grid was measured against the old text scale/direction, and the
+    // widest string may format differently in a new locale.
+    _widestKey = null;
   }
 
   @override
@@ -237,7 +251,7 @@ class _MonthState extends ConsumerState<_Month> {
       // built to avoid.
       availableWidth:
           MediaQuery.sizeOf(context).width - _inset * 2 - AppSpacing.md * 2,
-      widestText: _widestText(state),
+      widestText: _widestText(state, locale),
       textScaler: MediaQuery.textScalerOf(context),
       itemCount: timesColumnCount,
       direction: Directionality.of(context),
@@ -256,7 +270,13 @@ class _MonthState extends ConsumerState<_Month> {
     );
     final todayDay = todayIndex < 0 ? null : state.days[todayIndex];
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => _revealToday());
+    if (!_didRevealToday && !_revealScheduled) {
+      _revealScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _revealScheduled = false;
+        if (mounted) _revealToday();
+      });
+    }
 
     return RefreshIndicator(
       // Recomputes the month rather than re-requesting the location, so a pull on
@@ -347,7 +367,12 @@ class _MonthState extends ConsumerState<_Month> {
   /// Sunrise is included because it is one of the columns the grid must fit; a
   /// day where sunrise is the longest string is exactly the case that would
   /// otherwise overflow a grid sized from the prayers alone.
-  static String _widestText(TimesState state) {
+  String _widestText(TimesState state, String locale) {
+    final key =
+        '${identityHashCode(state.days)}-${TimeFormatter.use24Hour}-$locale';
+    final cached = _widestValue;
+    if (cached != null && _widestKey == key) return cached;
+
     var widest = '';
     for (final day in state.days) {
       for (final time in [
@@ -358,7 +383,10 @@ class _MonthState extends ConsumerState<_Month> {
         if (text.length > widest.length) widest = text;
       }
     }
-    return widest.isEmpty ? '00:00' : widest;
+    final result = widest.isEmpty ? '00:00' : widest;
+    _widestKey = key;
+    _widestValue = result;
+    return result;
   }
 
   static bool _isSameDay(DateTime a, DateTime b) =>

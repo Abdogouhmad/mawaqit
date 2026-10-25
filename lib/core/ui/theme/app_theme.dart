@@ -20,6 +20,7 @@ abstract final class AppTheme {
   const AppTheme._();
 
   static final Map<String, ThemeData> _cache = {};
+  static final Map<String, ColorScheme> _schemeCache = {};
 
   static ThemeData light({
     AppPalette palette = AppPalette.emerald,
@@ -38,17 +39,26 @@ abstract final class AppTheme {
   /// Used by the palette picker so each swatch previews the colours the palette
   /// actually applies — including the hand-tuned ones, whose generated seed
   /// primary differs by a shade from what ships.
-  static ColorScheme schemeFor(AppPalette palette, Brightness brightness) =>
-      brightness == Brightness.light
-      ? light(palette: palette).colorScheme
-      : dark(palette: palette).colorScheme;
+  static ColorScheme schemeFor(AppPalette palette, Brightness brightness) {
+    // Cached separately from the theme: a palette picker reads nine schemes on
+    // every build, and building nine complete ThemeData objects just to look at
+    // their colours is the expensive way to answer that.
+    final key = '${palette.name}-${brightness.name}';
+    return _schemeCache.putIfAbsent(
+      key,
+      () => _scheme(palette, brightness),
+    );
+  }
 
   /// Drops every cached theme.
   ///
   /// Called when the persisted palette changes: without this a running app that
   /// toggles palettes in Settings would keep rendering the old one until the
   /// next cold start, because [MaterialApp] caches nothing but we do.
-  static void invalidateCache() => _cache.clear();
+  static void invalidateCache() {
+    _cache.clear();
+    _schemeCache.clear();
+  }
 
   /// Tabular figures for countdowns and prayer times. See
   /// [AppTextTheme.tabular]; kept as a static here because that is where the

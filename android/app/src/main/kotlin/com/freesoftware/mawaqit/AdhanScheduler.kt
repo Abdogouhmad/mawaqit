@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
 import android.os.Build
+import android.provider.AlarmClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -108,6 +109,20 @@ object AdhanScheduler {
         )
 
     /**
+     * The already-registered broadcast for [id], or null.
+     *
+     * Cancellation paths use this so they neither create a PendingIntent nor
+     * rewrite the snapshot extras of one they are about to discard.
+     */
+    private fun existingPendingIntent(context: Context, id: Int): PendingIntent? =
+        PendingIntent.getBroadcast(
+            context,
+            7000 + id,
+            Intent(context, AdhanAlarmReceiver::class.java).setAction(ACTION_ADHAN),
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+    /**
      * Content intent for the foreground-service card: reopen the app, raising
      * the presenter when the alarm is still ringing ([name] given), plain home
      * otherwise (muted card).
@@ -122,6 +137,23 @@ object AdhanScheduler {
         },
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
     )
+
+    /**
+     * `showIntent` for [AlarmManager.setAlarmClock] — what the system launches
+     * when the user taps Mawaqit's entry in the status bar's "next alarm" UI.
+     *
+     * That indicator belongs to the *system* alarm surface, so it opens the
+     * phone's own clock app (`ACTION_SHOW_ALARMS`) instead of relaunching
+     * Mawaqit; the prayer alarm itself is managed from Mawaqit's own alarm card.
+     */
+    private fun alarmClockShowPendingIntent(context: Context, id: Int) =
+        PendingIntent.getActivity(
+            context,
+            7400 + id,
+            Intent(AlarmClock.ACTION_SHOW_ALARMS)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
 
     /**
      * Intent that raises the shell's own full-screen adhan presenter
@@ -211,12 +243,17 @@ object AdhanScheduler {
             // on Android 14+, where it is otherwise denied for non-alarm apps —
             // which silently downgraded the lockscreen card to a tray
             // notification after the targetSdk/Flutter bump. The show intent
-            // feeds the system's "next alarm" indicator (status bar tap opens
-            // the app). The try/catch mirrors the inexact path for the window
-            // where the access is revoked between the check and the call.
+            // feeds the system's "next alarm" indicator, whose tap opens the
+            // phone's clock app rather than Mawaqit (see
+            // [alarmClockShowPendingIntent]). The try/catch mirrors the inexact
+            // path for the window where the access is revoked between the check
+            // and the call.
             try {
                 am.setAlarmClock(
-                    AlarmManager.AlarmClockInfo(trigger, openAppPendingIntent(context, id)),
+                    AlarmManager.AlarmClockInfo(
+                        trigger,
+                        alarmClockShowPendingIntent(context, id),
+                    ),
                     pi,
                 )
             } catch (_: SecurityException) {
@@ -228,17 +265,30 @@ object AdhanScheduler {
     }
 
     fun cancel(context: Context, id: Int) {
-        alarmManager(context).cancel(pendingIntent(context, id))
+        // FLAG_NO_CREATE: a cancel for an id that was never armed (the common
+        // case for a mute toggle) should not allocate a PendingIntent and
+        // rewrite its extras just to throw it away.
+        existingPendingIntent(context, id)?.let {
+            alarmManager(context).cancel(it)
+        }
         prefs(context).edit().remove("adhan_$id").apply()
     }
 
     fun cancelAll(context: Context) {
-        val stored = prefs(context).all.keys.filter { it.startsWith("adhan_") }
-        stored.forEach { key ->
+        val store = prefs(context)
+        val editor = store.edit()
+        store.all.keys.filter { it.startsWith("adhan_") }.forEach { key ->
+            editor.remove(key)
             val id = key.removePrefix("adhan_").toIntOrNull() ?: return@forEach
-            alarmManager(context).cancel(pendingIntent(context, id))
+            existingPendingIntent(context, id)?.let {
+                alarmManager(context).cancel(it)
+            }
         }
-        prefs(context).edit().clear().apply()
+        // Only the scheduled snapshots are cleared. `clear()` also wiped
+        // KEY_ACTIVE_ID, which broke the "a reschedule must not cut off a
+        // ringing call" contract: stopActive() then had no id to dismiss the
+        // live card with.
+        editor.apply()
     }
 
     /** Loads the stored snapshot for [id], or null when it no longer exists. */
@@ -421,19 +471,23 @@ object AdhanScheduler {
     /** Silently posts the muted card for an occurrence (no audio, no takeover). */
     fun postMutedCard(context: Context, schedule: Schedule) {
         ensureChannels(context)
-        NotificationManagerCompat.from(context).notify(
-            schedule.id,
-            NotificationCompat.Builder(context, CHANNEL_SILENT)
-                .setSmallIcon(R.drawable.ic_stat_mawaqit)
-                .setContentTitle(schedule.title.ifEmpty { "Adhan — ${schedule.name}" })
-                .setContentText(schedule.body.ifEmpty { "It is now time for the ${schedule.name} prayer" })
-                .setContentIntent(openAppPendingIntent(context, schedule.id))
-                .setCategory(NotificationCompat.CATEGORY_ALARM)
-                .setPriority(NotificationCompat.PRIORITY_MIN)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setAutoCancel(true)
-                .build(),
-        )
+        try {
+            NotificationManagerCompat.from(context).notify(
+                schedule.id,
+                NotificationCompat.Builder(context, CHANNEL_SILENT)
+                    .setSmallIcon(R.drawable.ic_stat_mawaqit)
+                    .setContentTitle(schedule.title.ifEmpty { "Adhan — ${schedule.name}" })
+                    .setContentText(schedule.body.ifEmpty { "It is now time for the ${schedule.name} prayer" })
+                    .setContentIntent(openAppPendingIntent(context, schedule.id))
+                    .setCategory(NotificationCompat.CATEGORY_ALARM)
+                    .setPriority(NotificationCompat.PRIORITY_MIN)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setAutoCancel(true)
+                    .build(),
+            )
+        } catch (_: Exception) {
+            // POST_NOTIFICATIONS denied / OEM strictness — nothing to show.
+        }
     }
 
     /**

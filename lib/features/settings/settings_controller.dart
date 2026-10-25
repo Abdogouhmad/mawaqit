@@ -25,6 +25,7 @@ class SettingsController extends AsyncNotifier<AppSettings> {
   /// surface as an unhandled async error with no user-visible explanation. It is
   /// logged and the previous value stays on screen, which is the honest result.
   Future<void> save(AppSettings next) async {
+    final previous = state.value;
     try {
       await ref.read(settingsRepositoryProvider).save(next);
     } catch (error, stack) {
@@ -38,6 +39,11 @@ class SettingsController extends AsyncNotifier<AppSettings> {
     // Push the new lead-time / tone config into today's already-scheduled
     // notifications instead of waiting for the next daily recompute. Only
     // reached once the write landed, so the alarms always match what is stored.
+    //
+    // Appearance-only writes (palette, AMOLED, reduce-motion, transparency) are
+    // skipped: re-arming would cancel and repost every alarm for a change no
+    // notification can observe.
+    if (previous != null && !next.changesNotificationsFrom(previous)) return;
     unawaited(BackgroundScheduler.rescheduleNow(next));
   }
 }

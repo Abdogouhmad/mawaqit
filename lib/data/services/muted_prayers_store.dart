@@ -24,6 +24,15 @@ class MutedPrayersStore {
     return ids;
   }
 
+  /// Whether one occurrence is muted, without scanning every stored key.
+  ///
+  /// The live adhan path only ever needs a single answer, and it runs at the
+  /// exact moment the call is due.
+  Future<bool> isMuted(String prayerId) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('$_prefix$prayerId') ?? false;
+  }
+
   Future<Set<String>> setMuted(String prayerId, bool muted) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('$_prefix$prayerId', muted);

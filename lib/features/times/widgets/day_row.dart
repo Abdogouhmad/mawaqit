@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' hide TextDirection;
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/ui/theme/text_theme.dart';
 import 'package:mawaqit/core/utils/hijri_dates.dart';
@@ -104,8 +103,8 @@ class DayRow extends StatelessWidget {
     final columns = timesColumnsFor(day, l10n);
 
     final spoken = <String>[
-      DateFormat.EEEE(locale).format(day.date),
-      DateFormat.MMMEd(locale).format(day.date),
+      TimeFormatter.weekday(day.date, locale),
+      TimeFormatter.monthDay(day.date, locale),
       if (isToday) l10n.timesHighlightedToday,
       for (final column in columns)
         '${column.label} ${TimeFormatter.clock(column.time)}',
@@ -176,7 +175,7 @@ class _DayLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    final weekday = DateFormat.EEEE(locale).format(day.date);
+    final weekday = TimeFormatter.weekday(day.date, locale);
     final hijriDay = HijriDates.dayOfMonth(day.date);
     // Friday carries the week: it is the day the month view is scanned for, and
     // the congregation's own day. Tinting the weekday (the app's gold, the same

@@ -6,6 +6,7 @@ import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/repositories/settings_repository.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
 import 'package:mawaqit/data/services/prayer_widget_service.dart';
+import 'package:mawaqit/l10n/ambient_l10n.dart';
 import 'package:workmanager/workmanager.dart';
 
 /// Native background scheduling for daily re-computation and notification
@@ -67,6 +68,7 @@ abstract final class BackgroundScheduler {
   static Future<bool> rescheduleAll() async {
     try {
       final settings = await SettingsRepository().load();
+      _useSettingsLocale(settings);
       final location = await _resolveLocation(settings);
       if (location == null) return false;
 
@@ -94,6 +96,7 @@ abstract final class BackgroundScheduler {
   /// alarms are armed with the access the user just enabled.
   static Future<bool> rescheduleNow(AppSettings settings) async {
     try {
+      _useSettingsLocale(settings);
       final location = await _resolveLocation(settings);
       if (location == null) return false;
 
@@ -110,6 +113,20 @@ abstract final class BackgroundScheduler {
     } catch (_) {
       return false;
     }
+  }
+
+  /// Pins the notification copy to the user's chosen language before arming.
+  ///
+  /// This path deliberately runs outside the widget tree: the background
+  /// isolate has no `BuildContext`, and an in-app settings save can reach here
+  /// before the rebuilt app has updated [AmbientL10n]. Without this the title
+  /// and body would be composed in the device language instead of the language
+  /// selected in Settings.
+  static void _useSettingsLocale(AppSettings settings) {
+    AmbientL10n.locale = resolveAppLocale(
+      settings.language,
+      PlatformDispatcher.instance.locale,
+    );
   }
 
   /// Coordinates a reschedule should compute for.

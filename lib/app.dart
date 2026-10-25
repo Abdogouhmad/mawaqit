@@ -56,9 +56,8 @@ class MawaqitApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider).hasValue
-        ? ref.watch(settingsProvider).value
-        : null;
+    final settingsSnapshot = ref.watch(settingsProvider);
+    final settings = settingsSnapshot.value;
     final themeMode = switch (settings?.themeMode) {
       AppThemeMode.light => ThemeMode.light,
       AppThemeMode.dark => ThemeMode.dark,
@@ -80,8 +79,10 @@ class MawaqitApp extends ConsumerWidget {
 
     // A palette switch must take effect now, not on the next cold start: the
     // themes are cached, and a stale cache would leave Settings showing the new
-    // palette while every other screen kept the old colours.
-    final cacheKey = '${palette?.name}-${themeMode.name}-$isArabic-$amoled';
+    // palette while every other screen kept the old colours. `themeMode` is not
+    // part of the key: light() and dark() are both built on every app build and
+    // neither depends on which one is currently selected.
+    final cacheKey = '${palette?.name}-$isArabic-$amoled';
     if (_lastCacheKey != cacheKey) {
       _lastCacheKey = cacheKey;
       AppTheme.invalidateCache();

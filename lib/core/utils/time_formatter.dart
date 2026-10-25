@@ -1,7 +1,7 @@
 import 'dart:ui' show Locale;
 
-import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:mawaqit/core/utils/hijri_dates.dart';
 import 'package:mawaqit/l10n/ambient_l10n.dart';
 
 /// Pure formatting helpers shared across the app.
@@ -115,9 +115,9 @@ abstract final class TimeFormatter {
   static String gregorian(DateTime d) => _date.format(d).toLowerCase();
 
   static String hijri(DateTime d) {
-    final h = HijriCalendar.fromDate(d);
-    final month = h.hMonth.clamp(1, 12);
-    return '${h.hDay} ${_hijriMonths[month - 1]} ${h.hYear}'.toLowerCase();
+    final h = HijriDates.full(d);
+    final month = h.month.clamp(1, 12);
+    return '${h.day} ${_hijriMonths[month - 1]} ${h.year}'.toLowerCase();
   }
 
   /// Hijri month and year without the day, e.g. `"Rabi' al-Awwal 1448"`.
@@ -126,10 +126,28 @@ abstract final class TimeFormatter {
   /// the month rather than a single day. Kept here, beside [hijri], because both
   /// read the same locale-correct month-name table.
   static String hijriMonth(DateTime d) {
-    final h = HijriCalendar.fromDate(d);
-    final month = h.hMonth.clamp(1, 12);
-    return '${_hijriMonths[month - 1]} ${h.hYear}';
+    final h = HijriDates.full(d);
+    final month = h.month.clamp(1, 12);
+    return '${_hijriMonths[month - 1]} ${h.year}';
   }
+
+  /// Per-locale formatters for the calendar rows.
+  ///
+  /// `DateFormat` binds its locale at construction, so one instance per locale
+  /// is the correct granularity: the Times tab used to construct two of these
+  /// for every one of its 31 rows on every build.
+  static final Map<String, DateFormat> _weekdayFormats = {};
+  static final Map<String, DateFormat> _monthDayFormats = {};
+
+  /// Full weekday name for [d] in [locale], e.g. `"Friday"`.
+  static String weekday(DateTime d, String locale) => _weekdayFormats
+      .putIfAbsent(locale, () => DateFormat.EEEE(locale))
+      .format(d);
+
+  /// Short month and day for [d] in [locale], e.g. `"Fri, Sep 25"`.
+  static String monthDay(DateTime d, String locale) => _monthDayFormats
+      .putIfAbsent(locale, () => DateFormat.MMMEd(locale))
+      .format(d);
 
   /// "1h 24m 13s" style countdown for the next-prayer hero/tile. Seconds are
   /// always shown (the home ticker runs every second); the largest unit omits

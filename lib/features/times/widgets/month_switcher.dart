@@ -60,14 +60,24 @@ class _MonthPickerSheetState extends State<_MonthPickerSheet> {
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final now = DateTime.now();
+    final earliest = TimesState.earliestMonth;
+    final latest = TimesState.latestMonth;
 
     // Built from DateFormat rather than a constant list so the sheet shows
     // "März" and "أكتوبر" instead of English month names — the grid is the whole
-    // content of this sheet, so its language is the sheet.
+    // content of this sheet, so its language is the sheet. One formatter, reused
+    // for all twelve cells.
+    final monthFormat = DateFormat.MMM(locale);
     final monthNames = [
       for (var m = 1; m <= 12; m++)
-        DateFormat.MMM(locale).format(DateTime(2024, m)),
+        monthFormat.format(DateTime(2024, m)),
     ];
+    final yearLabel = DateFormat.y(locale).format(_viewing);
+
+    bool withinBounds(int month) {
+      final candidate = DateTime(_year, month);
+      return !candidate.isBefore(earliest) && !candidate.isAfter(latest);
+    }
 
     final rtl = Directionality.of(context) == TextDirection.rtl;
     final backIcon = rtl ? Icons.chevron_right : Icons.chevron_left;
@@ -92,7 +102,7 @@ class _MonthPickerSheetState extends State<_MonthPickerSheet> {
                   child: Semantics(
                     header: true,
                     child: UiText(
-                      DateFormat.y(locale).format(_viewing),
+                      yearLabel,
                       type: UiTextType.headlineSmall,
                       fontWeight: FontWeight.w600,
                     ),
@@ -131,7 +141,7 @@ class _MonthPickerSheetState extends State<_MonthPickerSheet> {
                         widget.selected.year == _year &&
                         widget.selected.month == m,
                     isCurrentMonth: now.year == _year && now.month == m,
-                    enabled: TimesState.isWithinBounds(DateTime(_year, m)),
+                    enabled: withinBounds(m),
                     onPressed: () => widget.onSelected(DateTime(_year, m)),
                   ),
               ],

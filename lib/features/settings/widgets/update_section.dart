@@ -20,10 +20,13 @@ class UpdateSection extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context);
 
-    final state = ref.watch(updateProvider);
+    // Select only what this row displays: the store emits on every download
+    // progress tick, and the settings list has no business rebuilding for it.
+    final (hasUpdate, status) = ref.watch(
+      updateProvider.select((s) => (s.hasUpdate, s.status)),
+    );
 
-    final shouldHighlight =
-        state.hasUpdate && state.status != UpdateStatus.error;
+    final shouldHighlight = hasUpdate && status != UpdateStatus.error;
 
     return SettingsGroup(
       children: [

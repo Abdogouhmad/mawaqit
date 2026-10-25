@@ -299,7 +299,18 @@ class NotificationService {
   /// the shell boots — consumed once the navigator is up.
   ({int id, String name})? _pendingNativeAdhan;
 
-  bool _initialized = false;
+  /// In-flight/completed initialisation.
+  ///
+  /// A plain boolean guard used to be set *before* the first `await`, so a
+  /// concurrent caller returned immediately and then used a half-built plugin,
+  /// and any failure poisoned the singleton for the rest of the process. This
+  /// future is shared by concurrent callers and cleared again on failure so a
+  /// later attempt can succeed.
+  Future<void>? _initFuture;
+
+  /// Serialises schedule runs so two overlapping reschedules cannot interleave
+  /// their cancel/schedule halves and delete each other's alarms.
+  Future<void> _scheduleQueue = Future<void>.value();
 
   /// Latest read of the system accesses the adhan depends on. Starts
   /// permissive so scheduling is never blocked on a failed read — the native
@@ -318,9 +329,28 @@ class NotificationService {
   /// Android; elsewhere every access is reported as granted.
   AlarmAccess get alarmAccess => _alarmAccess;
 
-  Future<void> init({bool allowPrompt = true, Locale? locale}) async {
-    if (_initialized) return;
-    _initialized = true;
+  Future<void> init({bool allowPrompt = true, Locale? locale}) {
+    final active = _initFuture;
+    if (active != null) return active;
+
+    final future = _init(allowPrompt: allowPrompt, locale: locale);
+    _initFuture = future;
+    // Let a failed attempt be retried (a transient platform error should not
+    // leave the process permanently unable to schedule anything). The error is
+    // intentionally swallowed on this side branch: the caller receives the same
+    // failure from [future].
+    unawaited(
+      future.then<void>(
+        (_) {},
+        onError: (Object _, StackTrace _) {
+          _initFuture = null;
+        },
+      ),
+    );
+    return future;
+  }
+
+  Future<void> _init({required bool allowPrompt, Locale? locale}) async {
     // Notification channels and shade copy are built outside the widget tree, so
     // pin the locale here — the first frame may not have run yet, and
     // `init()` is also reached from the WorkManager isolate where it never will.
@@ -356,9 +386,7 @@ class NotificationService {
       // intent / card tap): the native side stashed the occurrence — raise
       // the presenter over it as soon as the navigator exists.
       unawaited(_consumePendingAdhan());
-    }
 
-    if (_isAndroid) {
       // Read the real system state *first*: it shows no UI, so it is safe from
       // the WorkManager isolate, and it is the only trustworthy answer to
       // "may we schedule exact alarms?" — the plugin's request call blocks on a
@@ -525,7 +553,21 @@ class NotificationService {
 
   /// (Re)schedules all notifications for [day]. Always cancels what was left
   /// over from a previous run first so stale entries can never double-fire.
-  Future<void> scheduleDay(PrayerDay day, AppSettings settings) async {
+  ///
+  /// Runs are queued: a settings write and a GPS refresh can kick this off
+  /// within the same frame, and two interleaved runs would let B's `cancelAll`
+  /// delete the alarms A had just armed. Queueing makes the last caller win
+  /// with a complete set instead of a mixture.
+  Future<void> scheduleDay(PrayerDay day, AppSettings settings) {
+    final next = _scheduleQueue.then((_) => _scheduleDayNow(day, settings));
+    _scheduleQueue = next.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+    return next;
+  }
+
+  Future<void> _scheduleDayNow(PrayerDay day, AppSettings settings) async {
     await cancelAll();
 
     await _scheduleAdhanAlarms(day, settings);
@@ -606,6 +648,7 @@ class NotificationService {
       return true;
     }
 
+    late final Timer timer;
     Future<void> onTimer() async {
       try {
         switch (kind) {
@@ -617,12 +660,15 @@ class NotificationService {
       } catch (e, st) {
         debugPrint('Test notification post failed: $e\n$st');
       }
-      _timers.remove(_testNotificationId);
+      if (identical(_timers[_testNotificationId], timer)) {
+        _timers.remove(_testNotificationId);
+      }
     }
 
     try {
       _timers.remove(_testNotificationId)?.cancel();
-      _timers[_testNotificationId] = Timer(const Duration(seconds: 3), onTimer);
+      timer = Timer(const Duration(seconds: 3), onTimer);
+      _timers[_testNotificationId] = timer;
     } catch (e, st) {
       debugPrint('Test notification failed: $e\n$st');
       _timers.remove(_testNotificationId);
@@ -805,7 +851,7 @@ class NotificationService {
       prayerName,
       TimeFormatter.clock(prayer.time),
     );
-    final occurrenceMuted = (await _mutedStore.load()).contains(
+    final occurrenceMuted = await _mutedStore.isMuted(
       prayerIdFor(day.date, prayer.kind),
     );
 
@@ -989,12 +1035,13 @@ class NotificationService {
             ),
           ),
         );
+        // One pass only: the completion listener dismisses the alarm when the
+        // clip runs out instead of restarting it forever. Configured once with
+        // the audio context — the player keeps this setting across plays.
+        await _adhanPlayer.setReleaseMode(ReleaseMode.release);
         _adhanAudioContextSet = true;
       }
       await _adhanPlayer.stop();
-      // One pass only: the completion listener dismisses the alarm when the
-      // clip runs out instead of restarting it forever.
-      await _adhanPlayer.setReleaseMode(ReleaseMode.release);
       await _adhanPlayer.play(source);
       _alarmRinging = true;
       _armAlarmWatchdog();
@@ -1033,10 +1080,11 @@ class NotificationService {
             ),
           ),
         );
+        // Single pass, configured once alongside the audio context.
+        await _preAlertPlayer.setReleaseMode(ReleaseMode.release);
         _preAlertAudioContextSet = true;
       }
       await _preAlertPlayer.stop();
-      await _preAlertPlayer.setReleaseMode(ReleaseMode.release);
       await _preAlertPlayer.play(AssetSource(tone.assetPath));
     } catch (e) {
       debugPrint('Pre-prayer playback failed: $e');
@@ -1371,7 +1419,11 @@ class NotificationService {
     required String releaseNotes,
   }) async {
     if (!hasNotificationPermission) return;
-    await _ensurePostable();
+    // Full init rather than a second `_plugin.initialize`: the plugin stores
+    // its callbacks by assignment, so re-initialising without them silently
+    // disabled every adhan tap for the rest of the process. `init()` is
+    // idempotent and already ran in every real caller.
+    await init(allowPrompt: false);
     await _plugin.show(
       id: _updateNotificationId,
       title: AmbientL10n.instance.notifUpdateAvailable(version),
@@ -1407,18 +1459,6 @@ class NotificationService {
     return 'A new version of Mawaqit is ready to install.';
   }
 
-  /// Initializes just the plugin plumbing (no permission prompts) — needed in
-  /// background isolates, where the foreground-only permission dialogs are
-  /// unavailable.
-  Future<void> _ensurePostable() async {
-    await _plugin.initialize(
-      settings: const InitializationSettings(
-        android: AndroidInitializationSettings('ic_stat_mawaqit'),
-        linux: LinuxInitializationSettings(defaultActionName: 'Open'),
-      ),
-    );
-  }
-
   /// Human-readable id for one prayer occurrence, e.g. `"2026-09-21_maghrib"`.
   ///
   /// Delegates to [PrayerKeys.occurrenceId] so the id the native module persists
@@ -1451,6 +1491,25 @@ class NotificationService {
         tone.assetPath.isNotEmpty;
   }
 
+  /// Today's five prayers plus tomorrow's Fajr.
+  ///
+  /// Without tomorrow's Fajr the whole Isha → Fajr window runs unarmed whenever
+  /// the app is not opened, and Fajr is the one prayer a user is most likely to
+  /// sleep through. The tomorrow date is built with calendar arithmetic rather
+  /// than `add(Duration(days: 1))`: a DST fall-back day is 25 hours long, so
+  /// adding 24 hours can land back on the same local date.
+  List<({PrayerTime prayer, DateTime date, int index})> _occurrencesFor(
+    PrayerDay day,
+  ) => [
+    for (var i = 0; i < day.prayers.length; i++)
+      (prayer: day.prayers[i], date: day.date, index: i),
+    (
+      prayer: PrayerTime(kind: PrayerKind.fajr, time: day.nextDayFajr),
+      date: DateTime(day.date.year, day.date.month, day.date.day + 1),
+      index: 0,
+    ),
+  ];
+
   Future<void> _scheduleAdhanAlarms(PrayerDay day, AppSettings settings) async {
     if (!settings.adhanSoundEnabled) return;
     if (!hasNotificationPermission) return;
@@ -1458,21 +1517,14 @@ class NotificationService {
     final muted = await _mutedStore.load();
     final now = DateTime.now();
     final audible = adhanIsAudible(settings);
+    final l10n = AmbientL10n.instance;
 
     // Today, plus tomorrow's Fajr: without it the whole Isha → Fajr window runs
     // unarmed whenever the app is not opened, and Fajr is the one prayer a user
     // is most likely to sleep through. Ids stay in tomorrow's own day bucket so
     // the next daily recompute re-arms this same occurrence rather than adding
     // a duplicate.
-    final occurrences = <({PrayerTime prayer, DateTime date, int index})>[
-      for (var i = 0; i < day.prayers.length; i++)
-        (prayer: day.prayers[i], date: day.date, index: i),
-      (
-        prayer: PrayerTime(kind: PrayerKind.fajr, time: day.nextDayFajr),
-        date: day.date.add(const Duration(days: 1)),
-        index: 0,
-      ),
-    ];
+    final occurrences = _occurrencesFor(day);
 
     for (final occurrence in occurrences) {
       final p = occurrence.prayer;
@@ -1481,6 +1533,7 @@ class NotificationService {
       final id = _adhanId(occurrence.date, occurrence.index);
       final prayerId = prayerIdFor(occurrence.date, p.kind);
       final isMuted = muted.contains(prayerId);
+      final name = p.kind.localized(l10n);
 
       // Audible occurrences on Android are owned by the native alarm engine
       // (AlarmManager → foreground service + shell launch), so the call
@@ -1491,7 +1544,7 @@ class NotificationService {
         await _scheduleNativeAdhan(
           id: id,
           at: p.time,
-          name: p.kind.localized(AmbientL10n.instance),
+          name: name,
           prayerId: prayerId,
           settings: settings,
         );
@@ -1500,13 +1553,8 @@ class NotificationService {
 
       await _postAt(
         id: id,
-        title: AmbientL10n.instance.notifAdhanTitle(
-          p.kind.localized(AmbientL10n.instance),
-        ),
-        body: AmbientL10n.instance.notifPrayerAtTime(
-          p.kind.localized(AmbientL10n.instance),
-          TimeFormatter.clock(p.time),
-        ),
+        title: l10n.notifAdhanTitle(name),
+        body: l10n.notifPrayerAtTime(name, TimeFormatter.clock(p.time)),
         at: p.time,
         type: NotificationType.adhan,
         settings: settings,
@@ -1551,12 +1599,11 @@ class NotificationService {
     } catch (_) {
       // Native engine unavailable — fall back to the Flutter card so the
       // occurrence still surfaces.
+      final l10n = AmbientL10n.instance;
       await _postAt(
         id: id,
-        title: 'Adhan — $name',
-        body:
-            'It is now time for the $name prayer · '
-            '${TimeFormatter.clock(at)}',
+        title: l10n.notifAdhanTitle(name),
+        body: l10n.notifPrayerAtTime(name, TimeFormatter.clock(at)),
         at: at,
         type: NotificationType.adhan,
         settings: settings,
@@ -1608,23 +1655,20 @@ class NotificationService {
       debugPrint('Native adhan test schedule failed: $e');
       // Native engine unavailable — best-effort in-app fire. Only valid while
       // this process lives; there is no host to schedule against otherwise.
+      // The Dart path is used (not the same native call that just failed).
       _timers.remove(_testNotificationId)?.cancel();
-      _timers[_testNotificationId] = Timer(
-        const Duration(seconds: 3),
-        () async {
-          try {
-            await _fireNativeAdhanNow(
-              _testNotificationId,
-              _testAdhanName,
-              settings,
-              isTest: true,
-            );
-          } catch (e, st) {
-            debugPrint('Native adhan test fire failed: $e\n$st');
-          }
+      late final Timer timer;
+      timer = Timer(const Duration(seconds: 3), () async {
+        try {
+          await _fireAdhanTest(settings);
+        } catch (e, st) {
+          debugPrint('Native adhan test fire failed: $e\n$st');
+        }
+        if (identical(_timers[_testNotificationId], timer)) {
           _timers.remove(_testNotificationId);
-        },
-      );
+        }
+      });
+      _timers[_testNotificationId] = timer;
     }
   }
 
@@ -1684,15 +1728,7 @@ class NotificationService {
   /// the path it is about to deliver, and `_cancelFlutterDayRange` sweeps both.
   List<Map<String, dynamic>> _buildReminders(PrayerDay day, int leadMinutes) {
     final result = <Map<String, dynamic>>[];
-    final occurrences = <({PrayerTime prayer, DateTime date, int index})>[
-      for (var i = 0; i < day.prayers.length; i++)
-        (prayer: day.prayers[i], date: day.date, index: i),
-      (
-        prayer: PrayerTime(kind: PrayerKind.fajr, time: day.nextDayFajr),
-        date: day.date.add(const Duration(days: 1)),
-        index: 0,
-      ),
-    ];
+    final occurrences = _occurrencesFor(day);
 
     final now = DateTime.now();
     for (final occurrence in occurrences) {
@@ -1767,12 +1803,15 @@ class NotificationService {
   /// live-update engine is unavailable.
   Future<void> _scheduleFlutterReminders(
     List<Map<String, dynamic>> reminders,
-    AppSettings? settings,
+    AppSettings settings,
   ) async {
     if (!hasNotificationPermission) return;
-    if (settings != null && !settings.prePrayerEnabled) return;
-    for (var i = 0; i < reminders.length; i++) {
-      final r = reminders[i];
+    if (!settings.prePrayerEnabled) return;
+    final l10n = AmbientL10n.instance;
+    final tone = ToneCatalog.byName(settings.preAlertTone);
+    final chime = tone.silent ? l10n.chimeMuted : tone.name;
+
+    for (final r in reminders) {
       final when = DateTime.fromMillisecondsSinceEpoch(r['timestampMs'] as int);
       // A boundary already crossed cannot be scheduled; unlike the native path
       // this fallback has no live-update surface to post it on immediately.
@@ -1781,17 +1820,20 @@ class NotificationService {
         r['prayerTimestampMs'] as int,
       );
       final name = r['name'] as String;
-      final lead = (r['leadMinutes'] as int?) ?? settings?.leadMinutes ?? 10;
+      final lead = (r['leadMinutes'] as int?) ?? settings.leadMinutes;
       // The plugin id space, *not* the native card id — see [_buildReminders].
       // The `flutterId` fallback keeps this resilient to a reminder map that
       // predates the split.
       final id = (r['flutterId'] as int?) ?? r['id'] as int;
       await _postAt(
         id: id,
-        title: lead == 1 ? '$name in 1 minute' : '$name in $lead minutes',
-        body:
-            'Adhan follows at ${TimeFormatter.clock(prayerTime)} '
-            '· tap to quiet.',
+        title: lead == 1
+            ? l10n.notifReminderInOneMinute(name)
+            : l10n.notifReminderInMinutes(name, lead),
+        body: l10n.notifReminderBodyWithTone(
+          TimeFormatter.clock(prayerTime),
+          chime,
+        ),
         at: when,
         type: NotificationType.preAlert,
         muted: false,
@@ -1817,24 +1859,41 @@ class NotificationService {
     final details = _detailsFor(type, settings: settings, muted: muted);
 
     if (_isAndroid) {
-      await _plugin.zonedSchedule(
+      final exact = canUseExactAlarms;
+      Future<void> schedule(AndroidScheduleMode mode) => _plugin.zonedSchedule(
         id: id,
         title: title,
         body: body,
         scheduledDate: tz.TZDateTime.from(at, tz.local),
         notificationDetails: details,
-        androidScheduleMode: canUseExactAlarms
-            ? AndroidScheduleMode.exactAllowWhileIdle
-            : AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: mode,
         payload: payload,
       );
+
+      try {
+        await schedule(
+          exact
+              ? AndroidScheduleMode.exactAllowWhileIdle
+              : AndroidScheduleMode.inexactAllowWhileIdle,
+        );
+      } on PlatformException catch (error) {
+        // The permission can be revoked between the cached read and this call.
+        // Without this retry one occurrence aborted the whole scheduling loop,
+        // silently dropping every later prayer for the day.
+        if (!exact || error.code != 'exact_alarms_not_permitted') rethrow;
+        debugPrint(
+          'Exact alarm denied while scheduling $id — retrying inexact.',
+        );
+        await schedule(AndroidScheduleMode.inexactAllowWhileIdle);
+      }
       return;
     }
 
     final delay = at.difference(DateTime.now());
     if (delay.isNegative) return;
     _timers.remove(id)?.cancel();
-    _timers[id] = Timer(delay, () async {
+    late final Timer timer;
+    timer = Timer(delay, () async {
       try {
         await _plugin.show(
           id: id,
@@ -1846,8 +1905,11 @@ class NotificationService {
       } catch (_) {
         // Desk notification daemon unavailable — nothing to recover here.
       }
-      _timers.remove(id);
+      // Compare identity: a reschedule may already have stored a *new* timer
+      // under this id, and removing that one would leave it uncancellable.
+      if (identical(_timers[id], timer)) _timers.remove(id);
     });
+    _timers[id] = timer;
   }
 
   /// Builds platform-specific details for [type], keeping the two alert kinds
@@ -1998,17 +2060,34 @@ class NotificationService {
     final ids = <int>[
       for (var offset = -1; offset <= 1; offset++)
         for (var i = 0; i < PrayerKind.five.length; i++) ...[
-          _adhanId(today.add(Duration(days: offset)), i),
-          _reminderId(today.add(Duration(days: offset)), i),
+          _adhanId(DateTime(today.year, today.month, today.day + offset), i),
+          _reminderId(DateTime(today.year, today.month, today.day + offset), i),
         ],
       _testNotificationId,
     ];
     final doomed = ids.where((id) => id != keep).toList(growable: false);
-    await Future.wait(doomed.map((id) => _plugin.cancel(id: id)));
+    // Each cancel is independent: one id the plugin refuses must not abort the
+    // sweep and leave every other stale notification armed.
+    await Future.wait(
+      doomed.map((id) async {
+        try {
+          await _plugin.cancel(id: id);
+        } catch (error) {
+          debugPrint('Cancelling notification $id failed: $error');
+        }
+      }),
+    );
   }
 
   static int _idFor(DateTime date, int prayerIndex, int bucket) {
-    final epochDay = date.difference(DateTime(1970)).inDays;
+    // A UTC date-only difference, not `date.difference(...)`: the latter is a
+    // wall-clock subtraction, so a DST transition can shift the same calendar
+    // day into a different bucket and orphan the alarms armed before it.
+    final epochDay = DateTime.utc(
+      date.year,
+      date.month,
+      date.day,
+    ).difference(DateTime.utc(1970)).inDays;
     return bucket + epochDay * 10 + prayerIndex;
   }
 

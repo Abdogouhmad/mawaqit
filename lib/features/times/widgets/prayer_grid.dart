@@ -111,7 +111,13 @@ class PrayerGrid {
       textDirection: direction,
       textScaler: scaler,
     )..layout();
-    return painter.width;
+    try {
+      return painter.width;
+    } finally {
+      // TextPainter owns a native paragraph; dropping it without disposing
+      // leaks that allocation on every measurement.
+      painter.dispose();
+    }
   }
 
   /// Number of rows [itemCount] columns occupy at this column count.

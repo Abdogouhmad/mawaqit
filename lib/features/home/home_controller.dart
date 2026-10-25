@@ -26,8 +26,6 @@ class HomeState {
     this.fromManual = false,
     this.currentPrayer,
     this.nextPrayer,
-    this.nextIn = Duration.zero,
-    this.progress = 0,
     this.methodLabel = '',
     this.isLoading = true,
     this.error,
@@ -50,8 +48,6 @@ class HomeState {
   final bool fromManual;
   final PrayerTime? currentPrayer;
   final PrayerTime? nextPrayer;
-  final Duration nextIn;
-  final double progress;
   final String methodLabel;
   final bool isLoading;
   final String? error;
@@ -68,8 +64,6 @@ class HomeState {
     bool? fromManual,
     PrayerTime? currentPrayer,
     PrayerTime? nextPrayer,
-    Duration? nextIn,
-    double? progress,
     String? methodLabel,
     bool? isLoading,
     String? error,
@@ -84,8 +78,6 @@ class HomeState {
       fromManual: fromManual ?? this.fromManual,
       currentPrayer: currentPrayer ?? this.currentPrayer,
       nextPrayer: nextPrayer ?? this.nextPrayer,
-      nextIn: nextIn ?? this.nextIn,
-      progress: progress ?? this.progress,
       methodLabel: methodLabel ?? this.methodLabel,
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
@@ -131,13 +123,31 @@ class HomeController extends AsyncNotifier<HomeState> {
 
     unawaited(_runLaunchWorkOnce());
 
-    _ticker?.cancel();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
-    ref.onDispose(() => _ticker?.cancel());
+    // The ticker exists to catch prayer boundaries (and midnight), not to
+    // repaint the countdown: the screen derives that from [homeClockProvider].
+    // Pausing it while Home is not mounted avoids a state emission every second
+    // for a tab nobody is looking at.
+    ref.onCancel(_stopTicker);
+    ref.onResume(() {
+      _startTicker();
+      _tick();
+    });
+    _startTicker();
+    ref.onDispose(_stopTicker);
 
     final home = await _resolveOrFallback(_settings, DateTime.now());
     _computedFor = home.now;
     return home;
+  }
+
+  void _startTicker() {
+    _ticker?.cancel();
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
+  }
+
+  void _stopTicker() {
+    _ticker?.cancel();
+    _ticker = null;
   }
 
   /// Launch-only work: initialise the alarm pipeline, register the periodic
@@ -180,13 +190,7 @@ class HomeController extends AsyncNotifier<HomeState> {
     final previous = _settings;
     _settings = next;
 
-    final timesChanged =
-        next.locationMode != previous.locationMode ||
-        next.cityName != previous.cityName ||
-        next.cityLatitude != previous.cityLatitude ||
-        next.cityLongitude != previous.cityLongitude ||
-        next.calculationMethod != previous.calculationMethod ||
-        next.madhab != previous.madhab;
+    final timesChanged = next.changesPrayerTimesFrom(previous);
     if (!timesChanged) return;
 
     unawaited(_reloadTimes());
@@ -362,20 +366,11 @@ class HomeController extends AsyncNotifier<HomeState> {
       current ??= day.prayers.last;
     }
 
-    final start = current?.time ?? DateTime(now.year, now.month, now.day);
-    final duration = next.time.difference(start).inSeconds;
-    final elapsed = now.difference(start).inSeconds;
-    final progress = duration <= 0 ? 0.0 : (elapsed / duration).clamp(0.0, 1.0);
-
     return base.copyWith(
       now: now,
       day: day,
       currentPrayer: current,
       nextPrayer: next,
-      nextIn: next.time.difference(now).isNegative
-          ? Duration.zero
-          : next.time.difference(now),
-      progress: progress,
       isLoading: false,
       clearError: true,
     );
@@ -392,6 +387,8 @@ class HomeController extends AsyncNotifier<HomeState> {
     }
     final derived = _deriveWith(previous, now);
     final nextChanged = derived.nextPrayer?.time != previous.nextPrayer?.time;
+    final currentChanged =
+        derived.currentPrayer?.kind != previous.currentPrayer?.kind;
     if (nextChanged && derived.day != null) {
       // A prayer rolled over — refresh the widget's next-prayer highlight and
       // countdown so it never goes stale between app launches.
@@ -434,7 +431,12 @@ class HomeController extends AsyncNotifier<HomeState> {
       }
     }
 
-    state = AsyncData(derived);
+    // Publish only when the schedule itself moved. The countdown's remaining
+    // time and progress are recomputed from [homeClockProvider] by the widgets
+    // that actually display them, so emitting a new state every second would
+    // rebuild the whole Home body — five tiles and two cards — for a string one
+    // leaf widget reads.
+    if (nextChanged || currentChanged) state = AsyncData(derived);
   }
 
   Future<void> _maybeFireReminder(HomeState home, AppSettings settings) async {
@@ -496,4 +498,21 @@ class HomeController extends AsyncNotifier<HomeState> {
 
 final homeControllerProvider = AsyncNotifierProvider<HomeController, HomeState>(
   HomeController.new,
+);
+
+/// A once-a-second clock for the parts of Home that genuinely tick.
+///
+/// Separate from [homeControllerProvider] on purpose: the controller wakes for
+/// prayer boundaries, while the countdown needs a frame every second. Keeping
+/// the two apart means the second hand repaints one leaf instead of the page.
+/// Auto-disposed, so the timer stops with the Home tab.
+final homeClockProvider = StreamProvider<DateTime>(
+  (ref) async* {
+    yield DateTime.now();
+    yield* Stream<DateTime>.periodic(
+      const Duration(seconds: 1),
+      (_) => DateTime.now(),
+    );
+  },
+  isAutoDispose: true,
 );
