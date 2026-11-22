@@ -307,5 +307,15 @@
   "settingsSectionPermissions": "Autorisations",
   "settingsPermissionsDesc": "Accès système qui garde l'adhan à l'heure",
   "settingsPermissionsRow": "Vérifier les autorisations",
-  "settingsPermissionsUnavailable": "La vérification des autorisations n'est disponible que sur Android."
+  "settingsPermissionsUnavailable": "La vérification des autorisations n'est disponible que sur Android.",
+  "updateBannerTitle": "Mise à jour disponible",
+  "updateBannerBody": "Mawaqit v{version} est prêt à être installé",
+  "updateBannerSemantics": "Mise à jour disponible : Mawaqit {version}. Ouvrir la mise à jour logicielle.",
+  "updateDismissBanner": "Masquer la bannière de mise à jour",
+  "updateAutoCheckTitle": "Rechercher les mises à jour automatiquement",
+  "updateAutoCheckSubtitle": "Au lancement et à chaque retour dans l'application.",
+  "updateNotificationsOn": "Les notifications de mise à jour sont activées",
+  "updateNotificationsOff": "Les notifications de mise à jour sont désactivées",
+  "updateEnableNotifications": "Activer les notifications",
+  "updatePrivacyNotice": "La vérification lit uniquement le manifeste public des versions. Votre position et vos données de prière ne quittent jamais cet appareil."
 }

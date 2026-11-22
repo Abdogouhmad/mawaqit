@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mawaqit/core/const/app_constants.dart';
-import 'package:mawaqit/core/navigation/app_shell.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
@@ -34,45 +33,42 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         bottom: false,
-        child: NavVisibilityScope.wrap(
-          context,
-          child: RefreshIndicator(
-            onRefresh: () async => ref.invalidate(homeControllerProvider),
-            color: Theme.of(context).colorScheme.primary,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.huge,
-                AppSpacing.xs,
-                AppSpacing.huge,
-                AppSpacing.pageBottom,
-              ),
-              children: [
-                _HomeHeader(locationMissing: locationMissing),
-                asyncState.when(
-                  // Keep the current day on screen while a refresh or a settings
-                  // change recomputes it. The RefreshIndicator already shows the
-                  // pull, so swapping the whole body for a spinner here is a
-                  // regression, not feedback. A genuinely first load still has no
-                  // previous value and falls through to `loading` below.
-                  skipLoadingOnReload: true,
-                  loading: () => const _HomeLoading(),
-                  error: (error, _) => _HomeError(message: error.toString()),
-                  data: (data) => _HomeBody(state: data),
-                ),
-                // Renders nothing: the one-time battery-optimisation ask. Mounted
-                // only once home data exists, which is also the point where the
-                // notification service has finished initialising and the system
-                // access state behind the question is a real read.
-                if (state != null) const AlarmAccessGate(),
-                if (kDebugMode) ...[
-                  const SizedBox(height: AppSpacing.tera),
-                  _DevAdhanPreview(
-                    prayer: state?.nextPrayer?.kind ?? PrayerKind.maghrib,
-                  ),
-                ],
-              ],
+        child: RefreshIndicator(
+          onRefresh: () async => ref.invalidate(homeControllerProvider),
+          color: Theme.of(context).colorScheme.primary,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.huge,
+              AppSpacing.xs,
+              AppSpacing.huge,
+              AppSpacing.pageBottom,
             ),
+            children: [
+              _HomeHeader(locationMissing: locationMissing),
+              asyncState.when(
+                // Keep the current day on screen while a refresh or a settings
+                // change recomputes it. The RefreshIndicator already shows the
+                // pull, so swapping the whole body for a spinner here is a
+                // regression, not feedback. A genuinely first load still has no
+                // previous value and falls through to `loading` below.
+                skipLoadingOnReload: true,
+                loading: () => const _HomeLoading(),
+                error: (error, _) => _HomeError(message: error.toString()),
+                data: (data) => _HomeBody(state: data),
+              ),
+              // Renders nothing: the one-time battery-optimisation ask. Mounted
+              // only once home data exists, which is also the point where the
+              // notification service has finished initialising and the system
+              // access state behind the question is a real read.
+              if (state != null) const AlarmAccessGate(),
+              if (kDebugMode) ...[
+                const SizedBox(height: AppSpacing.tera),
+                _DevAdhanPreview(
+                  prayer: state?.nextPrayer?.kind ?? PrayerKind.maghrib,
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -194,10 +190,7 @@ class _HomeBody extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.block),
-        _LiveCountdown(
-          nextPrayer: next,
-          currentPrayer: state.currentPrayer,
-        ),
+        _LiveCountdown(nextPrayer: next, currentPrayer: state.currentPrayer),
         const SizedBox(height: AppSpacing.emphasis),
         SectionHeader(
           label: l10n.homeDailySchedule,
@@ -301,8 +294,7 @@ class _LiveCountdown extends ConsumerWidget {
     }
 
     final now = ref.watch(homeClockProvider).value ?? DateTime.now();
-    final start =
-        currentPrayer?.time ?? DateTime(now.year, now.month, now.day);
+    final start = currentPrayer?.time ?? DateTime(now.year, now.month, now.day);
     final total = next.time.difference(start).inSeconds;
     final elapsed = now.difference(start).inSeconds;
     final remaining = next.time.difference(now);
@@ -352,11 +344,7 @@ class _SunsetFooter extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        Icon(
-          Icons.wb_twilight,
-          size: AppIconSize.sm,
-          color: scheme.primary,
-        ),
+        Icon(Icons.wb_twilight, size: AppIconSize.sm, color: scheme.primary),
         const SizedBox(width: AppSpacing.sm),
         Flexible(
           child: UiText(

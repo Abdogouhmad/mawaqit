@@ -1,57 +1,28 @@
 import 'package:flutter/material.dart';
 
-/// Layout metrics for the app's floating chrome — the detached pill navigation
-/// bar.
+/// Layout metrics shared by the app's screens.
 ///
-/// The bar is **not** a `bottomNavigationBar`, so Flutter reserves no space for
-/// it. Two consequences the rest of the app depends on:
-///
-///  * every scrollable must end with [scrollBottomPadding] so its last item is
-///    never hidden behind the pill;
-///  * the shell uses `extendBody: true` and positions the bar with
-///    [navBottomOffset].
-///
-/// Renaming any value here is a layout change in every screen, which is why they
-/// live in one file rather than as literals at the call sites.
+/// The bottom navigation is a standard Material `NavigationBar` in the
+/// `Scaffold.bottomNavigationBar` slot, so Flutter reserves its height: screens
+/// no longer have to clear a detached floating bar. [scrollBottomPadding] is
+/// therefore just a little breathing room under the last list item, and
+/// [constrain] keeps phone-first layouts centred on tablets and foldables.
 abstract final class AppChrome {
   const AppChrome._();
-
-  /// Horizontal margin between the pill and the screen edge.
-  ///
-  /// Wide enough that the pill reads as detached from the screen rather than as
-  /// a full-width bar with rounded ends. Too wide and it stops spanning enough
-  /// for the selected label to open up inside it.
-  static const double horizontalMargin = 22;
-
-  /// Height of the pill itself.
-  static const double navHeight = 68;
-
-  /// Gap between the pill and the bottom system inset.
-  static const double navBottomMargin = 16;
-
-  /// Vertical extent the chrome occupies, ignoring system insets.
-  static const double navExtent = navHeight + navBottomMargin;
 
   /// Max content width before the layout starts constraining and centring, so
   /// phone-first screens do not stretch across a tablet or unfolded foldable.
   static const double maxContentWidth = 600;
 
-  /// Bottom system inset (gesture bar / navigation buttons).
-  static double systemBottom(BuildContext context) =>
-      MediaQuery.viewPaddingOf(context).bottom;
-
-  /// Distance from the screen's bottom edge to the pill's bottom edge.
-  static double navBottomOffset(BuildContext context) =>
-      navBottomMargin + systemBottom(context);
-
-  /// Bottom padding a scrollable must add to clear the floating chrome.
+  /// Bottom inset a scrollable adds so its last item is not flush against the
+  /// navigation bar. The bar's own height is reserved by the `Scaffold`.
   static double scrollBottomPadding(
     BuildContext context, {
-    double extra = 24,
-  }) => navExtent + systemBottom(context) + extra;
+    double extra = 16,
+  }) => extra;
 
-  /// Padding for a screen's scrollable body: symmetric sides, chrome clearance
-  /// at the bottom.
+  /// Padding for a screen's scrollable body: symmetric sides, a little bottom
+  /// breathing room above the navigation bar.
   static EdgeInsets screenPadding(
     BuildContext context, {
     double horizontal = 20,

@@ -13,6 +13,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A global update banner** now announces a new release on every screen. Tap
+  it to open Software Update, or dismiss it for that version only.
+- **Launch and resume now notify you of a new version** (once per release),
+  using Mawaqit's existing app-updates notification channel.
+- **Automatic update checks are now configurable** from Software Update, with
+  a one-tap way to enable update notifications and a short privacy note.
+
+### Changed
+
+- **Bottom navigation is now a standard Material 3 navigation bar**, replacing
+  the floating pill. It stays visible while scrolling and follows the app's
+  light/dark theme and RTL layout.
+- **OTA checks fail closed**: a release without a valid 64-hex SHA-256 or with
+  a non-HTTPS APK URL is never offered, downloaded or installed. The APK is
+  still verified against the manifest checksum before the system installer
+  runs, and mandatory/support-floor updates are honoured as before.
+
 ## [0.15.2] - 2026-10-25
 
 ### Fixed

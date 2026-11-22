@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mawaqit/core/navigation/app_shell.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
@@ -108,139 +107,135 @@ class _SettingsBody extends ConsumerWidget {
     final controller = ref.read(settingsProvider.notifier);
     final l10n = AppLocalizations.of(context);
 
-    return NavVisibilityScope.wrap(
-      context,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.huge,
-          AppSpacing.xs,
-          AppSpacing.huge,
-          AppSpacing.pageBottom,
-        ),
-        children: [
-          // Location & timing
-          SectionHeader(
-            label: AppLocalizations.of(context).settingsSectionLocationTiming,
-            description: l10n.settingsLocationTimingDesc,
-            icon: Icons.near_me_outlined,
-          ),
-          AppCard(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.xs,
-              vertical: AppSpacing.xs,
-            ),
-            child: SettingsRow(
-              icon: Icons.near_me_outlined,
-              title: AppLocalizations.of(context).settingsCurrentLocation,
-              subtitle: _locationSubtitle(context, settings),
-              onTap: () =>
-                  _openLocationSheet(context, ref, controller, settings),
-              trailing: AppPill(
-                label: settings.locationMode.localized(l10n),
-                dense: true,
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.mega),
-
-          // Calculation
-          SectionHeader(
-            label: AppLocalizations.of(context).settingsSectionCalculation,
-            description: l10n.settingsCalculationDesc,
-            icon: Icons.calculate_outlined,
-          ),
-          SettingsGroup(
-            children: [
-              SettingsRow(
-                icon: Icons.calculate_outlined,
-                title: AppLocalizations.of(context).settingsCalculationMethod,
-                subtitle: settings.calculationMethod.displayName,
-                onTap: () =>
-                    _pickCalculationMethod(context, controller, settings),
-                trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
-              ),
-              SettingsRow(
-                icon: Icons.balance_outlined,
-                title: l10n.settingsJuridicalMethod,
-                subtitle: settings.madhab == Madhab.hanafi
-                    ? l10n.madhabHanafi
-                    : l10n.madhabStandard,
-                onTap: () => _pickMadhab(context, controller, settings),
-                trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.mega),
-
-          // General
-          SectionHeader(
-            label: l10n.settingsSectionGeneral,
-            description: l10n.settingsGeneralDesc,
-            icon: Icons.tune,
-          ),
-          SettingsGroup(
-            children: [
-              SettingsRow(
-                icon: Icons.tune,
-                title: l10n.settingsGeneralRow,
-                subtitle:
-                    '${settings.language.localized(l10n)} · '
-                    '${settings.themeMode.localized(l10n)}',
-                onTap: () => _openGeneral(context),
-                trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.mega),
-
-          // Notifications & audio
-          SectionHeader(
-            label: l10n.settingsSectionNotifications,
-            description: l10n.settingsNotificationsDesc,
-            icon: Icons.notifications_none,
-          ),
-          SettingsGroup(
-            children: [
-              SettingsRow(
-                icon: Icons.notifications_none,
-                title: l10n.settingsNotificationsRow,
-                subtitle: l10n.settingsNotificationsDesc,
-                onTap: () => _openNotifications(context),
-                trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.mega),
-
-          // Permissions
-          SectionHeader(
-            label: l10n.settingsSectionPermissions,
-            description: l10n.settingsPermissionsDesc,
-            icon: Icons.verified_user_outlined,
-          ),
-          SettingsGroup(
-            children: [
-              SettingsRow(
-                icon: Icons.verified_user_outlined,
-                title: l10n.settingsPermissionsRow,
-                subtitle: l10n.settingsPermissionsDesc,
-                onTap: () => _openPermissions(context),
-                trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.tera),
-
-          // About & OTA updates
-          SectionHeader(
-            label: AppLocalizations.of(context).settingsSectionAbout,
-            icon: Icons.info_outline,
-          ),
-          const UpdateSection(),
-          const SizedBox(height: AppSpacing.tera),
-          const _Footer(),
-        ],
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.huge,
+        AppSpacing.xs,
+        AppSpacing.huge,
+        AppSpacing.pageBottom,
       ),
+      children: [
+        // Location & timing
+        SectionHeader(
+          label: AppLocalizations.of(context).settingsSectionLocationTiming,
+          description: l10n.settingsLocationTimingDesc,
+          icon: Icons.near_me_outlined,
+        ),
+        AppCard(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xs,
+            vertical: AppSpacing.xs,
+          ),
+          child: SettingsRow(
+            icon: Icons.near_me_outlined,
+            title: AppLocalizations.of(context).settingsCurrentLocation,
+            subtitle: _locationSubtitle(context, settings),
+            onTap: () => _openLocationSheet(context, ref, controller, settings),
+            trailing: AppPill(
+              label: settings.locationMode.localized(l10n),
+              dense: true,
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.mega),
+
+        // Calculation
+        SectionHeader(
+          label: AppLocalizations.of(context).settingsSectionCalculation,
+          description: l10n.settingsCalculationDesc,
+          icon: Icons.calculate_outlined,
+        ),
+        SettingsGroup(
+          children: [
+            SettingsRow(
+              icon: Icons.calculate_outlined,
+              title: AppLocalizations.of(context).settingsCalculationMethod,
+              subtitle: settings.calculationMethod.displayName,
+              onTap: () =>
+                  _pickCalculationMethod(context, controller, settings),
+              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+            ),
+            SettingsRow(
+              icon: Icons.balance_outlined,
+              title: l10n.settingsJuridicalMethod,
+              subtitle: settings.madhab == Madhab.hanafi
+                  ? l10n.madhabHanafi
+                  : l10n.madhabStandard,
+              onTap: () => _pickMadhab(context, controller, settings),
+              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.mega),
+
+        // General
+        SectionHeader(
+          label: l10n.settingsSectionGeneral,
+          description: l10n.settingsGeneralDesc,
+          icon: Icons.tune,
+        ),
+        SettingsGroup(
+          children: [
+            SettingsRow(
+              icon: Icons.tune,
+              title: l10n.settingsGeneralRow,
+              subtitle:
+                  '${settings.language.localized(l10n)} · '
+                  '${settings.themeMode.localized(l10n)}',
+              onTap: () => _openGeneral(context),
+              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.mega),
+
+        // Notifications & audio
+        SectionHeader(
+          label: l10n.settingsSectionNotifications,
+          description: l10n.settingsNotificationsDesc,
+          icon: Icons.notifications_none,
+        ),
+        SettingsGroup(
+          children: [
+            SettingsRow(
+              icon: Icons.notifications_none,
+              title: l10n.settingsNotificationsRow,
+              subtitle: l10n.settingsNotificationsDesc,
+              onTap: () => _openNotifications(context),
+              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.mega),
+
+        // Permissions
+        SectionHeader(
+          label: l10n.settingsSectionPermissions,
+          description: l10n.settingsPermissionsDesc,
+          icon: Icons.verified_user_outlined,
+        ),
+        SettingsGroup(
+          children: [
+            SettingsRow(
+              icon: Icons.verified_user_outlined,
+              title: l10n.settingsPermissionsRow,
+              subtitle: l10n.settingsPermissionsDesc,
+              onTap: () => _openPermissions(context),
+              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.tera),
+
+        // About & OTA updates
+        SectionHeader(
+          label: AppLocalizations.of(context).settingsSectionAbout,
+          icon: Icons.info_outline,
+        ),
+        const UpdateSection(),
+        const SizedBox(height: AppSpacing.tera),
+        const _Footer(),
+      ],
     );
   }
 

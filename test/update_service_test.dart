@@ -6,18 +6,26 @@ import 'package:mawaqit/data/services/update_service.dart';
 /// update, or is left alone. That decision is pure arithmetic over the
 /// manifest, so it is pinned here without a network call.
 void main() {
+  // A release is only installable when its APK is HTTPS and carries a valid
+  // 64-hex SHA-256. The check deliberately fails closed otherwise, so every
+  // fixture that should be *offered* needs a verifiable checksum.
+  const validChecksum =
+      '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+
   UpdateManifest manifest({
     int code = 1200,
     String name = '0.12.0',
     int? floor,
     bool mandatory = false,
     String apkUrl = 'https://example.com/mawaqit.apk',
+    String? sha256 = validChecksum,
   }) => UpdateManifest(
     latestVersionCode: code,
     latestVersionName: name,
     minSupportedVersionCode: floor,
     mandatory: mandatory,
     apkUrl: apkUrl,
+    sha256: sha256,
   );
 
   group('UpdateManifest.fromJson', () {
@@ -29,7 +37,10 @@ void main() {
         'mandatory': true,
         'releaseNotes': '## [0.13.0]',
         'apkUrl': 'https://example.com/a.apk',
-        'sha256': 'abc',
+        'sha256': validChecksum,
+        'size': 24 * 1024 * 1024,
+        'channel': 'beta',
+        'publishedAt': '2026-11-20T10:00:00Z',
       });
 
       expect(parsed.latestVersionCode, 1300);
@@ -38,7 +49,11 @@ void main() {
       expect(parsed.mandatory, isTrue);
       expect(parsed.releaseNotes, '## [0.13.0]');
       expect(parsed.apkUrl, 'https://example.com/a.apk');
-      expect(parsed.sha256, 'abc');
+      expect(parsed.sha256, validChecksum);
+      expect(parsed.size, 24 * 1024 * 1024);
+      expect(parsed.channel, 'beta');
+      expect(parsed.isPrerelease, isTrue);
+      expect(parsed.publishedAt, DateTime.utc(2026, 11, 20, 10));
     });
 
     test('defaults absent optional fields instead of throwing', () {
@@ -51,6 +66,44 @@ void main() {
       expect(parsed.releaseNotes, '');
       expect(parsed.apkUrl, '');
       expect(parsed.sha256, isNull);
+      expect(parsed.channel, 'stable');
+      expect(parsed.isPrerelease, isFalse);
+    });
+  });
+
+  group('fail-closed integrity', () {
+    test('checksum must be exactly 64 hex digits', () {
+      expect(isValidUpdateChecksum(validChecksum), isTrue);
+      expect(isValidUpdateChecksum(validChecksum.toUpperCase()), isTrue);
+      expect(isValidUpdateChecksum('abc'), isFalse);
+      expect(isValidUpdateChecksum(null), isFalse);
+      expect(isValidUpdateChecksum('${validChecksum}z'), isFalse);
+    });
+
+    test('APK URL must be absolute HTTPS', () {
+      expect(isSecureUpdateUrl('https://example.com/a.apk'), isTrue);
+      expect(isSecureUpdateUrl('http://example.com/a.apk'), isFalse);
+      expect(isSecureUpdateUrl('/local/a.apk'), isFalse);
+      expect(isSecureUpdateUrl('not a url'), isFalse);
+    });
+
+    test('an unverifiable release is never offered', () {
+      const service = UpdateService();
+      expect(
+        service.check(manifest: manifest(sha256: null), currentVersionCode: 1),
+        UpdateCheckResult.checkFailed,
+      );
+      expect(
+        service.check(manifest: manifest(sha256: 'abc'), currentVersionCode: 1),
+        UpdateCheckResult.checkFailed,
+      );
+      expect(
+        service.check(
+          manifest: manifest(apkUrl: 'http://example.com/a.apk'),
+          currentVersionCode: 1,
+        ),
+        UpdateCheckResult.checkFailed,
+      );
     });
   });
 
@@ -72,6 +125,27 @@ void main() {
 
     test('isMandatoryFor is false when there is nothing newer to install', () {
       expect(manifest(mandatory: true).isMandatoryFor(1200), isFalse);
+    });
+
+    test('formattedSize renders bytes, KB and MB', () {
+      expect(
+        const UpdateManifest(
+          latestVersionCode: 1,
+          latestVersionName: '1.0.0',
+          apkUrl: 'https://example.com/a.apk',
+          size: 512,
+        ).formattedSize,
+        '512 B',
+      );
+      expect(
+        const UpdateManifest(
+          latestVersionCode: 1200,
+          latestVersionName: '0.12.0',
+          apkUrl: 'https://example.com/a.apk',
+          size: 2 * 1024 * 1024,
+        ).formattedSize,
+        '2.0 MB',
+      );
     });
   });
 

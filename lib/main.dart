@@ -6,6 +6,7 @@ import 'package:home_widget/home_widget.dart';
 
 import 'package:mawaqit/app.dart';
 import 'package:mawaqit/core/navigation/app_shell.dart';
+import 'package:mawaqit/core/ota/update_check_host.dart';
 import 'package:mawaqit/core/utils/timezone_setup.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
@@ -39,7 +40,13 @@ Future<void> main() async {
       // opens on the tab the card was showing instead of flashing Home first.
       MawaqitApp.launchRoute = await _launchRoute();
 
-      runApp(const ProviderScope(child: MawaqitApp()));
+      runApp(
+        const ProviderScope(
+          // Silent update checks live above the router: the launch check and
+          // its notification must also happen on deep links and overlay routes.
+          child: UpdateCheckHost(child: MawaqitApp()),
+        ),
+      );
 
       // Warm launches. A tap while the app is already alive is delivered to the
       // existing singleTop activity as a second intent, so there is no cold-start

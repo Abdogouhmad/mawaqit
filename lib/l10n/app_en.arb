@@ -1122,5 +1122,39 @@
   "settingsPermissionsUnavailable": "Permission checks are available on Android only.",
   "@settingsPermissionsUnavailable": {
     "description": "Shown on the permissions screen on platforms with no such permissions."
+  },
+  "updateBannerTitle": "Update available",
+  "@updateBannerTitle": {
+    "description": "Title of the global banner shown above every screen when a new release is available."
+  },
+  "updateBannerBody": "Mawaqit v{version} is ready to install",
+  "@updateBannerBody": {
+    "description": "Subtitle of the global update banner, naming the offered version."
+  },
+  "updateBannerSemantics": "Update available: Mawaqit {version}. Open software update.",
+  "@updateBannerSemantics": {
+    "description": "Screen-reader label for the tappable update banner."
+  },
+  "updateDismissBanner": "Dismiss update banner",
+  "@updateDismissBanner": {
+    "description": "Tooltip of the button that hides the update banner for the current version."
+  },
+  "updateAutoCheckTitle": "Check for updates automatically",
+  "@updateAutoCheckTitle": {
+    "description": "Title of the automatic update check switch in Software Update."
+  },
+  "updateAutoCheckSubtitle": "On launch and whenever you return to the app.",
+  "@updateAutoCheckSubtitle": {
+    "description": "Explanation under the automatic update check switch."
+  },
+  "updateNotificationsOn": "Update notifications are on",
+  "updateNotificationsOff": "Update notifications are off",
+  "updateEnableNotifications": "Enable notifications",
+  "@updateEnableNotifications": {
+    "description": "Button in Software Update that opens the notification permission dialog."
+  },
+  "updatePrivacyNotice": "Checks read only the public release manifest. Your location and prayer data never leave this device.",
+  "@updatePrivacyNotice": {
+    "description": "Privacy reassurance shown at the bottom of the Software Update screen."
   }
 }

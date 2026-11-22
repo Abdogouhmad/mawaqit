@@ -523,5 +523,15 @@
   "settingsSectionPermissions": "الأذونات",
   "settingsPermissionsDesc": "صلاحيات النظام التي تُبقي الأذان في وقته",
   "settingsPermissionsRow": "التحقق من الأذونات",
-  "settingsPermissionsUnavailable": "التحقق من الأذونات متاح على أندرويد فقط."
+  "settingsPermissionsUnavailable": "التحقق من الأذونات متاح على أندرويد فقط.",
+  "updateBannerTitle": "تحديث متاح",
+  "updateBannerBody": "إصدار مواقيت {version} جاهز للتثبيت",
+  "updateBannerSemantics": "تحديث متاح: مواقيت {version}. افتح تحديث البرنامج.",
+  "updateDismissBanner": "إخفاء شريط التحديث",
+  "updateAutoCheckTitle": "البحث عن التحديثات تلقائيًا",
+  "updateAutoCheckSubtitle": "عند التشغيل وكلما عدت إلى التطبيق.",
+  "updateNotificationsOn": "إشعارات التحديث مفعّلة",
+  "updateNotificationsOff": "إشعارات التحديث متوقّفة",
+  "updateEnableNotifications": "تفعيل الإشعارات",
+  "updatePrivacyNotice": "يتحقق التطبيق من ملف إصدارات عام فقط. لا تغادر بيانات موقعك ومواعيت الصلاة جهازك أبدًا."
 }

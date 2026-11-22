@@ -107,6 +107,8 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
                   ),
                 },
               ],
+              const SizedBox(height: AppSpacing.tera),
+              _PreferencesCard(state: state),
             ],
           ),
         ),
@@ -645,6 +647,82 @@ class _InlineError extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// The quiet, privacy-first controls behind automatic updates.
+///
+/// Checks are foreground-only: no background service, no location, no device
+/// identifiers — just the public manifest. Notifications are optional and can
+/// be granted straight from here without leaving the app.
+class _PreferencesCard extends ConsumerWidget {
+  const _PreferencesCard({required this.state});
+
+  final UpdateState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final notifier = ref.read(updateProvider.notifier);
+
+    return _Card(
+      title: l10n.updateAutoCheckTitle,
+      icon: Icons.autorenew_rounded,
+      children: [
+        SwitchListTile.adaptive(
+          value: state.autoCheck,
+          onChanged: (enabled) => notifier.setAutoCheck(enabled: enabled),
+          title: UiText(l10n.updateAutoCheckTitle, type: UiTextType.titleSmall),
+          subtitle: UiText(
+            l10n.updateAutoCheckSubtitle,
+            type: UiTextType.bodySmall,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+        _divider(context),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: Row(
+            children: [
+              Icon(
+                state.notificationsEnabled
+                    ? Icons.notifications_active_outlined
+                    : Icons.notifications_off_outlined,
+                color: scheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: UiText(
+                  state.notificationsEnabled
+                      ? l10n.updateNotificationsOn
+                      : l10n.updateNotificationsOff,
+                ),
+              ),
+              if (!state.notificationsEnabled && state.autoCheck) ...[
+                TextButton(
+                  onPressed: notifier.maybePromptForNotifications,
+                  child: UiText(
+                    l10n.updateEnableNotifications,
+                    type: UiTextType.labelLarge,
+                    color: scheme.primary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        _divider(context),
+        Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.md),
+          child: UiText(
+            l10n.updatePrivacyNotice,
+            type: UiTextType.bodySmall,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }

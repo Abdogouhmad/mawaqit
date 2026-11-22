@@ -5,14 +5,14 @@ import 'package:mawaqit/core/navigation/app_shell.dart';
 
 /// The app's router.
 ///
-/// Four flat tab routes, all rendered by [AppShell], which switches on the path
-/// itself. That is deliberately not four sibling `ShellRoute`s: a shell per tab
+/// Three flat tab routes, all rendered by [AppShell], which switches on the path
+/// itself. That is deliberately not three sibling `ShellRoute`s: a shell per tab
 /// would rebuild — and re-run its scroll controllers — on every tab change, and
 /// would give each tab its own back stack, so backing out of Settings would land
 /// on a *stale* Home rather than the one the user actually left.
 ///
 /// Unknown paths fall through to `/` instead of throwing a 404 screen: the only
-/// internal links are the four tabs, so an unknown path means a stale deep link
+/// internal links are the three tabs, so an unknown path means a stale deep link
 /// from an older version of the app, and Home is the correct thing to show.
 GoRouter createRouter({String initialLocation = AppRoutes.home}) {
   return GoRouter(

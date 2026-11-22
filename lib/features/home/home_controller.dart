@@ -10,7 +10,6 @@ import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
 import 'package:mawaqit/data/services/prayer_widget_service.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
-import 'package:mawaqit/features/settings/update_controller.dart';
 import 'package:mawaqit/l10n/ambient_l10n.dart';
 import 'package:mawaqit/providers/providers.dart';
 
@@ -150,8 +149,8 @@ class HomeController extends AsyncNotifier<HomeState> {
     _ticker = null;
   }
 
-  /// Launch-only work: initialise the alarm pipeline, register the periodic
-  /// reschedule, and check for a release.
+  /// Launch-only work: initialise the alarm pipeline and register the periodic
+  /// reschedule. Update checks now live in a host above the router.
   ///
   /// Deliberately *not* inline in [build]. It is idempotent-by-guard rather
   /// than idempotent-by-nature: re-registering the WorkManager task rewrites
@@ -174,9 +173,6 @@ class HomeController extends AsyncNotifier<HomeState> {
     } catch (error) {
       debugPrint('HomeController launch work failed: $error');
     }
-    // OTA: check once at launch and surface a push notification when a new
-    // release exists (silent on failure / when already up to date).
-    unawaited(ref.read(updateProvider.notifier).checkForUpdates());
   }
 
   /// Re-derives the day against new settings without tearing the screen down.
@@ -506,13 +502,10 @@ final homeControllerProvider = AsyncNotifierProvider<HomeController, HomeState>(
 /// prayer boundaries, while the countdown needs a frame every second. Keeping
 /// the two apart means the second hand repaints one leaf instead of the page.
 /// Auto-disposed, so the timer stops with the Home tab.
-final homeClockProvider = StreamProvider<DateTime>(
-  (ref) async* {
-    yield DateTime.now();
-    yield* Stream<DateTime>.periodic(
-      const Duration(seconds: 1),
-      (_) => DateTime.now(),
-    );
-  },
-  isAutoDispose: true,
-);
+final homeClockProvider = StreamProvider<DateTime>((ref) async* {
+  yield DateTime.now();
+  yield* Stream<DateTime>.periodic(
+    const Duration(seconds: 1),
+    (_) => DateTime.now(),
+  );
+}, isAutoDispose: true);

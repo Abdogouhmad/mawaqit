@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:mawaqit/core/const/app_constants.dart';
+import 'package:mawaqit/core/navigation/app_navigator.dart';
 import 'package:mawaqit/core/navigation/app_router.dart';
 import 'package:mawaqit/core/navigation/app_shell.dart';
+import 'package:mawaqit/core/ota/update_available_banner.dart';
 import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/core/ui/theme/app_theme.dart';
 import 'package:mawaqit/core/ui/theme/motion.dart';
@@ -14,6 +16,7 @@ import 'package:mawaqit/core/ui/widgets/blur_surface.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
+import 'package:mawaqit/features/settings/widgets/ota_update_screen.dart';
 import 'package:mawaqit/l10n/ambient_l10n.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
@@ -52,6 +55,17 @@ class MawaqitApp extends ConsumerWidget {
   /// `await`, which is unsound and which the analyzer rejects.
   static void navigateTo(String route) {
     if (AppRoutes.tabs.contains(route)) _router.go(route);
+  }
+
+  /// Opens the software-update screen from the global update banner.
+  ///
+  /// `MaterialApp.builder` sits above the navigator, so a `BuildContext` taken
+  /// there has no navigator to push on. The router's shared key does, and it is
+  /// guaranteed to be attached by the time the banner can be tapped.
+  static void openUpdateScreen() {
+    appNavigatorKey.currentState?.push(
+      MaterialPageRoute<void>(builder: (_) => const OtaUpdateScreen()),
+    );
   }
 
   @override
@@ -146,11 +160,14 @@ class MawaqitApp extends ConsumerWidget {
         // Wrapping *here* rather than at each BlurSurface means the setting is
         // inherited by the adhan overlay, sheets and dialogs too, and it costs
         // one wrapper rather than a provider read per surface.
-        return ReduceTransparency(
-          enabled: reduceTransparency,
-          child: MotionPreferences(
-            reduceMotion: settings?.reduceMotion ?? false,
-            child: content,
+        return MotionPreferences(
+          reduceMotion: settings?.reduceMotion ?? false,
+          child: UpdateAvailableBanner(
+            onOpen: openUpdateScreen,
+            child: ReduceTransparency(
+              enabled: reduceTransparency,
+              child: content,
+            ),
           ),
         );
       },

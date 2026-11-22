@@ -48,24 +48,8 @@ class TimesScreen extends ConsumerStatefulWidget {
 class _TimesScreenState extends ConsumerState<TimesScreen> {
   final ScrollController _scrollController = ScrollController();
 
-  /// Returned by `attachScroll`; must be called before the controller is
-  /// disposed or the listener keeps a reference to this dead `State`.
-  VoidCallback? _detachScroll;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    // Re-attached rather than attached once: the scope's `onChanged` is a
-    // closure over the shell, and it changes when the shell rebuilds, so a
-    // listener captured on the first pass would report into a stale shell.
-    _detachScroll?.call();
-    _detachScroll = NavVisibilityScope.attachScroll(context, _scrollController);
-  }
-
   @override
   void dispose() {
-    _detachScroll?.call();
     _scrollController.dispose();
     super.dispose();
   }

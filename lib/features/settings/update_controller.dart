@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mawaqit/data/models/update_manifest.dart';
+import 'package:mawaqit/data/services/notification_service.dart';
 import 'package:mawaqit/data/services/update_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_store.dart';
@@ -52,6 +55,15 @@ class UpdateState {
   final UpdateErrorCode? error;
   final String? errorDetail;
 
+  /// Version whose global announcement banner was dismissed.
+  final String? dismissedVersion;
+
+  /// Whether silent checks (launch / resume / timer) are enabled.
+  final bool autoCheck;
+
+  /// Cached POST_NOTIFICATIONS state, refreshed whenever the app resumes.
+  final bool notificationsEnabled;
+
   const UpdateState({
     this.status = UpdateStatus.idle,
     this.manifest,
@@ -59,6 +71,9 @@ class UpdateState {
     this.progress,
     this.error,
     this.errorDetail,
+    this.dismissedVersion,
+    this.autoCheck = true,
+    this.notificationsEnabled = false,
   });
 
   bool get hasUpdate =>
@@ -67,6 +82,10 @@ class UpdateState {
 
   bool get isMandatory => checkResult == UpdateCheckResult.updateMandatory;
 
+  bool get isChecking => status == UpdateStatus.checking;
+
+  bool get isDownloading => status == UpdateStatus.downloading;
+
   UpdateState copyWith({
     UpdateStatus? status,
     UpdateManifest? manifest,
@@ -74,10 +93,14 @@ class UpdateState {
     double? progress,
     UpdateErrorCode? error,
     String? errorDetail,
+    String? dismissedVersion,
+    bool? autoCheck,
+    bool? notificationsEnabled,
     bool clearError = false,
     bool clearManifest = false,
     bool clearCheckResult = false,
     bool clearErrorDetail = false,
+    bool clearDismissedVersion = false,
   }) {
     return UpdateState(
       status: status ?? this.status,
@@ -91,6 +114,11 @@ class UpdateState {
       errorDetail: (clearError || clearErrorDetail)
           ? null
           : errorDetail ?? this.errorDetail,
+      dismissedVersion: clearDismissedVersion
+          ? null
+          : dismissedVersion ?? this.dismissedVersion,
+      autoCheck: autoCheck ?? this.autoCheck,
+      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
     );
   }
 }
@@ -136,24 +164,41 @@ class UpdateNotifier extends Notifier<UpdateState> {
   @override
   UpdateState build() => const UpdateState();
 
-  /// Hydrates the persisted "last checked" info (reads once, lazily).
+  UpdateStore get _store => ref.read(updateStoreProvider);
+
+  NotificationService get _notifications =>
+      ref.read(notificationServiceProvider);
+
+  /// Hydrates the persisted bookkeeping (reads once, lazily).
   Future<void> hydrate() async {
-    final store = ref.read(updateStoreProvider);
-    final last = await store.lastUpdateCheck();
-    final result = await store.lastUpdateCheckResult();
+    final last = await _store.lastUpdateCheck();
+    final result = await _store.lastUpdateCheckResult();
+    final dismissed = await _store.dismissedVersion();
+    final autoCheck = await _store.autoCheckEnabled();
+    if (!ref.mounted) return;
     if (last != null) {
       ref.read(lastUpdateCheckProvider.notifier).state = last;
     }
     if (result != null) {
       ref.read(lastUpdateCheckResultProvider.notifier).state = result;
     }
+    state = state.copyWith(dismissedVersion: dismissed, autoCheck: autoCheck);
+    await refreshNotificationPermission();
   }
 
-  /// Triggers an update check. Silent on failure (never blocks startup).
-  Future<void> checkForUpdates() async {
+  /// Triggers an update check.
+  ///
+  /// Silent checks ([userInitiated] `false`) are used by the launch/resume
+  /// host: they never surface a transient network error and post an OS
+  /// notification only for a newly discovered version.
+  Future<void> checkForUpdates({bool userInitiated = true}) async {
+    if (state.isChecking || state.isDownloading) return;
+
+    final previousStatus = state.status;
     state = state.copyWith(status: UpdateStatus.checking, clearError: true);
 
     final manifest = await ref.read(updateServiceProvider).fetchManifest();
+    if (!ref.mounted) return;
 
     final outcome = ref
         .read(updateServiceProvider)
@@ -166,10 +211,12 @@ class UpdateNotifier extends Notifier<UpdateState> {
       await ref
           .read(lastUpdateCheckResultProvider.notifier)
           .markResult(outcome);
+      if (!ref.mounted) return;
       state = state.copyWith(
-        status: UpdateStatus.idle,
-        checkResult: outcome,
-        clearManifest: true,
+        // A silent failure must not replace a useful screen with an error.
+        status: userInitiated ? UpdateStatus.idle : previousStatus,
+        checkResult: userInitiated ? outcome : state.checkResult,
+        clearManifest: userInitiated,
       );
       return;
     }
@@ -179,43 +226,107 @@ class UpdateNotifier extends Notifier<UpdateState> {
       manifest: manifest,
       checkResult: outcome,
       clearError: true,
+      dismissedVersion: await _store.dismissedVersion(),
     );
 
     await ref.read(lastUpdateCheckProvider.notifier).markChecked();
     await ref.read(lastUpdateCheckResultProvider.notifier).markResult(outcome);
 
-    // Push a local notification for the new release — once per version.
-    await _notifyIfNew(manifest, outcome);
+    // Only a silent discovery announces itself; an explicit "Check now" is
+    // already visible on screen and should not post a notification.
+    if (!userInitiated) await _notifyIfNew(manifest);
   }
 
   /// Fires a "Mawaqit vX.Y.Z is available" notification the first time a given
-  /// release is detected, then remembers it so re-checks stay silent. Mirrors
-  /// BrewLine's OTA push: silent-on-failure, never blocks the check flow.
-  Future<void> _notifyIfNew(
-    UpdateManifest? manifest,
-    UpdateCheckResult outcome,
-  ) async {
-    if (!_hasRelease(outcome) || manifest == null) return;
+  /// release is detected, then remembers it so re-checks stay silent.
+  Future<void> _notifyIfNew(UpdateManifest? manifest) async {
+    if (!state.autoCheck ||
+        manifest == null ||
+        !_hasRelease(state.checkResult)) {
+      return;
+    }
     try {
-      final store = ref.read(updateStoreProvider);
-      final alreadyNotified = await store.lastUpdateNotifiedVersion();
-      if (alreadyNotified == manifest.latestVersionName) return;
-
-      final notifications = ref.read(notificationServiceProvider);
-      await notifications.init();
-      await notifications.notifyUpdateAvailable(
+      if (await _store.lastUpdateNotifiedVersion() ==
+          manifest.latestVersionName) {
+        return;
+      }
+      await _notifications.init(allowPrompt: false);
+      await _notifications.notifyUpdateAvailable(
         version: manifest.latestVersionName,
         releaseNotes: manifest.releaseNotes,
       );
-      await store.saveLastUpdateNotifiedVersion(manifest.latestVersionName);
-    } catch (_) {
+      await _store.saveLastUpdateNotifiedVersion(manifest.latestVersionName);
+    } on Object catch (_) {
       // A failed notification must never surface as an update check error.
     }
   }
 
-  static bool _hasRelease(UpdateCheckResult outcome) =>
+  static bool _hasRelease(UpdateCheckResult? outcome) =>
       outcome == UpdateCheckResult.updateAvailable ||
       outcome == UpdateCheckResult.updateMandatory;
+
+  /// Cached notification permission, refreshed on every resume so a change
+  /// made in Android settings is reflected in the update screen.
+  Future<void> refreshNotificationPermission() async {
+    try {
+      await _notifications.refreshAlarmAccess();
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        notificationsEnabled: _notifications.alarmAccess.notifications,
+      );
+    } on Object catch (_) {
+      // Permission state is cosmetic here; the banner always works.
+    }
+  }
+
+  /// Requests POST_NOTIFICATIONS once, on the first automatic check.
+  ///
+  /// The flag is persisted *before* the await so a second resume cannot show
+  /// the dialog twice. Declining never blocks the banner or a manual check.
+  Future<void> maybePromptForNotifications() async {
+    if (!state.autoCheck) return;
+    if (await _store.notificationPromptShown()) {
+      await refreshNotificationPermission();
+      return;
+    }
+    await _store.markNotificationPromptShown();
+    try {
+      await _notifications.init();
+      if (!ref.mounted) return;
+      state = state.copyWith(
+        notificationsEnabled: _notifications.alarmAccess.notifications,
+      );
+    } on Object catch (_) {
+      // Ignored: the next launch can try again via Settings.
+    }
+  }
+
+  /// Persists the automatic-check preference.
+  Future<void> setAutoCheck({required bool enabled}) async {
+    await _store.saveAutoCheck(enabled);
+    if (!ref.mounted) return;
+    state = state.copyWith(autoCheck: enabled);
+    if (enabled) unawaited(maybePromptForNotifications());
+  }
+
+  /// Hides the global banner for the currently offered version only.
+  Future<void> dismissUpdateBanner() async {
+    final version = state.manifest?.latestVersionName;
+    if (version == null) return;
+    await _store.saveDismissedVersion(version);
+    if (!ref.mounted) return;
+    state = state.copyWith(dismissedVersion: version);
+  }
+
+  /// Dismisses an active error and returns to idle or available.
+  void dismissError() {
+    state = state.copyWith(
+      status: state.manifest != null
+          ? UpdateStatus.available
+          : UpdateStatus.idle,
+      clearError: true,
+    );
+  }
 
   /// Downloads and installs the update. `ota_update` verifies the manifest's
   /// SHA-256 before anything is installed and hands off to Android's
@@ -224,10 +335,12 @@ class UpdateNotifier extends Notifier<UpdateState> {
     final manifest = state.manifest;
     if (manifest == null) return;
 
-    if (manifest.apkUrl.isEmpty) {
+    if (!manifest.isInstallable) {
       state = state.copyWith(
         status: UpdateStatus.error,
-        error: UpdateErrorCode.noBuild,
+        error: manifest.apkUrl.isEmpty
+            ? UpdateErrorCode.noBuild
+            : UpdateErrorCode.integrity,
       );
       return;
     }
@@ -249,6 +362,7 @@ class UpdateNotifier extends Notifier<UpdateState> {
     state = state.copyWith(status: UpdateStatus.downloading, progress: 0);
 
     await for (final event in stream) {
+      if (!ref.mounted) return;
       switch (event.status) {
         case OtaStatus.DOWNLOADING:
           final progress = double.tryParse(event.value ?? '') ?? 0;

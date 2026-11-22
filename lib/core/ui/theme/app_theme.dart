@@ -44,10 +44,7 @@ abstract final class AppTheme {
     // every build, and building nine complete ThemeData objects just to look at
     // their colours is the expensive way to answer that.
     final key = '${palette.name}-${brightness.name}';
-    return _schemeCache.putIfAbsent(
-      key,
-      () => _scheme(palette, brightness),
-    );
+    return _schemeCache.putIfAbsent(key, () => _scheme(palette, brightness));
   }
 
   /// Drops every cached theme.

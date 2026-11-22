@@ -69,8 +69,7 @@ class _MonthPickerSheetState extends State<_MonthPickerSheet> {
     // for all twelve cells.
     final monthFormat = DateFormat.MMM(locale);
     final monthNames = [
-      for (var m = 1; m <= 12; m++)
-        monthFormat.format(DateTime(2024, m)),
+      for (var m = 1; m <= 12; m++) monthFormat.format(DateTime(2024, m)),
     ];
     final yearLabel = DateFormat.y(locale).format(_viewing);
 
