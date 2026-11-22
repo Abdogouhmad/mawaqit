@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 
 /// Leading icon badge — the tonal circle (or rounded square) that anchors
 /// settings rows, section headers and card titles.
@@ -38,7 +38,7 @@ class IconBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final backgroundColor =
-        color ?? scheme.secondaryContainer.withValues(alpha: 0.55);
+        color ?? scheme.secondaryContainer.withValues(alpha: AppOpacity.badge);
     final iconColor = foregroundColor ?? scheme.onSecondaryContainer;
 
     return Container(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Label/value list row (icon · label — value), used by the OTA "version
@@ -31,7 +31,11 @@ class InfoRow extends StatelessWidget {
       child: Row(
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 24, color: scheme.onSurfaceVariant),
+            Icon(
+              icon,
+              size: AppSize.detailIcon,
+              color: scheme.onSurfaceVariant,
+            ),
             const SizedBox(width: AppSpacing.md),
           ],
           // Both sides are flexible: at 200% text (and in AR, where the value
@@ -43,7 +47,7 @@ class InfoRow extends StatelessWidget {
             child: UiText(
               value,
               textAlign: TextAlign.end,
-              fontWeight: FontWeight.w700,
+              fontWeight: AppWeight.bold,
               color: highlight ? scheme.primary : scheme.onSurface,
             ),
           ),

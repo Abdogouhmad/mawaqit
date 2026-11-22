@@ -177,6 +177,12 @@ abstract final class AppColors {
   // ───────────────────────── Shared brand extras ─────────────────────────
   static const Color white = Color(0xFFFFFFFF);
 
+  /// Explicit no-tint value for component defaults.
+  ///
+  /// A token rather than `Colors.transparent` so widget files import one
+  /// vocabulary for every colour decision, including the absence of one.
+  static const Color transparent = Color(0x00000000);
+
   /// Brand tint used for soft chips, glows and the home widget's progress track.
   static const Color primaryTint = Color(0x330F5C4A);
 

@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 
 /// Android 17-style frosted surface: calm and tonal, deliberately *not* iOS
 /// liquid glass.
@@ -15,13 +15,13 @@ import 'package:mawaqit/core/ui/theme/shapes.dart';
 /// hairline are the whole effect.
 ///
 /// One detail does the actual work of making it read as glass rather than as a
-/// grey slab, and it is the one the nav bar leans on: **low tint, high sigma**.
-/// The fill has to stay thin or the blur behind it is invisible. At a 0.55 fill
-/// with sigma 30 the backdrop genuinely shows through, smeared past recognition.
+/// grey slab: **low tint, high sigma**. The fill has to stay thin or the blur
+/// behind it is invisible. At a low fill with sigma 30 the backdrop genuinely
+/// shows through, smeared past recognition.
 ///
-/// Applied to a small, deliberate set of surfaces — the floating nav bar, sheet
-/// handles, scrims. Cards stay flat: blurring everything is both expensive and
-/// visually noisy.
+/// Applied to a small, deliberate set of surfaces — sheet handles, scrims and
+/// special overlays. The bottom navigation bar is a solid Material 3 bar, and
+/// cards stay flat: blurring everything is both expensive and visually noisy.
 class BlurSurface extends StatelessWidget {
   const BlurSurface({
     super.key,
@@ -38,15 +38,15 @@ class BlurSurface extends StatelessWidget {
 
   /// 24 is the sweet spot: readable through busy content, cheap enough not to
   /// drop frames. The nav bar asks for [maxSigma] instead.
-  static const double defaultSigma = 24;
-  static const double maxSigma = 30;
+  static const double defaultSigma = AppBlur.surface;
+  static const double maxSigma = AppBlur.surfaceMax;
 
   /// Frost tint strength when a surface has not asked for something specific.
-  static const double defaultOpacity = 0.72;
+  static const double defaultOpacity = AppOpacity.frostDefault;
 
   /// Light mode nudges up on the default: a lighter backdrop makes the same
   /// alpha read as too transparent.
-  static const double lightOpacity = 0.82;
+  static const double lightOpacity = AppOpacity.frostLight;
 
   /// How much of a tint's chroma to strip when [neutralTint] is on.
   ///
@@ -54,7 +54,7 @@ class BlurSurface extends StatelessWidget {
   /// beside this app's warm off-white canvas, which is itself very slightly
   /// warm. Keeping a small residue holds the surface in the same tonal family
   /// while removing the cast that made it look tinted.
-  static const double neutralAmount = 0.82;
+  static const double neutralAmount = AppOpacity.frostNeutral;
 
   final Widget child;
   final double radius;
@@ -167,7 +167,11 @@ class BlurSurface extends StatelessWidget {
         color: tint,
         borderRadius: shape,
         border: border
-            ? Border.all(color: scheme.outlineVariant.withValues(alpha: 0.4))
+            ? Border.all(
+                color: scheme.outlineVariant.withValues(
+                  alpha: AppOpacity.hairline,
+                ),
+              )
             : null,
       ),
       child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
@@ -239,10 +243,11 @@ class _Shadow extends StatelessWidget {
             // The scheme's own `shadow` role rather than a literal black: on a
             // dark surface a pure-black drop shadow is invisible, so the alpha
             // carries the whole difference.
-            color: Theme.of(context).colorScheme.shadow
-                .withValues(alpha: isDark ? 0.45 : 0.10),
-            blurRadius: 24,
-            offset: const Offset(0, 6),
+            color: Theme.of(context).colorScheme.shadow.withValues(
+              alpha: isDark ? AppOpacity.shadowDark : AppOpacity.shadowLight,
+            ),
+            blurRadius: AppElevation.frostBlur,
+            offset: AppElevation.frostOffset,
           ),
         ],
       ),

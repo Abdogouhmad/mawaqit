@@ -6,6 +6,7 @@ import 'package:mawaqit/core/navigation/app_shell.dart';
 import 'package:mawaqit/core/ui/theme/app_theme.dart';
 import 'package:mawaqit/features/home/home_controller.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/shared/ui/app_navigation_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// The bottom chrome is now a standard Material 3 [NavigationBar] in the
@@ -20,7 +21,8 @@ Widget bar({ValueChanged<int>? onSelected}) => MaterialApp(
   home: Scaffold(
     body: const SizedBox.shrink(),
     bottomNavigationBar: Builder(
-      builder: (context) => NavigationBar(
+      builder: (context) => AppNavigationBar(
+        selectedIndex: 0,
         onDestinationSelected: onSelected ?? (_) {},
         destinations: [
           for (final path in AppRoutes.tabs)

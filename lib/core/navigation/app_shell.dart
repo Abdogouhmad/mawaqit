@@ -5,6 +5,7 @@ import 'package:mawaqit/features/home/home_screen.dart';
 import 'package:mawaqit/features/settings/settings_screen.dart';
 import 'package:mawaqit/features/times/times_screen.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/shared/ui/app_navigation_bar.dart';
 
 /// Route paths for the tabs.
 ///
@@ -68,7 +69,6 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
     final selectedIndex = AppRoutes.tabs.indexOf(location);
-    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: AppChrome.constrain(switch (location) {
@@ -76,43 +76,13 @@ class AppShell extends StatelessWidget {
         AppRoutes.settings => const SettingsScreen(),
         _ => const HomeScreen(),
       }),
-      bottomNavigationBar: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        child: NavigationBarTheme(
-          data: NavigationBarThemeData(
-            iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>((
-              states,
-            ) {
-              final selected = states.contains(WidgetState.selected);
-              return IconThemeData(
-                color: selected
-                    ? scheme.onSecondaryContainer
-                    : scheme.onSurfaceVariant,
-              );
-            }),
-          ),
-          child: NavigationBar(
-            selectedIndex: selectedIndex < 0 ? 0 : selectedIndex,
-            onDestinationSelected: (index) => context.go(AppRoutes.tabs[index]),
-            destinations: [
-              for (final path in AppRoutes.tabs)
-                AppRoutes.destinationFor(context, path),
-            ],
-            backgroundColor: scheme.surfaceContainer,
-            indicatorColor: scheme.secondaryContainer,
-            elevation: 0,
-            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>((
-              states,
-            ) {
-              final selected = states.contains(WidgetState.selected);
-              return TextStyle(
-                color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-              );
-            }),
-          ),
-        ),
+      bottomNavigationBar: AppNavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (index) => context.go(AppRoutes.tabs[index]),
+        destinations: [
+          for (final path in AppRoutes.tabs)
+            AppRoutes.destinationFor(context, path),
+        ],
       ),
     );
   }

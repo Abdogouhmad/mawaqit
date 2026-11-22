@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
 
 /// Groups [SettingsRow]s (or full-width blocks) into one card, separating them
@@ -18,7 +18,9 @@ class SettingsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final dividerColor = scheme.outlineVariant.withValues(alpha: 0.4);
+    final dividerColor = scheme.outlineVariant.withValues(
+      alpha: AppOpacity.hairline,
+    );
 
     return AppCard(
       padding: EdgeInsets.zero,
@@ -27,7 +29,7 @@ class SettingsGroup extends StatelessWidget {
           for (var i = 0; i < children.length; i++) ...[
             if (i > 0)
               Divider(
-                height: 1,
+                height: AppStroke.hairline,
                 indent: _inset,
                 endIndent: AppSpacing.xxxl,
                 color: dividerColor,

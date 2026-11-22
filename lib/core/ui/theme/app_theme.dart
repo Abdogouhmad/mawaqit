@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/const/app_constants.dart';
-import 'package:mawaqit/core/ui/theme/app_colors.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/core/ui/theme/text_theme.dart';
 
 /// Material 3 theme assembly.
@@ -261,13 +260,13 @@ abstract final class AppTheme {
 
     return base.copyWith(
       appBarTheme: AppBarThemeData(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: AppColors.transparent,
         centerTitle: false,
         titleTextStyle: textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.2,
+          letterSpacing: AppTypeDetail.titleLetterSpacing,
         ),
         iconTheme: IconThemeData(color: scheme.onSurfaceVariant),
       ),
@@ -292,15 +291,15 @@ abstract final class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          borderSide: const BorderSide(color: Colors.transparent),
+          borderSide: const BorderSide(color: AppColors.transparent),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          borderSide: const BorderSide(color: Colors.transparent),
+          borderSide: const BorderSide(color: AppColors.transparent),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          borderSide: BorderSide(color: primary, width: 2),
+          borderSide: BorderSide(color: primary, width: AppStroke.focus),
         ),
       ),
       listTileTheme: ListTileThemeData(
@@ -325,27 +324,10 @@ abstract final class AppTheme {
           color: scheme.onInverseSurface,
         ),
       ),
-      chipTheme: ChipThemeData(
-        showCheckmark: false,
-        backgroundColor: scheme.surfaceContainerHigh,
-        side: BorderSide(color: scheme.outlineVariant),
-        labelStyle: textTheme.labelMedium,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.chip),
-        ),
-      ),
-      cardTheme: CardThemeData(
-        color: cardColor,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-        ),
-        margin: EdgeInsets.zero,
-      ),
       dividerTheme: DividerThemeData(
         color: isLight ? AppColors.hairlineLight : AppColors.hairlineDark,
-        thickness: 1,
-        space: 1,
+        thickness: AppStroke.hairline,
+        space: AppStroke.hairline,
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -364,7 +346,9 @@ abstract final class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: primary,
           minimumSize: const Size(AppSpacing.touch, AppSpacing.touch),
-          side: BorderSide(color: primary.withValues(alpha: 0.4)),
+          side: BorderSide(
+            color: primary.withValues(alpha: AppOpacity.hairline),
+          ),
           shape: const StadiumBorder(),
           textStyle: textTheme.labelLarge,
         ),
@@ -380,28 +364,11 @@ abstract final class AppTheme {
               ? primary
               : scheme.surfaceContainerHighest,
         ),
-        trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
-      ),
-      segmentedButtonTheme: SegmentedButtonThemeData(
-        style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.resolveWith(
-            (states) => states.contains(WidgetState.selected)
-                ? cardColor
-                : Colors.transparent,
-          ),
-          foregroundColor: WidgetStateProperty.resolveWith(
-            (states) => states.contains(WidgetState.selected)
-                ? primary
-                : scheme.onSurfaceVariant,
-          ),
-          side: const WidgetStatePropertyAll(BorderSide.none),
-          shape: const WidgetStatePropertyAll(RoundedRectangleBorder()),
-          textStyle: WidgetStatePropertyAll(textTheme.labelMedium),
-        ),
+        trackOutlineColor: const WidgetStatePropertyAll(AppColors.transparent),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: cardColor,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: AppColors.transparent,
         showDragHandle: true,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -411,7 +378,7 @@ abstract final class AppTheme {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: cardColor,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: AppColors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.xxl),
         ),

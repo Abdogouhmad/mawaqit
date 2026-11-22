@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Generic radio-style picker bottom sheet used by the settings screen to
@@ -20,7 +20,8 @@ Future<T?> showOptionSheet<T>({
     isScrollControlled: true,
     builder: (context) => ConstrainedBox(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.7,
+        maxHeight:
+            MediaQuery.sizeOf(context).height * AppLayout.sheetMaxHeightFactor,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -51,7 +52,9 @@ Future<T?> showOptionSheet<T>({
                         )
                       : null,
                   selected: isSelected,
-                  selectedTileColor: scheme.primary.withValues(alpha: 0.06),
+                  selectedTileColor: scheme.primary.withValues(
+                    alpha: AppOpacity.selectedRow,
+                  ),
                   onTap: () => Navigator.of(context).pop(option),
                 );
               },

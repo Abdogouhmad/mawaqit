@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 
 /// One shared action-button API for the four M3 button variants, with a
 /// built-in loading state and optional full width.
@@ -42,7 +42,7 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final style = ButtonStyle(
-      minimumSize: WidgetStatePropertyAll(Size(0, minHeight)),
+      minimumSize: WidgetStatePropertyAll(Size(AppSize.zero, minHeight)),
       padding: const WidgetStatePropertyAll(
         EdgeInsets.symmetric(
           horizontal: AppSpacing.giga,
@@ -61,8 +61,8 @@ class AppButton extends StatelessWidget {
       textStyle: WidgetStatePropertyAll(
         labelStyle ??
             textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.4,
+              fontWeight: AppWeight.bold,
+              letterSpacing: AppTypeDetail.actionLetterSpacing,
             ),
       ),
     );
@@ -108,10 +108,10 @@ class AppButton extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     if (loading) {
       return SizedBox(
-        width: 18,
-        height: 18,
+        width: AppSize.buttonSpinner,
+        height: AppSize.buttonSpinner,
         child: CircularProgressIndicator(
-          strokeWidth: 2.4,
+          strokeWidth: AppStroke.spinner,
           color: foregroundColor ?? scheme.onPrimary,
         ),
       );

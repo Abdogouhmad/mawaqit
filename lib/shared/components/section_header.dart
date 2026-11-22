@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/shared/ui/icon_badge.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
@@ -36,8 +36,8 @@ class SectionHeader extends StatelessWidget {
           if (headerIcon != null) ...[
             IconBadge(
               icon: headerIcon,
-              size: 34,
-              color: scheme.primary.withValues(alpha: 0.08),
+              size: AppSize.sectionBadge,
+              color: scheme.primary.withValues(alpha: AppOpacity.soft),
               foregroundColor: scheme.primary,
             ),
             const SizedBox(width: AppSpacing.md),
@@ -50,15 +50,17 @@ class SectionHeader extends StatelessWidget {
                   label.toUpperCase(),
                   type: UiTextType.labelSmall,
                   color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.4,
+                  fontWeight: AppWeight.bold,
+                  letterSpacing: AppTypeDetail.sectionLetterSpacing,
                 ),
                 if (description != null) ...[
                   const SizedBox(height: AppSpacing.xxs),
                   UiText(
                     description!,
                     type: UiTextType.labelMedium,
-                    color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                    color: scheme.onSurfaceVariant.withValues(
+                      alpha: AppOpacity.mutedCaption,
+                    ),
                   ),
                 ],
               ],

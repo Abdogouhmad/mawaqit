@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/core/ui/widgets/blur_surface.dart';
 
 /// Shows a modal over a **full-screen frosted backdrop**.
@@ -25,8 +25,8 @@ import 'package:mawaqit/core/ui/widgets/blur_surface.dart';
 Future<T?> showBlurredDialog<T>({
   required BuildContext context,
   required WidgetBuilder builder,
-  double blurSigma = 24,
-  double scrimOpacity = 0.28,
+  double blurSigma = AppBlur.dialog,
+  double scrimOpacity = AppOpacity.scrim,
 }) {
   return showGeneralDialog<T>(
     context: context,
@@ -34,8 +34,8 @@ Future<T?> showBlurredDialog<T>({
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
     // The scrim is painted by the page below, on top of the blur; the route's
     // own barrier stays invisible so it only catches the dismiss tap.
-    barrierColor: Colors.transparent,
-    transitionDuration: const Duration(milliseconds: 240),
+    barrierColor: AppColors.transparent,
+    transitionDuration: AppMotion.route,
     // Identity: the fade lives inside the page so the BackdropFilter is never
     // wrapped in an OpacityLayer (see the note above).
     transitionBuilder: (_, _, _, child) => child,
@@ -74,7 +74,7 @@ class _BlurredDialogOverlay extends StatelessWidget {
       builder: (context, _) {
         // Ease the whole effect in by hand — the route has no transition of its
         // own to lean on.
-        final t = Curves.easeOut.transform(animation.value);
+        final t = AppMotion.standard.transform(animation.value);
         final scrim = ColoredBox(
           color: scheme.scrim.withValues(alpha: scrimOpacity * t),
         );

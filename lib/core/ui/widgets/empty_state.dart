@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// "Nothing here yet" — used by every list that can legitimately be empty
@@ -40,8 +40,8 @@ class EmptyState extends StatelessWidget {
             // no other ink on the canvas, and an unbacked icon reads as a
             // rendering mistake.
             Container(
-              width: AppSpacing.control * 1.5,
-              height: AppSpacing.control * 1.5,
+              width: AppSize.emptyStateDisc,
+              height: AppSize.emptyStateDisc,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: scheme.surfaceContainerHigh,

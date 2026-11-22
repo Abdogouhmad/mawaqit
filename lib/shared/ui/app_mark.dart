@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/const/asset_paths.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 
 /// The app's own launcher art — the emerald mihrab mark — drawn in-app.
 ///
@@ -13,10 +14,10 @@ import 'package:mawaqit/core/const/asset_paths.dart';
 /// nothing clips, masks or tints it here.
 class AppMark extends StatelessWidget {
   /// Lead size for the About dialog.
-  static const double aboutSize = 72;
+  static const double aboutSize = AppSize.markAbout;
 
   /// Sign-off size for the Settings footer.
-  static const double footerSize = 44;
+  static const double footerSize = AppSize.markFooter;
 
   const AppMark({super.key, this.size = aboutSize});
 

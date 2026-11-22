@@ -151,7 +151,7 @@ onboarding/permissions flow, and a refreshed home-screen widget.
 | Version | Phase | Est. | Status |
 |---|---|---|---|
 | 0.16.0 | Release channels (stable/beta) + new Update Center | 2–3 days | ◐ |
-| 0.17.0 | Design system 2.0 + app shell + navigation | 2–3 days | ☐ |
+| 0.17.0 | Design system 2.0 + app shell + navigation | 2–3 days | ☑ |
 | 0.18.0 | New Home UI | 2–3 days | ☐ |
 | 0.19.0 | New Times UI | 2 days | ☐ |
 | 0.20.0 | New Settings, onboarding & permissions UI | 2–3 days | ☐ |
@@ -201,6 +201,9 @@ the decisions behind the two manifests are recorded in
 ---
 
 ## 0.17.0 — Design system 2.0 + app shell
+
+**Status:** code complete on `phase/0.17-design-system`; see
+[`roadmap_0.17.0.md`](roadmap_0.17.0.md) for the phase detail.
 
 **Goal:** establish the minimal modern language before restyling individual
 screens, so every later phase reuses one set of tokens and components.

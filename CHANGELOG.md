@@ -32,6 +32,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   still verified against the manifest checksum before the system installer
   runs, and mandatory/support-floor updates are honoured as before.
 
+## [0.17.0] - 2026-11-22
+
+### Changed
+
+- Bottom navigation now follows the app's design-system tokens: the selected
+  destination uses the palette's primary container, labels follow the app type
+  scale, and selection/animation respects reduced-motion preferences.
+- Shared controls—cards, rows, pills, icon buttons, buttons, badges and the
+  segmented control—now use one documented token vocabulary, keeping spacing,
+  colour and motion consistent across screens.
+
 ## [0.16.0] - 2026-11-22
 
 ### Added

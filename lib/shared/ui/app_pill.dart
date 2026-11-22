@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Pill-shaped status/chip: the small icon + label capsule used for "Muted",
@@ -23,7 +23,7 @@ class AppPill extends StatelessWidget {
     this.onTap,
     this.dense = false,
     this.expanded = false,
-    this.letterSpacing = 0.4,
+    this.letterSpacing = AppTypeDetail.actionLetterSpacing,
   });
 
   final String label;
@@ -45,8 +45,10 @@ class AppPill extends StatelessWidget {
     final background =
         backgroundColor ??
         (accent != null
-            ? accent.withValues(alpha: 0.12)
-            : scheme.surfaceContainerHighest.withValues(alpha: 0.6));
+            ? accent.withValues(alpha: AppOpacity.accent)
+            : scheme.surfaceContainerHighest.withValues(
+                alpha: AppOpacity.neutralPill,
+              ));
     final foreground = foregroundColor ?? accent ?? scheme.onSurfaceVariant;
 
     final child = Row(
@@ -58,23 +60,23 @@ class AppPill extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
         ] else if (icon != null) ...[
           Icon(icon, size: AppIconSize.sm, color: foreground),
-          const SizedBox(width: AppSpacing.xs + 2),
+          const SizedBox(width: AppSize.iconLabelGap),
         ],
         Flexible(
           child: UiText(
             label,
             type: UiTextType.labelSmall,
             color: foreground,
-            fontWeight: FontWeight.w600,
+            fontWeight: AppWeight.semibold,
             letterSpacing: letterSpacing,
-            style: const TextStyle(height: 1),
+            style: const TextStyle(height: AppTypeDetail.compactLineHeight),
           ),
         ),
       ],
     );
 
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.pill),

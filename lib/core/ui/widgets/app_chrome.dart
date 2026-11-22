@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
+
 /// Layout metrics shared by the app's screens.
 ///
 /// The bottom navigation is a standard Material `NavigationBar` in the
@@ -12,28 +14,14 @@ abstract final class AppChrome {
 
   /// Max content width before the layout starts constraining and centring, so
   /// phone-first screens do not stretch across a tablet or unfolded foldable.
-  static const double maxContentWidth = 600;
+  static const double maxContentWidth = AppLayout.maxContentWidth;
 
   /// Bottom inset a scrollable adds so its last item is not flush against the
   /// navigation bar. The bar's own height is reserved by the `Scaffold`.
   static double scrollBottomPadding(
     BuildContext context, {
-    double extra = 16,
+    double extra = AppSpacing.xxxl,
   }) => extra;
-
-  /// Padding for a screen's scrollable body: symmetric sides, a little bottom
-  /// breathing room above the navigation bar.
-  static EdgeInsets screenPadding(
-    BuildContext context, {
-    double horizontal = 20,
-    double top = 0,
-    double extraBottom = 0,
-  }) => EdgeInsets.fromLTRB(
-    horizontal,
-    top,
-    horizontal,
-    scrollBottomPadding(context, extra: extraBottom),
-  );
 
   /// Centres and width-caps [child] on large screens.
   static Widget constrain(Widget child) => Center(

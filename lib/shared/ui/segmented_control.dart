@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/app_colors.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 
 /// Pill-shaped segmented control (design "None/5/10/15", "System/Light/Dark").
 ///
@@ -23,9 +22,6 @@ class SegmentedControl<T> extends StatelessWidget {
   final ValueChanged<T> onChanged;
   final List<IconData> icons;
 
-  static const Duration _duration = Duration(milliseconds: 280);
-  static const Curve _curve = Curves.easeOutCubic;
-
   /// Below this segment width the per-segment icon is dropped.
   ///
   /// An icon costs [AppIconSize.md] plus [AppSpacing.sm] — 23dp — which is a
@@ -33,12 +29,11 @@ class SegmentedControl<T> extends StatelessWidget {
   /// The label is what carries the meaning ("English" is unambiguous where a
   /// globe icon is not), so the icon is the first thing to go. Two- and
   /// three-way controls are wide enough to keep theirs.
-  static const double _minSegmentForIcon = 100;
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final selectedIndex = options.indexWhere((option) => option.$1 == value);
+    final duration = AppSpring.durationOf(context, fallback: AppMotion.control);
     const padding = AppSpacing.xs;
 
     return Container(
@@ -53,13 +48,13 @@ class SegmentedControl<T> extends StatelessWidget {
           final segmentWidth =
               (constraints.maxWidth - padding * 2) / options.length;
           final showIcons =
-              icons.isNotEmpty && segmentWidth >= _minSegmentForIcon;
+              icons.isNotEmpty && segmentWidth >= AppSize.minSegmentForIcon;
 
           return Stack(
             children: [
               AnimatedPositioned(
-                duration: _duration,
-                curve: _curve,
+                duration: duration,
+                curve: AppMotion.standard,
                 left: selectedIndex < 0
                     ? -segmentWidth
                     : selectedIndex * segmentWidth,
@@ -67,15 +62,24 @@ class SegmentedControl<T> extends StatelessWidget {
                 bottom: 0,
                 width: segmentWidth,
                 child: AnimatedOpacity(
-                  duration: _duration,
-                  opacity: selectedIndex < 0 ? 0 : 1,
+                  duration: duration,
+                  opacity: selectedIndex < 0
+                      ? AppOpacity.none
+                      : AppOpacity.full,
                   child: const _HighlightPill(),
                 ),
               ),
               Row(
                 children: [
                   for (var i = 0; i < options.length; i++)
-                    Expanded(child: _segment(context, i, showIcon: showIcons)),
+                    Expanded(
+                      child: _segment(
+                        context,
+                        i,
+                        showIcon: showIcons,
+                        duration: duration,
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -85,7 +89,12 @@ class SegmentedControl<T> extends StatelessWidget {
     );
   }
 
-  Widget _segment(BuildContext context, int index, {required bool showIcon}) {
+  Widget _segment(
+    BuildContext context,
+    int index, {
+    required bool showIcon,
+    required Duration duration,
+  }) {
     final optionValue = options[index].$1;
     final label = options[index].$2;
     final scheme = Theme.of(context).colorScheme;
@@ -104,8 +113,8 @@ class SegmentedControl<T> extends StatelessWidget {
           children: [
             if (showIcon && icons.length > index) ...[
               TweenAnimationBuilder<Color?>(
-                duration: _duration,
-                curve: _curve,
+                duration: duration,
+                curve: AppMotion.standard,
                 tween: ColorTween(end: foreground),
                 builder: (context, color, _) => Icon(
                   icons[index],
@@ -123,8 +132,8 @@ class SegmentedControl<T> extends StatelessWidget {
             // authoritative at any width, text scale, or translation length.
             Flexible(
               child: AnimatedDefaultTextStyle(
-                duration: _duration,
-                curve: _curve,
+                duration: duration,
+                curve: AppMotion.standard,
                 style: Theme.of(context).textTheme.labelMedium!.copyWith(
                   color: foreground,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
@@ -156,8 +165,8 @@ class _HighlightPill extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: AppColors.shadowSoft,
-            blurRadius: 4,
-            offset: Offset(0, 1),
+            blurRadius: AppElevation.controlBlur,
+            offset: AppElevation.controlOffset,
           ),
         ],
       ),

@@ -19,14 +19,22 @@ abstract final class AppMotion {
 
   static const Duration shortest = Duration(milliseconds: 100);
   static const Duration short = Duration(milliseconds: 200);
+  static const Duration route = Duration(milliseconds: 240);
+  static const Duration control = Duration(milliseconds: 280);
   static const Duration medium = Duration(milliseconds: 320);
+  static const Duration effects = Duration(milliseconds: 350);
   static const Duration long = Duration(milliseconds: 500);
   static const Duration longest = Duration(milliseconds: 700);
+
+  /// Ambient "live" pulse. Deliberately outside the M3 appear/disappear scale:
+  /// this is a continuous state marker, not a transition.
+  static const Duration pulse = Duration(milliseconds: 2000);
 
   static const Curve standard = Curves.easeOutCubic;
   static const Curve emphasized = Curves.easeOutExpo;
   static const Curve exit = Curves.easeInCubic;
   static const Curve emphasizedExit = Curves.easeInExpo;
+  static const Curve soft = Curves.easeInOut;
 }
 
 /// Material 3 Expressive spring tokens.
@@ -39,9 +47,7 @@ abstract final class AppSpring {
 
   /// No bounce — colour and opacity, where overshoot reads as a glitch.
   static final SpringDescription effects =
-      SpringDescription.withDurationAndBounce(
-        duration: const Duration(milliseconds: 350),
-      );
+      SpringDescription.withDurationAndBounce(duration: AppMotion.effects);
 
   /// Upper bound on a spring's settle window, in seconds. M3 caps every
   /// animation at 500 ms; a spring's asymptotic tail beyond that is

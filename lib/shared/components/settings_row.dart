@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
-import 'package:mawaqit/shared/ui/ui_text.dart';
 
-/// Settings list tile: leading icon in a soft circle, title + subtitle,
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
+import 'package:mawaqit/shared/ui/app_list_row.dart';
+import 'package:mawaqit/shared/ui/icon_badge.dart';
+
+/// Settings list row: leading icon in a soft circle, title + subtitle,
 /// and a trailing widget (chevron / switch / pill).
+///
+/// The layout itself lives in [AppListRow]; this wrapper only supplies the
+/// settings-specific leading badge and accent subtitle colour. Keeping one
+/// implementation of the row prevents another copy of the 200%-text fixes.
 class SettingsRow extends StatelessWidget {
   const SettingsRow({
     super.key,
@@ -34,65 +39,19 @@ class SettingsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final onTap = this.onTap;
 
-    void handleTap() {
-      if (haptic && onTap != null) HapticFeedback.selectionClick();
-      onTap?.call();
-    }
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: handleTap,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xxxl,
-            vertical: AppSpacing.xl,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: AppSpacing.control,
-                height: AppSpacing.control,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: scheme.secondaryContainer.withValues(alpha: 0.55),
-                ),
-                child: Icon(
-                  icon,
-                  size: AppIconSize.lg,
-                  color: scheme.onSecondaryContainer,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xxl),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    UiText(
-                      title,
-                      type: UiTextType.titleMedium,
-                      fontSize: AppFontSize.lg,
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: AppSpacing.xxs),
-                      UiText(
-                        subtitle!,
-                        type: UiTextType.labelMedium,
-                        color: subtitleColor ?? scheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              ?trailing,
-            ],
-          ),
-        ),
+    return AppListRow(
+      title: title,
+      subtitle: subtitle,
+      subtitleColor: subtitleColor ?? scheme.primary,
+      leading: IconBadge(
+        icon: icon,
+        color: scheme.secondaryContainer.withValues(alpha: AppOpacity.badge),
+        foregroundColor: scheme.onSecondaryContainer,
       ),
+      trailing: trailing,
+      onTap: onTap,
+      haptic: haptic,
     );
   }
 }
