@@ -2,7 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mawaqit/core/const/app_constants.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
+import 'package:mawaqit/core/ui/widgets/empty_state.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
@@ -17,11 +18,22 @@ import 'package:mawaqit/providers/providers.dart';
 import 'package:mawaqit/shared/components/section_header.dart';
 import 'package:mawaqit/shared/ui/app_button.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
-import 'package:mawaqit/shared/ui/pulse_dot.dart';
+import 'package:mawaqit/shared/ui/app_icon_button.dart';
+import 'package:mawaqit/shared/ui/app_loading_state.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
+/// The Home tab.
+///
+/// Layout, not logic: the controller resolves the day and the alarm pipeline;
+/// this screen only composes it. The per-second clock is read by [_LiveCountdown]
+/// and [_SunsetFooter], never here, so a tick repaints those leaves instead of
+/// the prayer timeline and solar card.
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.onOpenTimes, this.onOpenSettings});
+
+  /// Supplied by the shell so this feature does not import the router back.
+  final VoidCallback? onOpenTimes;
+  final VoidCallback? onOpenSettings;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,29 +50,31 @@ class HomeScreen extends ConsumerWidget {
           color: Theme.of(context).colorScheme.primary,
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(
+            padding: const EdgeInsetsDirectional.fromSTEB(
               AppSpacing.huge,
               AppSpacing.xs,
               AppSpacing.huge,
               AppSpacing.pageBottom,
             ),
             children: [
-              _HomeHeader(locationMissing: locationMissing),
+              _HomeHeader(
+                locationMissing: locationMissing,
+                onOpenTimes: onOpenTimes,
+                onOpenSettings: onOpenSettings,
+              ),
               asyncState.when(
                 // Keep the current day on screen while a refresh or a settings
-                // change recomputes it. The RefreshIndicator already shows the
-                // pull, so swapping the whole body for a spinner here is a
-                // regression, not feedback. A genuinely first load still has no
-                // previous value and falls through to `loading` below.
+                // change recomputes it; a pull-to-refresh is already visible.
                 skipLoadingOnReload: true,
-                loading: () => const _HomeLoading(),
-                error: (error, _) => _HomeError(message: error.toString()),
+                loading: () => const AppLoadingState(),
+                error: (error, _) => _HomeError(
+                  message: error.toString(),
+                  onOpenSettings: onOpenSettings,
+                ),
                 data: (data) => _HomeBody(state: data),
               ),
-              // Renders nothing: the one-time battery-optimisation ask. Mounted
-              // only once home data exists, which is also the point where the
-              // notification service has finished initialising and the system
-              // access state behind the question is a real read.
+              // Mounted only once home data exists: that is where notification
+              // initialisation has finished and the system-access read is real.
               if (state != null) const AlarmAccessGate(),
               if (kDebugMode) ...[
                 const SizedBox(height: AppSpacing.tera),
@@ -77,15 +91,20 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({required this.locationMissing});
+  const _HomeHeader({
+    required this.locationMissing,
+    this.onOpenTimes,
+    this.onOpenSettings,
+  });
 
-  /// Surfaces the location failure as a quiet marker beside the app title —
-  /// tapping it jumps straight to Settings to pick a city.
   final bool locationMissing;
+  final VoidCallback? onOpenTimes;
+  final VoidCallback? onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -97,31 +116,50 @@ class _HomeHeader extends StatelessWidget {
             color: scheme.primary,
           ),
           const SizedBox(width: AppSpacing.md),
-          const UiText(
-            AppConstants.appName,
-            type: UiTextType.titleLarge,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.4,
+          const Flexible(
+            child: UiText(
+              AppConstants.appName,
+              type: UiTextType.titleLarge,
+              fontWeight: AppWeight.bold,
+              letterSpacing: AppTypeDetail.appTitleTracking,
+            ),
           ),
           if (locationMissing) ...[
-            const SizedBox(width: AppSpacing.md),
-            Tooltip(
-              message: AppLocalizations.of(context).homeLocationUnavailable,
-              child: InkResponse(
+            const SizedBox(width: AppSpacing.xs),
+            Semantics(
+              label: l10n.homeLocationUnavailable,
+              button: true,
+              excludeSemantics: true,
+              child: AppIconButton(
                 key: const Key('location-missing-indicator'),
-                onTap: () => Navigator.of(context).pushNamed('/settings'),
-                radius: AppSpacing.touch,
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xs),
-                  child: Icon(
-                    Icons.location_off_outlined,
-                    size: AppIconSize.md,
-                    color: scheme.error,
-                  ),
-                ),
+                icon: Icons.location_off_outlined,
+                tooltip: l10n.homeLocationUnavailable,
+                color: scheme.error,
+                onPressed: onOpenSettings,
               ),
             ),
           ],
+          const SizedBox(width: AppSpacing.xs),
+          Semantics(
+            label: l10n.navTimes,
+            button: true,
+            excludeSemantics: true,
+            child: AppIconButton(
+              icon: Icons.calendar_month_outlined,
+              tooltip: l10n.navTimes,
+              onPressed: onOpenTimes,
+            ),
+          ),
+          Semantics(
+            label: l10n.navSettings,
+            button: true,
+            excludeSemantics: true,
+            child: AppIconButton(
+              icon: Icons.settings_outlined,
+              tooltip: l10n.navSettings,
+              onPressed: onOpenSettings,
+            ),
+          ),
         ],
       ),
     );
@@ -141,9 +179,7 @@ class _HomeBody extends ConsumerWidget {
     final mutedIds = ref.watch(mutedPrayersProvider).value ?? const <String>{};
 
     if (day == null) {
-      return _HomeError(
-        message: state.error ?? AppLocalizations.of(context).homeErrorBody,
-      );
+      return _HomeError(message: state.error ?? l10n.homeErrorBody);
     }
 
     final now = state.now;
@@ -153,42 +189,7 @@ class _HomeBody extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: AppSpacing.xs),
-        UiText(
-          TimeFormatter.gregorian(now),
-          textAlign: TextAlign.center,
-          color: scheme.onSurfaceVariant,
-        ),
-        const SizedBox(height: AppSpacing.xxs),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            UiText(
-              TimeFormatter.hijri(now).toUpperCase(),
-              type: UiTextType.labelSmall,
-              color: scheme.onSurfaceVariant.withValues(alpha: 0.75),
-              letterSpacing: 1.2,
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Container(
-              width: 3,
-              height: 3,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: scheme.onSurfaceVariant.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Flexible(
-              child: UiText(
-                state.locationName,
-                type: UiTextType.labelSmall,
-                overflow: TextOverflow.ellipsis,
-                color: scheme.onSurfaceVariant.withValues(alpha: 0.75),
-                letterSpacing: 1.2,
-              ),
-            ),
-          ],
-        ),
+        _DateLine(now: now, locationName: state.locationName, scheme: scheme),
         const SizedBox(height: AppSpacing.block),
         _LiveCountdown(nextPrayer: next, currentPrayer: state.currentPrayer),
         const SizedBox(height: AppSpacing.emphasis),
@@ -198,27 +199,21 @@ class _HomeBody extends ConsumerWidget {
             day.methodName,
             type: UiTextType.labelSmall,
             color: scheme.onSurfaceVariant,
-            letterSpacing: 0.3,
-            fontWeight: FontWeight.w500,
+            letterSpacing: AppTypeDetail.actionLetterSpacing,
+            fontWeight: AppWeight.medium,
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
-        for (final prayer in day.prayers)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-            child: PrayerScheduleTile(
-              prayer: prayer,
-              status: _statusFor(prayer, now, next),
-              muted: mutedIds.contains(
-                NotificationService.prayerIdFor(day.date, prayer.kind),
-              ),
-              onToggleMute: () => ref
-                  .read(mutedPrayersProvider.notifier)
-                  .toggle(
-                    NotificationService.prayerIdFor(day.date, prayer.kind),
-                  ),
-            ),
-          ),
+        _PrayerTimeline(
+          prayers: day.prayers,
+          now: now,
+          next: next,
+          mutedIds: mutedIds,
+          date: day.date,
+          onToggleMute: (prayer) => ref
+              .read(mutedPrayersProvider.notifier)
+              .toggle(NotificationService.prayerIdFor(day.date, prayer.kind)),
+        ),
         const SizedBox(height: AppSpacing.xl),
         SolarCard(day: day),
         const SizedBox(height: AppSpacing.xxxl),
@@ -230,20 +225,22 @@ class _HomeBody extends ConsumerWidget {
             Icon(
               Icons.lock_outline,
               size: AppIconSize.xs,
-              color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
+              color: scheme.onSurfaceVariant.withValues(
+                alpha: AppOpacity.secondaryText,
+              ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            // `Flexible` is load-bearing, not defensive. A `Text` in a `Row` is
-            // given an unbounded main-axis width, so this note laid out at its
-            // full intrinsic width — the length of the whole sentence — and
-            // overflowed the card by exactly that difference on every locale.
+            // `Flexible` is load-bearing: a bare Text in a Row gets unbounded
+            // width and paints past the card at 200% text in every locale.
             Flexible(
               child: UiText(
                 l10n.homePrivacyNote,
                 type: UiTextType.labelSmall,
-                color: scheme.onSurfaceVariant.withValues(alpha: 0.6),
-                letterSpacing: 0.2,
-                fontWeight: FontWeight.w500,
+                color: scheme.onSurfaceVariant.withValues(
+                  alpha: AppOpacity.secondaryText,
+                ),
+                letterSpacing: AppTypeDetail.actionLetterSpacing,
+                fontWeight: AppWeight.medium,
                 textAlign: TextAlign.center,
               ),
             ),
@@ -252,21 +249,124 @@ class _HomeBody extends ConsumerWidget {
       ],
     );
   }
+}
 
-  PrayerTileStatus _statusFor(
-    PrayerTime prayer,
-    DateTime now,
-    PrayerTime? next,
-  ) {
-    if (prayer.time.isAfter(now)) {
-      if (next != null &&
-          next.kind == prayer.kind &&
-          next.time == prayer.time) {
-        return PrayerTileStatus.active;
-      }
-      return PrayerTileStatus.upcoming;
-    }
-    return PrayerTileStatus.passed;
+class _DateLine extends StatelessWidget {
+  const _DateLine({
+    required this.now,
+    required this.locationName,
+    required this.scheme,
+  });
+
+  final DateTime now;
+  final String locationName;
+  final ColorScheme scheme;
+
+  @override
+  Widget build(BuildContext context) {
+    const metaStyle = TextStyle(letterSpacing: AppTypeDetail.overlineTracking);
+
+    return Column(
+      children: [
+        UiText(
+          TimeFormatter.gregorian(now),
+          textAlign: TextAlign.center,
+          color: scheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: AppSpacing.xxs),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: UiText(
+                TimeFormatter.hijri(now).toUpperCase(),
+                type: UiTextType.labelSmall,
+                style: metaStyle,
+                color: scheme.onSurfaceVariant.withValues(
+                  alpha: AppOpacity.secondaryText,
+                ),
+                textAlign: TextAlign.end,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Container(
+              width: AppSpacing.xxs,
+              height: AppSpacing.xxs,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: scheme.onSurfaceVariant.withValues(
+                  alpha: AppOpacity.faintMark,
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Flexible(
+              child: UiText(
+                locationName,
+                type: UiTextType.labelSmall,
+                style: metaStyle,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                color: scheme.onSurfaceVariant.withValues(
+                  alpha: AppOpacity.secondaryText,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _PrayerTimeline extends StatelessWidget {
+  const _PrayerTimeline({
+    required this.prayers,
+    required this.now,
+    required this.next,
+    required this.mutedIds,
+    required this.date,
+    required this.onToggleMute,
+  });
+
+  final List<PrayerTime> prayers;
+  final DateTime now;
+  final PrayerTime? next;
+  final Set<String> mutedIds;
+  final DateTime date;
+  final ValueChanged<PrayerTime> onToggleMute;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          for (var i = 0; i < prayers.length; i++) ...[
+            if (i > 0)
+              Divider(
+                height: AppStroke.hairline,
+                indent: AppSpacing.xxxl + AppSpacing.touch + AppSpacing.lg,
+                endIndent: AppSpacing.xxxl,
+                color: scheme.outlineVariant.withValues(
+                  alpha: AppOpacity.hairline,
+                ),
+              ),
+            PrayerScheduleTile(
+              prayer: prayers[i],
+              status: _statusFor(prayers[i], now, next),
+              muted: mutedIds.contains(
+                NotificationService.prayerIdFor(date, prayers[i].kind),
+              ),
+              onToggleMute: () => onToggleMute(prayers[i]),
+              isLast: i == prayers.length - 1,
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 
@@ -308,8 +408,8 @@ class _LiveCountdown extends ConsumerWidget {
   }
 }
 
-/// The method name and the sunset countdown. Ticks with the same shared clock
-/// as [_LiveCountdown] rather than forcing a whole-body rebuild.
+/// Method label and sunset countdown. Ticks with the same shared clock as
+/// [_LiveCountdown] rather than forcing a whole-body rebuild.
 class _SunsetFooter extends ConsumerWidget {
   const _SunsetFooter({required this.methodLabel, required this.sunset});
 
@@ -322,22 +422,22 @@ class _SunsetFooter extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final now = ref.watch(homeClockProvider).value ?? DateTime.now();
     final sunsetIn = sunset.difference(now);
+    final style = TextStyle(
+      letterSpacing: AppTypeDetail.footerTracking,
+      color: scheme.onSurfaceVariant.withValues(
+        alpha: AppOpacity.secondaryText,
+      ),
+    );
 
     return Row(
       children: [
-        // Both labels are `Flexible` rather than one being `Expanded`: a
-        // countdown grows through the day ("IN 4H 12M" -> "IN 4M"), and an
-        // `Expanded` sibling would take the slack and squeeze it out of the
-        // row entirely rather than let the two share.
+        // Both labels are Flexible: the countdown grows through the day and an
+        // Expanded sibling would squeeze it out of the row entirely.
         Flexible(
           child: UiText(
             methodLabel.toUpperCase(),
             type: UiTextType.labelSmall,
-            letterSpacing: 0.8,
-            color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
-            // Truncates rather than wrapping: this row is a single line by
-            // design, and a two-line method name would break the gap between
-            // the Solar card and the row below.
+            style: style,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.end,
@@ -353,8 +453,7 @@ class _SunsetFooter extends ConsumerWidget {
                     : l10n.homeSunsetIn(TimeFormatter.longCountdown(sunsetIn)))
                 .toUpperCase(),
             type: UiTextType.labelSmall,
-            letterSpacing: 0.8,
-            color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
+            style: style,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -364,13 +463,17 @@ class _SunsetFooter extends ConsumerWidget {
   }
 }
 
+PrayerTileStatus _statusFor(PrayerTime prayer, DateTime now, PrayerTime? next) {
+  if (prayer.time.isAfter(now)) {
+    if (next != null && next.kind == prayer.kind && next.time == prayer.time) {
+      return PrayerTileStatus.active;
+    }
+    return PrayerTileStatus.upcoming;
+  }
+  return PrayerTileStatus.passed;
+}
+
 /// Debug-only harness for the full-screen adhan presenter.
-///
-/// Raises the presenter through the real
-/// [NotificationService.showAdhanOverlay] entry point (same route transition,
-/// same Stop/volume-key teardown as a live adhan) so the alarm UI can be
-/// iterated on without waiting for a prayer time or granting permissions.
-/// The whole widget is behind `kDebugMode`, so release builds never see it.
 class _DevAdhanPreview extends ConsumerWidget {
   const _DevAdhanPreview({required this.prayer});
 
@@ -395,11 +498,14 @@ class _DevAdhanPreview extends ConsumerWidget {
                 color: scheme.tertiary,
               ),
               const SizedBox(width: AppSpacing.md),
-              UiText(
-                l10n.homeDevOnly,
-                type: UiTextType.labelSmall,
-                color: scheme.tertiary,
-                letterSpacing: 1.4,
+              Flexible(
+                child: UiText(
+                  l10n.homeDevOnly,
+                  type: UiTextType.labelSmall,
+                  color: scheme.tertiary,
+                  letterSpacing: AppTypeDetail.sectionLetterSpacing,
+                  fontWeight: AppWeight.semibold,
+                ),
               ),
             ],
           ),
@@ -428,58 +534,34 @@ class _DevAdhanPreview extends ConsumerWidget {
   }
 }
 
-class _HomeLoading extends StatelessWidget {
-  const _HomeLoading();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.only(top: AppSpacing.offsetXl),
-      child: Center(child: CircularProgressIndicator()),
-    );
-  }
-}
-
 class _HomeError extends StatelessWidget {
-  const _HomeError({required this.message});
+  const _HomeError({required this.message, this.onOpenSettings});
 
   final String message;
+  final VoidCallback? onOpenSettings;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.offsetLg),
       child: AppCard(
-        color: scheme.errorContainer.withValues(alpha: 0.35),
-        borderColor: scheme.error.withValues(alpha: 0.25),
+        color: scheme.errorContainer,
+        borderColor: scheme.error.withValues(alpha: AppOpacity.hairline),
         ambient: false,
-        child: Column(
-          children: [
-            UiText(
-              AppLocalizations.of(context).homeErrorTitle,
-              type: UiTextType.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            UiText(
-              message,
-              textAlign: TextAlign.center,
-              color: scheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: AppSpacing.xxxl),
-            PulseDot(color: scheme.primary, size: AppSpacing.sm),
-            const SizedBox(height: AppSpacing.md),
-            UiText(
-              AppLocalizations.of(context).homeErrorHint,
-              type: UiTextType.labelSmall,
-              textAlign: TextAlign.center,
-              color: scheme.onSurfaceVariant,
-              letterSpacing: 0.2,
-              fontWeight: FontWeight.w500,
-            ),
-          ],
+        child: EmptyState(
+          icon: Icons.cloud_off_outlined,
+          title: l10n.homeErrorTitle,
+          body: message,
+          action: onOpenSettings == null
+              ? null
+              : AppButton(
+                  label: l10n.navSettings,
+                  icon: Icons.settings_outlined,
+                  onPressed: onOpenSettings,
+                ),
         ),
       ),
     );

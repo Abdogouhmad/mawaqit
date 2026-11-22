@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mawaqit/core/ui/theme/app_colors.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/shared/ui/app_icon_button.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
 import 'package:mawaqit/shared/ui/pulse_dot.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
 enum PrayerTileStatus { passed, active, upcoming }
 
-/// Minimum size for anything tappable, per the platform accessibility
-/// guidelines. The mute glyph is 17px, so on its own it produced a 25px hit
-/// area — small enough that muting the wrong prayer was an easy accident, and
-/// unreachable for anyone using a screen reader's touch exploration.
-const double kMinTouchTarget = 48;
-
-/// A single row in the daily prayer schedule.
+/// One row in the daily prayer timeline.
+///
+/// The rows share one card and a thin rail on the leading side, so the five
+/// prayers read as a sequence rather than five unrelated cards. The active row
+/// is the only one that takes a filled container — a selected state, not
+/// decoration — and its mute control stays a separate semantics node so screen
+/// readers still announce it as a toggle.
 class PrayerScheduleTile extends StatelessWidget {
   const PrayerScheduleTile({
     super.key,
@@ -27,6 +27,7 @@ class PrayerScheduleTile extends StatelessWidget {
     this.countdownLabel,
     this.muted = false,
     this.onToggleMute,
+    this.isLast = false,
   });
 
   final PrayerTime prayer;
@@ -34,6 +35,9 @@ class PrayerScheduleTile extends StatelessWidget {
   final String? countdownLabel;
   final bool muted;
   final VoidCallback? onToggleMute;
+
+  /// Hides the connecting rail on the final prayer of the day.
+  final bool isLast;
 
   void _handleToggle() {
     HapticFeedback.selectionClick();
@@ -43,215 +47,172 @@ class PrayerScheduleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isLight = Theme.of(context).brightness == Brightness.light;
+    final l10n = AppLocalizations.of(context);
     final active = status == PrayerTileStatus.active;
     final passed = status == PrayerTileStatus.passed;
 
-    final nameColor = active
-        ? scheme.onSurface
+    final foreground = active
+        ? scheme.onPrimaryContainer
         : passed
-        ? scheme.onSurfaceVariant.withValues(alpha: 0.7)
+        ? scheme.onSurfaceVariant.withValues(alpha: AppOpacity.secondaryText)
         : scheme.onSurface;
-    final timeColor = active
-        ? scheme.onSurface
-        : passed
-        ? scheme.onSurfaceVariant.withValues(alpha: 0.7)
-        : scheme.onSurfaceVariant;
-
-    final Color background;
-    final Color border;
-    final List<BoxShadow>? shadow;
-
-    if (active) {
-      background = isLight
-          ? scheme.primary.withValues(alpha: 0.06)
-          : scheme.primary.withValues(alpha: 0.10);
-      border = scheme.primary.withValues(alpha: 0.45);
-      shadow = [
-        BoxShadow(
-          color: scheme.primary.withValues(alpha: isLight ? 0.10 : 0.20),
-          blurRadius: 24,
-          offset: const Offset(0, 6),
-        ),
-      ];
-    } else if (passed) {
-      background = isLight ? AppColors.tileInactiveLight : AppColors.cardDark;
-      border = isLight
-          ? AppColors.hairlineOverlayLight
-          : AppColors.hairlineOverlayDark;
-      shadow = null;
-    } else {
-      background = scheme.surfaceContainerLowest;
-      border = isLight
-          ? AppColors.hairlineOverlayLight
-          : AppColors.hairlineOverlayDark;
-      shadow = null;
-    }
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      // Reduced from 16 to 8: the mute control now occupies a full 48dp touch
-      // target, and without giving some of that height back every tile would
-      // have grown by 23px in a list of five.
+      duration: AppSpring.durationOf(context, fallback: AppMotion.control),
+      curve: AppMotion.standard,
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.jumbo,
+        horizontal: AppSpacing.xxxl,
         vertical: AppSpacing.md,
       ),
       decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(
-          active ? AppRadius.xl : AppRadius.lg,
+        color: active ? scheme.primaryContainer : AppColors.transparent,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(
+          color: active
+              ? AppColors.transparent
+              : scheme.outlineVariant.withValues(alpha: AppOpacity.hairline),
         ),
-        border: Border.all(color: border),
-        boxShadow: shadow,
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: AppSpacing.xl,
-            child: active
-                ? PulseDot(color: scheme.primary)
-                : Container(
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: passed
-                          ? scheme.outlineVariant
-                          : scheme.outlineVariant.withValues(alpha: 0.6),
-                    ),
-                  ),
+          _TimelineMarker(
+            scheme: scheme,
+            active: active,
+            passed: passed,
+            isLast: isLast,
           ),
-          const SizedBox(width: AppSpacing.xl),
-          // Name, countdown and time are announced as one node: read
-          // separately they were three unrelated fragments ("Fajr", "Isha in
-          // 1h 20m", "5:42 PM") with the relationship left to the listener to
-          // infer. Kept as its own child of the row so the mute control beside
-          // it survives as a separate button instead of being merged into it.
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: MergeSemantics(
               child: Row(
                 children: [
                   Expanded(
                     child: UiText(
-                      prayer.kind.localized(AppLocalizations.of(context)),
+                      prayer.kind.localized(l10n),
                       type: UiTextType.titleMedium,
-                      color: nameColor,
-                      fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                      color: foreground,
+                      fontWeight: active ? AppWeight.bold : AppWeight.medium,
                     ),
                   ),
                   if (active && countdownLabel != null) ...[
-                    AppPill(
-                      label: countdownLabel!,
-                      // A clock, not a bell: the bell column belongs to the
-                      // adhan mute control beside it, and the countdown is
-                      // about *when*, not *whether*, the call sounds.
-                      icon: Icons.timer_outlined,
-                      dense: true,
-                      backgroundColor: scheme.surfaceContainerLowest,
-                      foregroundColor: scheme.primary,
+                    const SizedBox(width: AppSpacing.xs),
+                    Flexible(
+                      child: AppPill(
+                        label: countdownLabel!,
+                        icon: Icons.timer_outlined,
+                        dense: true,
+                        backgroundColor: scheme.surfaceContainerHighest,
+                        foregroundColor: foreground,
+                      ),
                     ),
-                    const SizedBox(width: AppSpacing.lg),
                   ],
-                  UiText(
-                    TimeFormatter.clock(prayer.time),
-                    type: UiTextType.titleMedium,
-                    color: timeColor,
-                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                    style: const TextStyle(
-                      fontFeatures: [FontFeature.tabularFigures()],
+                  const SizedBox(width: AppSpacing.sm),
+                  Flexible(
+                    child: UiText(
+                      TimeFormatter.clock(prayer.time),
+                      type: UiTextType.titleMedium,
+                      textAlign: TextAlign.end,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      color: foreground,
+                      fontWeight: active ? AppWeight.bold : AppWeight.medium,
+                      style: const TextStyle(
+                        fontFeatures: [FontFeature.tabularFigures()],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          // Narrowed from 10 to 2 to absorb the wider touch target.
-          const SizedBox(width: AppSpacing.xxs),
-          _muteControl(context, scheme),
+          const SizedBox(width: AppSpacing.xs),
+          _muteControl(l10n, scheme, active, passed),
         ],
       ),
     );
   }
 
-  /// Adhan mute toggle. One widget for both visual states so the muted pill
-  /// cannot drift out of step with the icon's target size, and so both expose
-  /// the same `toggled` state to a screen reader — which previously read
-  /// "Muted" at best, and nothing at all for the icon state.
-  Widget _muteControl(BuildContext context, ColorScheme scheme) {
-    final isLight = Theme.of(context).brightness == Brightness.light;
-    final passed = status == PrayerTileStatus.passed;
-    final active = status == PrayerTileStatus.active;
+  Widget _muteControl(
+    AppLocalizations l10n,
+    ColorScheme scheme,
+    bool active,
+    bool passed,
+  ) {
     final enabled = onToggleMute != null;
+    final label = l10n.prayerAdhanLabel(prayer.kind.localized(l10n));
 
     return Semantics(
       button: true,
       toggled: muted,
       enabled: enabled,
-      label: AppLocalizations.of(
-        context,
-      ).prayerAdhanLabel(prayer.kind.localized(AppLocalizations.of(context))),
-      hint: muted
-          ? AppLocalizations.of(context).prayerUnmuteHint
-          : AppLocalizations.of(context).prayerMuteHint,
+      label: label,
+      hint: muted ? l10n.prayerUnmuteHint : l10n.prayerMuteHint,
       excludeSemantics: true,
-      child: Tooltip(
-        message: muted
-            ? AppLocalizations.of(context).prayerTapToUnmute
-            : AppLocalizations.of(context).prayerTapToMute,
-        child: _TouchTarget(
-          child: muted
-              ? AppPill(
-                  key: const Key('mute-toggle'),
-                  label: AppLocalizations.of(context).prayerMuted,
-                  icon: Icons.volume_off,
-                  dense: true,
-                  onTap: enabled ? _handleToggle : null,
-                  backgroundColor: scheme.tertiaryContainer.withValues(
-                    alpha: isLight ? 0.6 : 0.35,
-                  ),
-                  foregroundColor: scheme.onTertiaryContainer,
-                )
-              : InkResponse(
-                  key: const Key('notification-mute-toggle'),
-                  onTap: enabled ? _handleToggle : null,
-                  radius: kMinTouchTarget / 2,
-                  child: Icon(
-                    // A speaker, because this button controls the adhan audio —
-                    // the bell read as "notifications", which is a different
-                    // switch (the pre-prayer alert), and made the control's job
-                    // ambiguous next to the countdown it used to share an icon
-                    // with.
-                    Icons.volume_up,
-                    size: AppIconSize.md,
-                    color: active
-                        ? scheme.primary
-                        : passed
-                        ? scheme.onSurfaceVariant.withValues(alpha: 0.5)
-                        : scheme.onSurfaceVariant,
-                  ),
-                ),
-        ),
+      child: AppIconButton(
+        icon: muted ? Icons.volume_off : Icons.volume_up,
+        tooltip: muted ? l10n.prayerTapToUnmute : l10n.prayerTapToMute,
+        onPressed: enabled ? _handleToggle : null,
+        variant: muted
+            ? AppIconButtonVariant.tonal
+            : AppIconButtonVariant.standard,
+        color: active
+            ? scheme.onPrimaryContainer
+            : passed
+            ? scheme.onSurfaceVariant.withValues(
+                alpha: AppOpacity.secondaryText,
+              )
+            : scheme.onSurfaceVariant,
       ),
     );
   }
 }
 
-/// Grows an interactive control to [kMinTouchTarget] without changing how it
-/// looks, so accessibility does not cost the design its density.
-class _TouchTarget extends StatelessWidget {
-  const _TouchTarget({required this.child});
+class _TimelineMarker extends StatelessWidget {
+  const _TimelineMarker({
+    required this.scheme,
+    required this.active,
+    required this.passed,
+    required this.isLast,
+  });
 
-  final Widget child;
+  final ColorScheme scheme;
+  final bool active;
+  final bool passed;
+  final bool isLast;
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(
-        minWidth: kMinTouchTarget,
-        minHeight: kMinTouchTarget,
+    return SizedBox(
+      width: AppSpacing.touch,
+      height: AppSpacing.touch,
+      child: Stack(
+        alignment: AlignmentDirectional.center,
+        children: [
+          if (!isLast)
+            Container(
+              width: AppStroke.hairline,
+              height: AppSpacing.touch,
+              color: scheme.outlineVariant.withValues(
+                alpha: AppOpacity.hairline,
+              ),
+            ),
+          if (active)
+            PulseDot(color: scheme.onPrimaryContainer, glow: false)
+          else
+            Container(
+              width: AppSize.pulseDot,
+              height: AppSize.pulseDot,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: passed
+                    ? scheme.outlineVariant.withValues(
+                        alpha: AppOpacity.faintMark,
+                      )
+                    : scheme.onSurfaceVariant,
+              ),
+            ),
+        ],
       ),
-      child: Center(child: child),
     );
   }
 }

@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:mawaqit/core/ui/theme/app_theme.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/shared/ui/app_card.dart';
+import 'package:mawaqit/shared/ui/app_pill.dart';
 import 'package:mawaqit/shared/ui/pulse_dot.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
-/// Lightweight M3 Expressive countdown hero.
+/// The Home screen's one focal surface: the next prayer and its countdown.
 ///
-/// Design principles:
-/// - Countdown remains the primary visual focus.
-/// - Uses ColorScheme surfaces instead of gradients/shadows.
-/// - Expressive asymmetric shapes without expensive decoration.
-/// - Progress remains useful but visually quiet.
-/// - Only the progress value animates when it changes.
+/// Everything here is quiet except the number. The card uses the app's standard
+/// tonal container; the only accent is the primary-coloured countdown figures
+/// and the slim temporal progress track. Only the progress value animates, and
+/// that animation is suppressed by both reduce-motion signals.
 class CountdownHero extends StatelessWidget {
   const CountdownHero({
     super.key,
@@ -32,22 +32,16 @@ class CountdownHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
-
     final next = nextPrayer;
-
     if (next == null) {
       return const SizedBox(height: AppSpacing.offsetXl);
     }
 
-    final isLight = theme.brightness == Brightness.light;
-
-    final countdown = TimeFormatter.countdown(nextIn);
-
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
     final nextName = next.kind.localized(l10n);
+    final countdown = TimeFormatter.countdown(nextIn);
     final subtitle = currentPrayer == null
         ? l10n.homeDayBeginsWith(nextName)
         : l10n.homePrayerEnded(
@@ -55,79 +49,41 @@ class CountdownHero extends StatelessWidget {
             TimeFormatter.clock(currentPrayer!.time),
           );
 
-    final startTime = currentPrayer?.time;
-    final endTime = next.time;
-
-    return Column(
-      children: [
-        /// Expressive status badge.
-        _NextPrayerBadge(scheme: scheme),
-
-        const SizedBox(height: AppSpacing.lg),
-
-        /// Main countdown.
-        _CountdownText(
-          prayerName: nextName,
-          countdown: countdown,
-          textTheme: textTheme,
-          scheme: scheme,
+    return Semantics(
+      label: '${l10n.homeNextPrayer}, $nextName, $countdown',
+      child: AppCard(
+        padding: const EdgeInsets.all(AppSpacing.tera),
+        child: Column(
+          children: [
+            AppPill(
+              label: l10n.homeNextPrayer,
+              leading: PulseDot(color: scheme.primary, glow: false),
+              color: scheme.primary,
+              dense: true,
+              letterSpacing: AppTypeDetail.overlineTracking,
+            ),
+            const SizedBox(height: AppSpacing.block),
+            _CountdownText(
+              prayerName: nextName,
+              countdown: countdown,
+              textTheme: theme.textTheme,
+              scheme: scheme,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _PrayerMeta(
+              prayerTime: TimeFormatter.clock(next.time),
+              subtitle: subtitle,
+              scheme: scheme,
+            ),
+            const SizedBox(height: AppSpacing.tera),
+            _PrayerProgress(
+              progress: progress,
+              startTime: currentPrayer?.time,
+              endTime: next.time,
+              scheme: scheme,
+            ),
+          ],
         ),
-
-        const SizedBox(height: AppSpacing.sm),
-
-        /// Prayer time + context.
-        _PrayerMeta(
-          prayerTime: TimeFormatter.clock(next.time),
-          subtitle: subtitle,
-          scheme: scheme,
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-
-        /// Lightweight temporal progress surface.
-        _PrayerProgress(
-          progress: progress,
-          startTime: startTime,
-          endTime: endTime,
-          scheme: scheme,
-          isLight: isLight,
-        ),
-      ],
-    );
-  }
-}
-
-class _NextPrayerBadge extends StatelessWidget {
-  const _NextPrayerBadge({required this.scheme});
-
-  final ColorScheme scheme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(18),
-          topRight: Radius.circular(10),
-          bottomLeft: Radius.circular(10),
-          bottomRight: Radius.circular(18),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          PulseDot(color: scheme.primary, size: 7, glow: false),
-          const SizedBox(width: 8),
-          UiText(
-            AppLocalizations.of(context).homeNextPrayer,
-            type: UiTextType.labelMedium,
-            color: scheme.onPrimaryContainer,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.3,
-          ),
-        ],
       ),
     );
   }
@@ -148,6 +104,9 @@ class _CountdownText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = textTheme.displayMedium!;
+    const spacing = AppTypeDetail.heroTracking;
+
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Text.rich(
@@ -156,30 +115,30 @@ class _CountdownText extends StatelessWidget {
             TextSpan(
               text: '$prayerName ',
               style: AppTheme.numerals(
-                textTheme.displayMedium!.copyWith(
+                base.copyWith(
                   color: scheme.onSurface,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -1,
+                  fontWeight: AppWeight.semibold,
+                  letterSpacing: spacing,
                 ),
               ),
             ),
             TextSpan(
               text: 'in ',
               style: AppTheme.numerals(
-                textTheme.displayMedium!.copyWith(
+                base.copyWith(
                   color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: -1.4,
+                  fontWeight: AppWeight.regular,
+                  letterSpacing: spacing,
                 ),
               ),
             ),
             TextSpan(
               text: countdown,
               style: AppTheme.numerals(
-                textTheme.displayMedium!.copyWith(
+                base.copyWith(
                   color: scheme.primary,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -1.6,
+                  fontWeight: AppWeight.bold,
+                  letterSpacing: spacing,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
@@ -212,27 +171,15 @@ class _PrayerMeta extends StatelessWidget {
           type: UiTextType.titleMedium,
           fontSize: AppFontSize.lg,
           color: scheme.onSurface,
-          fontWeight: FontWeight.w600,
+          fontWeight: AppWeight.semibold,
           style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
         ),
-
         const SizedBox(width: AppSpacing.sm),
-
         Flexible(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: UiText(
-              subtitle,
-              type: UiTextType.labelMedium,
-              color: scheme.onSurfaceVariant,
-              letterSpacing: 0.1,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+          child: AppPill(
+            label: subtitle,
+            dense: true,
+            backgroundColor: scheme.surfaceContainer,
           ),
         ),
       ],
@@ -246,83 +193,70 @@ class _PrayerProgress extends StatelessWidget {
     required this.startTime,
     required this.endTime,
     required this.scheme,
-    required this.isLight,
   });
 
   final double progress;
   final DateTime? startTime;
   final DateTime endTime;
   final ColorScheme scheme;
-  final bool isLight;
 
   @override
   Widget build(BuildContext context) {
+    final duration = AppSpring.durationOf(context, fallback: AppMotion.effects);
+
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: AppSpacing.progress),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainer,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(10),
-            bottomLeft: Radius.circular(10),
-            bottomRight: Radius.circular(20),
-          ),
-          border: Border.all(
-            color: scheme.outlineVariant.withValues(alpha: isLight ? .45 : .25),
-          ),
-        ),
-        child: Column(
-          children: [
-            /// Progress track.
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-              child: TweenAnimationBuilder<double>(
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeOut,
-                tween: Tween(begin: 0, end: progress.clamp(0.0, 1.0)),
-                builder: (context, value, _) {
-                  return LinearProgressIndicator(
-                    value: value,
-                    minHeight: 7,
-                    backgroundColor: scheme.surfaceContainerHighest,
-                    valueColor: AlwaysStoppedAnimation(scheme.primary),
-                  );
-                },
-              ),
+      child: Column(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: TweenAnimationBuilder<double>(
+              duration: duration,
+              curve: AppMotion.standard,
+              tween: Tween(begin: 0, end: progress.clamp(0.0, 1.0)),
+              builder: (context, value, _) {
+                return LinearProgressIndicator(
+                  value: value,
+                  minHeight: AppSize.progressTrackHeight,
+                  backgroundColor: scheme.surfaceContainerHighest,
+                  valueColor: AlwaysStoppedAnimation(scheme.primary),
+                );
+              },
             ),
-
-            const SizedBox(height: 9),
-
-            /// Timeline labels.
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                UiText(
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: UiText(
                   startTime == null
                       ? AppLocalizations.of(context).homeStart
                       : TimeFormatter.clock(startTime!),
                   type: UiTextType.labelSmall,
                   color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: AppWeight.medium,
                   style: const TextStyle(
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
-                UiText(
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Flexible(
+                child: UiText(
                   TimeFormatter.clock(endTime),
+                  textAlign: TextAlign.end,
                   type: UiTextType.labelSmall,
                   color: scheme.primary,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: AppWeight.bold,
                   style: const TextStyle(
                     fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

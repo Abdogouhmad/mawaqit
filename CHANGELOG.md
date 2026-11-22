@@ -32,6 +32,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   still verified against the manifest checksum before the system installer
   runs, and mandatory/support-floor updates are honoured as before.
 
+## [0.18.0] - 2026-11-22
+
+### Changed
+
+- **Home is now a calmer, single-focus screen.** The next prayer and its
+  countdown own one focal card, with the Gregorian/Hijri date, a quiet prayer
+  timeline, solar summary and direct Times/Settings actions as supporting
+  information.
+- The countdown, prayer timeline and solar card now share the 0.17 design-system
+  primitives and tokens, keeping spacing, type, colour and motion consistent
+  with the rest of the app.
+- Only the countdown and sunset line tick each second; the date, prayer list and
+  solar card still wait for real data changes.
+- Countdown, next prayer, Times/Settings actions and per-prayer mute controls
+  now expose clearer screen-reader labels.
+
 ## [0.17.0] - 2026-11-22
 
 ### Changed

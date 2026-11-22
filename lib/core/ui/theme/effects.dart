@@ -37,6 +37,12 @@ abstract final class AppOpacity {
   /// A muted caption sitting on a tonal surface.
   static const double mutedCaption = 0.7;
 
+  /// Secondary copy that must still read as text, not as a divider.
+  static const double secondaryText = 0.75;
+
+  /// Inactive dots and long-passed rows.
+  static const double faintMark = 0.5;
+
   /// Hairlines and dividers that should read as structure, not ink.
   static const double hairline = 0.4;
 
@@ -130,6 +136,9 @@ abstract final class AppSize {
 
   static const double pulseDot = 8;
   static const double pulseScaleBase = 0.8;
+
+  /// Height of the thin temporal-progress track in the countdown hero.
+  static const double progressTrackHeight = AppSpacing.sm;
   static const double pulseScaleRange = 0.4;
 
   /// Bottom navigation. The icon is 24dp — the Material default and one step
@@ -152,6 +161,7 @@ abstract final class AppShape {
 abstract final class AppWeight {
   const AppWeight._();
 
+  static const FontWeight regular = FontWeight.w400;
   static const FontWeight medium = FontWeight.w500;
   static const FontWeight semibold = FontWeight.w600;
   static const FontWeight bold = FontWeight.w700;
@@ -176,4 +186,16 @@ abstract final class AppTypeDetail {
   static const double actionLetterSpacing = 0.4;
   static const double sectionLetterSpacing = 1.4;
   static const double titleLetterSpacing = -0.2;
+
+  /// Uppercase eyebrows and small captions.
+  static const double overlineTracking = 1.2;
+
+  /// App name in the Home header.
+  static const double appTitleTracking = -0.4;
+
+  /// The hero countdown: tight enough that a long duration still fits at 2x.
+  static const double heroTracking = -1.4;
+
+  /// Single-line meta rows at the foot of the Home screen.
+  static const double footerTracking = 0.8;
 }

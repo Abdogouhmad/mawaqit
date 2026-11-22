@@ -74,7 +74,10 @@ class AppShell extends StatelessWidget {
       body: AppChrome.constrain(switch (location) {
         AppRoutes.times => const TimesScreen(),
         AppRoutes.settings => const SettingsScreen(),
-        _ => const HomeScreen(),
+        _ => HomeScreen(
+          onOpenTimes: () => context.go(AppRoutes.times),
+          onOpenSettings: () => context.go(AppRoutes.settings),
+        ),
       }),
       bottomNavigationBar: AppNavigationBar(
         selectedIndex: selectedIndex,

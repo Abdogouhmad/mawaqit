@@ -14,7 +14,7 @@ done**, merge the phase branch to `main`, let CI cut the release, then move on.
 > builds on. See [`CHANGELOG.md`](../CHANGELOG.md) Unreleased and
 > [`production-readiness.md`](production-readiness.md).
 
-**Current phase:** [`0.16.0 — release channels & the new Update Center`](roadmap_0.16.0.md).
+**Current phase:** [`0.18.0 — new Home UI`](roadmap_0.18.0.md).
 
 ---
 
@@ -152,7 +152,7 @@ onboarding/permissions flow, and a refreshed home-screen widget.
 |---|---|---|---|
 | 0.16.0 | Release channels (stable/beta) + new Update Center | 2–3 days | ◐ |
 | 0.17.0 | Design system 2.0 + app shell + navigation | 2–3 days | ☑ |
-| 0.18.0 | New Home UI | 2–3 days | ☐ |
+| 0.18.0 | New Home UI | 2–3 days | ☑ |
 | 0.19.0 | New Times UI | 2 days | ☐ |
 | 0.20.0 | New Settings, onboarding & permissions UI | 2–3 days | ☐ |
 | 0.21.0 | Feature: Adhan 2.0 (tone preview, schedule control, reliability) | 3–4 days | ☐ |
@@ -228,6 +228,9 @@ screens, so every later phase reuses one set of tokens and components.
 ---
 
 ## 0.18.0 — New Home UI
+
+**Status:** code complete on `phase/0.18-new-home-ui`; see
+[`roadmap_0.18.0.md`](roadmap_0.18.0.md) for the phase detail.
 
 **Goal:** a calm home surface where the next prayer and its countdown are the
 hero, and everything else is supporting information.
