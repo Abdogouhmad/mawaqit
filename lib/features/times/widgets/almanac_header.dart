@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/utils/hijri_dates.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';

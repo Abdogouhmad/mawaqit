@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 

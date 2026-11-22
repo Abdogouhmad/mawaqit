@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:mawaqit/core/navigation/app_shell.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/core/ui/widgets/app_chrome.dart';

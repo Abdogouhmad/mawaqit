@@ -9,6 +9,14 @@ output-localization-file: app_localizations.dart
 output-class: AppLocalizations
 output-dir: lib/l10n/gen
 
+# Flutter 3.50's generator still references the deprecated
+# GlobalMaterialLocalizations/GlobalCupertinoLocalizations delegates from
+# flutter_localizations. Suppress only that deprecation in generated code so
+# `flutter analyze --fatal-infos` stays green without hiding real issues.
+header: |
+  // GENERATED CODE - DO NOT MODIFY BY HAND
+  // ignore_for_file: deprecated_member_use
+
 # `AppLocalizations.of(context)` returns non-null, so call sites do not need a
 # `!` on every lookup.
 nullable-getter: false

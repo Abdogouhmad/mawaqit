@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:home_widget/home_widget.dart';
-
 import 'package:mawaqit/app.dart';
 import 'package:mawaqit/core/navigation/app_shell.dart';
 import 'package:mawaqit/core/ota/update_check_host.dart';

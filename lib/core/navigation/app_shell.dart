@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:mawaqit/core/ui/widgets/app_chrome.dart';
 import 'package:mawaqit/features/home/home_screen.dart';
 import 'package:mawaqit/features/settings/settings_screen.dart';

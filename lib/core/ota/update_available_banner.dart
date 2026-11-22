@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:mawaqit/core/ui/theme/motion.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';

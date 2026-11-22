@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
-
 import 'package:mawaqit/core/ui/theme/shapes.dart';
 import 'package:mawaqit/features/times/times_controller.dart';
 import 'package:mawaqit/features/times/widgets/prayer_grid.dart';

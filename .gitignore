@@ -125,6 +125,9 @@ unlinked_spec.ds
 # Coverage
 coverage/
 
+# Kotlin compiler daemon session files (created by Gradle builds)
+**/.kotlin/
+
 # Symbols
 app.*.symbols
 
