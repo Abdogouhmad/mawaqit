@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/core/ui/theme/text_theme.dart';
 import 'package:mawaqit/core/utils/hijri_dates.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
@@ -126,8 +126,15 @@ class DayRow extends StatelessWidget {
         ),
         margin: const EdgeInsets.only(bottom: AppSpacing.md),
         decoration: BoxDecoration(
-          color: isToday ? scheme.primaryContainer : Colors.transparent,
+          color: isToday ? scheme.primaryContainer : AppColors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.lg),
+          // A hairline makes today findable without adding a coloured bar that
+          // every other row would have to reserve space for.
+          border: Border.all(
+            color: isToday
+                ? scheme.primary.withValues(alpha: AppOpacity.hairline)
+                : AppColors.transparent,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -193,13 +200,13 @@ class _DayLine extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isToday ? scheme.primary : Colors.transparent,
+            color: isToday ? scheme.primary : AppColors.transparent,
           ),
           child: UiText(
             '${day.date.day}',
             type: UiTextType.labelLarge,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0,
+            fontWeight: AppWeight.bold,
+            letterSpacing: AppTypeDetail.untacked,
             color: isToday ? scheme.onPrimary : scheme.onSurface,
           ),
         ),
@@ -208,7 +215,7 @@ class _DayLine extends StatelessWidget {
           child: UiText(
             weekday,
             type: UiTextType.titleSmall,
-            fontWeight: FontWeight.w600,
+            fontWeight: AppWeight.semibold,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             color: isToday
@@ -227,9 +234,9 @@ class _DayLine extends StatelessWidget {
           '$hijriDay',
           type: UiTextType.labelSmall,
           color: (isToday ? scheme.onPrimaryContainer : scheme.onSurfaceVariant)
-              .withValues(alpha: 0.7),
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0,
+              .withValues(alpha: AppOpacity.mutedCaption),
+          fontWeight: AppWeight.medium,
+          letterSpacing: AppTypeDetail.untacked,
         ),
       ],
     );
@@ -318,7 +325,7 @@ class _PrayerCell extends StatelessWidget {
         ? scheme.primary
         : muted
         ? (isToday ? scheme.onPrimaryContainer : scheme.onSurfaceVariant)
-              .withValues(alpha: 0.55)
+              .withValues(alpha: AppOpacity.passedTime)
         : isToday
         ? scheme.onPrimaryContainer
         : scheme.onSurface;
@@ -330,12 +337,14 @@ class _PrayerCell extends StatelessWidget {
         UiText(
           column.label,
           type: UiTextType.labelSmall,
-          fontWeight: FontWeight.w600,
+          fontWeight: AppWeight.semibold,
           // Tracking off: the label sits directly over a fixed-width time, and a
           // tracked label next to an untracked number reads as two different
           // settings rather than one column.
-          letterSpacing: 0.2,
-          color: color.withValues(alpha: muted ? 0.7 : 0.85),
+          letterSpacing: AppTypeDetail.labelTracking,
+          color: color.withValues(
+            alpha: muted ? AppOpacity.mutedCaption : AppOpacity.supportingInk,
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -348,7 +357,7 @@ class _PrayerCell extends StatelessWidget {
             maxLines: 1,
             style: style?.copyWith(
               color: color,
-              fontWeight: isNext ? FontWeight.w700 : FontWeight.w600,
+              fontWeight: isNext ? AppWeight.bold : AppWeight.semibold,
             ),
           ),
         ),

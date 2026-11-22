@@ -32,6 +32,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   still verified against the manifest checksum before the system installer
   runs, and mandatory/support-floor updates are honoured as before.
 
+## [0.19.0] - 2026-11-22
+
+### Changed
+
+- **The monthly schedule is calmer and easier to scan.** Full-size prayer
+  columns, one clear today treatment and a pinned label header replace the
+  cramped table, with a quiet solar summary for the current day.
+- **The month at a glance is now its own card.** Each prayer shows how many
+  minutes earlier or later it falls from the first day to the last, with
+  localized direction labels instead of a bare number.
+- **Month paging follows the reading direction.** The month name opens a
+  twelve-month picker, the chevrons mirror in RTL, and a Today shortcut appears
+  only after paging away. The picker scrolls at large text sizes.
+- Times-screen controls and labels now use the 0.17 design-system tokens and
+  expose clearer screen-reader labels for paging, today and shift directions.
+
 ## [0.18.0] - 2026-11-22
 
 ### Changed

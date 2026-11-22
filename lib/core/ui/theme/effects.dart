@@ -43,6 +43,18 @@ abstract final class AppOpacity {
   /// Inactive dots and long-passed rows.
   static const double faintMark = 0.5;
 
+  /// Passed times in today's row: dimmed, but still readable.
+  static const double passedTime = 0.55;
+
+  /// Disabled picker cells and other non-interactive ink.
+  static const double disabled = 0.38;
+
+  /// Caption ink that is softer than body copy but not a divider.
+  static const double supportingInk = 0.85;
+
+  /// Translucent halo around the sun marker on the solar arc.
+  static const double arcGlow = 0.18;
+
   /// Hairlines and dividers that should read as structure, not ink.
   static const double hairline = 0.4;
 
@@ -79,6 +91,7 @@ abstract final class AppStroke {
 
   static const double hairline = 1;
   static const double focus = 2;
+  static const double arcTrack = 2;
   static const double spinner = 2.4;
 }
 
@@ -137,6 +150,11 @@ abstract final class AppSize {
   static const double pulseDot = 8;
   static const double pulseScaleBase = 0.8;
 
+  /// Solar arc geometry: height, horizon ticks and the travelling sun marker.
+  static const double solarArcHeight = 64;
+  static const double arcHorizonDot = 2.5;
+  static const double arcSunCore = 4.5;
+
   /// Height of the thin temporal-progress track in the countdown hero.
   static const double progressTrackHeight = AppSpacing.sm;
   static const double pulseScaleRange = 0.4;
@@ -161,6 +179,7 @@ abstract final class AppShape {
 abstract final class AppWeight {
   const AppWeight._();
 
+  static const FontWeight light = FontWeight.w300;
   static const FontWeight regular = FontWeight.w400;
   static const FontWeight medium = FontWeight.w500;
   static const FontWeight semibold = FontWeight.w600;
@@ -183,6 +202,9 @@ abstract final class AppTypeDetail {
   const AppTypeDetail._();
 
   static const double compactLineHeight = 1;
+  static const double untacked = 0;
+  static const double labelTracking = 0.2;
+  static const double fineTracking = 0.1;
   static const double actionLetterSpacing = 0.4;
   static const double sectionLetterSpacing = 1.4;
   static const double titleLetterSpacing = -0.2;

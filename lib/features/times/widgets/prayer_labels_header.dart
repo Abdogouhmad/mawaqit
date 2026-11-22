@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/core/ui/theme/text_theme.dart';
 import 'package:mawaqit/features/times/widgets/prayer_grid.dart';
 import 'package:mawaqit/features/times/widgets/times_columns.dart';
@@ -67,14 +67,14 @@ class PrayerLabelsHeader extends StatelessWidget {
                           ? UiText(
                               labels[i],
                               type: UiTextType.labelSmall,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: AppWeight.bold,
                               color: scheme.onSurfaceVariant,
                               // No `labelSmall`'s wide tracking here: at
                               // `grid.columns` == 5 in English the labels are about
                               // 87dp each and tracking costs 4% of that. And unlike
                               // the old table this never has to abbreviate — the
                               // columns are now sized to the label.
-                              letterSpacing: 0.2,
+                              letterSpacing: AppTypeDetail.labelTracking,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             )
@@ -150,9 +150,9 @@ class PrayerHeaderDelegate extends SliverPersistentHeaderDelegate {
           child: AnimatedOpacity(
             // 2dp of travel, then fully drawn: the rule should be there by the
             // time the header has visibly detached, not before.
-            opacity: (shrinkOffset / 2).clamp(0.0, 1.0),
-            duration: const Duration(milliseconds: 120),
-            child: Container(height: 1, color: hairline),
+            opacity: (shrinkOffset / AppStroke.arcTrack).clamp(0.0, 1.0),
+            duration: AppMotion.shortest,
+            child: Container(height: AppStroke.hairline, color: hairline),
           ),
         ),
       ],

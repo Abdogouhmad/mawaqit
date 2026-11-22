@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 
 /// How the month's time columns are arranged inside one day, and at what size.
 ///
@@ -75,7 +75,7 @@ class PrayerGrid {
         textTheme.labelSmall,
       ])
         style?.copyWith(
-              letterSpacing: 0,
+              letterSpacing: AppTypeDetail.untacked,
               fontFeatures: const [FontFeature.tabularFigures()],
             ) ??
             const TextStyle(),

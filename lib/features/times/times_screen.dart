@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mawaqit/core/navigation/app_shell.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/core/ui/widgets/app_chrome.dart';
 import 'package:mawaqit/core/ui/widgets/empty_state.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
@@ -15,6 +15,7 @@ import 'package:mawaqit/features/times/widgets/prayer_labels_header.dart';
 import 'package:mawaqit/features/times/widgets/solar_arc.dart';
 import 'package:mawaqit/features/times/widgets/times_columns.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/shared/ui/app_button.dart';
 
 /// Horizontal margin shared by the header and every row.
 ///
@@ -25,9 +26,10 @@ const double _inset = AppSpacing.huge;
 
 /// The monthly prayer schedule (feat.md §10).
 ///
-/// Three zones, each with one job:
+/// Four zones, each with one job:
 ///
-///  * the title and location — what this is, and for where;
+///  * [AlmanacHeader] — where and which month, with direction-aware paging;
+///  * [DaySolarCard] — today's place in the solar cycle, when the month is now;
 ///  * [MonthShiftCard] — the shape of the month, i.e. how far each prayer moves;
 ///  * the day list under a pinned header — the exact times.
 ///
@@ -74,9 +76,10 @@ class _TimesScreenState extends ConsumerState<TimesScreen> {
           // An explicit retry, not a pull. `EmptyState` is not scrollable, so a
           // gesture here would be a promise the view cannot keep — the copy used to
           // say "pull down to try again" and there was nothing to pull.
-          action: FilledButton(
+          action: AppButton(
+            label: l10n.actionRetry,
+            expanded: false,
             onPressed: () => ref.invalidate(timesControllerProvider),
-            child: Text(l10n.actionRetry),
           ),
         ),
         // `skipLoadingOnReload` so a settings change mid-month keeps the current
@@ -116,9 +119,10 @@ class _NoLocation extends ConsumerWidget {
       icon: Icons.location_off_outlined,
       title: l10n.timesTitle,
       body: l10n.timesNoLocation,
-      action: FilledButton(
+      action: AppButton(
+        label: l10n.timesGoToSettings,
+        expanded: false,
         onPressed: () => context.go(AppRoutes.settings),
-        child: Text(l10n.timesGoToSettings),
       ),
     );
   }

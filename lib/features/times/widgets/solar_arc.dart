@@ -1,23 +1,13 @@
 import 'package:flutter/material.dart';
-
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
+import 'package:mawaqit/shared/ui/app_card.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
-/// Today's solar cycle as a single drawn arc — dawn on one edge, nightfall on
-/// the other, and a sun marker where the day currently stands.
-///
-/// This is the Times tab's signature. A monthly table is a grid of numbers and
-/// says nothing about *where in the day* the reader is; the arc restores that in
-/// the one place the tab opens — the current month — and does it in the app's own
-/// astronomical vocabulary rather than with another progress bar.
-///
-/// The painter is deliberately hairline and undecorated (feat.md's "Warm
-/// Precision Minimalism"): a 2dp stroke, a solid sun, and nothing else. The
-/// travelled portion is gold (the app's colour for solar facts, shared with the
-/// month-shift card) over a neutral track.
+/// Today's solar cycle as one hairline arc: dawn at the reading-start edge,
+/// nightfall at the other, and a sun marker where the day currently stands.
 class SolarArc extends StatelessWidget {
   const SolarArc({
     super.key,
@@ -26,12 +16,10 @@ class SolarArc extends StatelessWidget {
     required this.progressColor,
     required this.dotColor,
     required this.rtl,
-    this.height = 64,
+    this.height = AppSize.solarArcHeight,
   });
 
-  /// Fraction of daylight elapsed, 0 (dawn) to 1 (dusk).
   final double progress;
-
   final Color trackColor;
   final Color progressColor;
   final Color dotColor;
@@ -79,45 +67,46 @@ class _SolarArcPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
     // Inset so the endpoint dots and the sun are never clipped by the box edge.
-    const inset = 10.0;
-    const apexInset = 10.0;
-    final baseY = h - 8;
-    const apexY = apexInset;
+    const inset = AppSpacing.lg;
+    const apexInset = AppSpacing.lg;
+    final baseY = h - AppSpacing.md;
 
     double x(double v) => rtl ? w - v : v;
 
     final p0 = Offset(x(inset), baseY);
     final p1 = Offset(x(w - inset), baseY);
-    // Control at the same x as the apex, pulled up so the quadratic's midpoint
-    // (0.25*p0 + 0.5*control + 0.25*p1) lands exactly on the apex.
-    final control = Offset(x(w / 2), 2 * apexY - baseY);
+    // Control at the apex x, pulled up so the quadratic midpoint lands on it.
+    final control = Offset(x(w / 2), 2 * apexInset - baseY);
 
     final path = Path()
       ..moveTo(p0.dx, p0.dy)
       ..quadraticBezierTo(control.dx, control.dy, p1.dx, p1.dy);
 
-    final track = Paint()
-      ..color = trackColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-    canvas.drawPath(path, track);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = trackColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = AppStroke.arcTrack
+        ..strokeCap = StrokeCap.round,
+    );
 
-    // Endpoint ticks: the two horizons the arc is measured between.
     final horizon = Paint()..color = trackColor;
-    canvas.drawCircle(p0, 2.5, horizon);
-    canvas.drawCircle(p1, 2.5, horizon);
+    canvas.drawCircle(p0, AppSize.arcHorizonDot, horizon);
+    canvas.drawCircle(p1, AppSize.arcHorizonDot, horizon);
 
     final metric = path.computeMetrics().first;
     final total = metric.length;
 
     if (progress > 0) {
-      final travelled = Paint()
-        ..color = progressColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.4
-        ..strokeCap = StrokeCap.round;
-      canvas.drawPath(metric.extractPath(0, total * progress), travelled);
+      canvas.drawPath(
+        metric.extractPath(0, total * progress),
+        Paint()
+          ..color = progressColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = AppStroke.spinner
+          ..strokeCap = StrokeCap.round,
+      );
     }
 
     final tangent = metric.getTangentForOffset(total * progress);
@@ -125,10 +114,10 @@ class _SolarArcPainter extends CustomPainter {
       final centre = tangent.position;
       canvas.drawCircle(
         centre,
-        8,
-        Paint()..color = dotColor.withValues(alpha: 0.18),
+        AppSpacing.md,
+        Paint()..color = dotColor.withValues(alpha: AppOpacity.arcGlow),
       );
-      canvas.drawCircle(centre, 4.5, Paint()..color = dotColor);
+      canvas.drawCircle(centre, AppSize.arcSunCore, Paint()..color = dotColor);
     }
   }
 
@@ -141,11 +130,9 @@ class _SolarArcPainter extends CustomPainter {
       old.dotColor != dotColor;
 }
 
-/// The current day, told through its solar cycle: today's Gregorian and Hijri
-/// dates, the drawn arc, sunrise and sunset at the ends, and solar noon beneath.
-///
-/// Rendered only for the current month — see [TimesScreen] — because the arc is
-/// about "now", and a lapsed or future month has no meaningful now.
+/// The current day told through its solar cycle: date, arc, sunrise/sunset and
+/// solar noon. Rendered only for the current month — a lapsed or future month
+/// has no meaningful "now".
 class DaySolarCard extends StatelessWidget {
   const DaySolarCard({super.key, required this.day, required this.now});
 
@@ -177,24 +164,20 @@ class DaySolarCard extends StatelessWidget {
           '${l10n.sunset} ${TimeFormatter.clock(sunset)}, '
           '$info',
       excludeSemantics: true,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.jumbo,
-          vertical: AppSpacing.jumbo,
-        ),
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-          border: Border.all(color: scheme.outlineVariant),
-        ),
+      child: AppCard(
+        ambient: false,
+        color: scheme.surfaceContainerLow,
+        borderColor: scheme.outlineVariant,
+        radius: AppRadius.xl,
+        padding: const EdgeInsets.all(AppSpacing.jumbo),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
                 Container(
-                  width: 6,
-                  height: 6,
+                  width: AppSpacing.sm,
+                  height: AppSpacing.sm,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: scheme.tertiary,
@@ -204,17 +187,19 @@ class DaySolarCard extends StatelessWidget {
                 UiText(
                   l10n.timesHighlightedToday.toUpperCase(),
                   type: UiTextType.labelSmall,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: AppWeight.bold,
                   color: scheme.onSurfaceVariant,
-                  letterSpacing: 1.4,
+                  letterSpacing: AppTypeDetail.sectionLetterSpacing,
                 ),
                 const Spacer(),
                 Flexible(
                   child: UiText(
                     TimeFormatter.hijri(now),
                     type: UiTextType.labelSmall,
-                    color: scheme.onSurfaceVariant.withValues(alpha: 0.8),
-                    letterSpacing: 0.1,
+                    color: scheme.onSurfaceVariant.withValues(
+                      alpha: AppOpacity.secondaryText,
+                    ),
+                    letterSpacing: AppTypeDetail.fineTracking,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.end,
@@ -226,7 +211,7 @@ class DaySolarCard extends StatelessWidget {
             UiText(
               TimeFormatter.dateTitle(now),
               type: UiTextType.titleSmall,
-              fontWeight: FontWeight.w600,
+              fontWeight: AppWeight.semibold,
             ),
             const SizedBox(height: AppSpacing.md),
             SolarArc(
@@ -238,10 +223,6 @@ class DaySolarCard extends StatelessWidget {
             ),
             Row(
               children: [
-                // Each anchor gets half the row rather than its intrinsic width:
-                // "Lever/Coucher du soleil" is wider than half a narrow phone at
-                // large text scales, and a `Spacer` gave them unbounded width, so
-                // the Row overflowed instead of the labels wrapping.
                 Expanded(
                   child: _ArcAnchor(
                     time: TimeFormatter.clock(sunrise),
@@ -262,8 +243,10 @@ class DaySolarCard extends StatelessWidget {
             UiText(
               info,
               type: UiTextType.labelSmall,
-              color: scheme.onSurfaceVariant.withValues(alpha: 0.85),
-              letterSpacing: 0.1,
+              color: scheme.onSurfaceVariant.withValues(
+                alpha: AppOpacity.supportingInk,
+              ),
+              letterSpacing: AppTypeDetail.fineTracking,
               textAlign: TextAlign.center,
             ),
           ],
@@ -295,7 +278,7 @@ class _ArcAnchor extends StatelessWidget {
         UiText(
           time,
           type: UiTextType.titleSmall,
-          fontWeight: FontWeight.w600,
+          fontWeight: AppWeight.semibold,
           style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
         ),
         const SizedBox(height: AppSpacing.xxs),
@@ -303,7 +286,7 @@ class _ArcAnchor extends StatelessWidget {
           label,
           type: UiTextType.labelSmall,
           color: scheme.onSurfaceVariant,
-          letterSpacing: 0.3,
+          letterSpacing: AppTypeDetail.labelTracking,
         ),
       ],
     );
