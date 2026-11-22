@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mawaqit/data/models/update_channel.dart';
 import 'package:mawaqit/data/models/update_manifest.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
 import 'package:mawaqit/data/services/update_service.dart';
@@ -64,6 +65,9 @@ class UpdateState {
   /// Cached POST_NOTIFICATIONS state, refreshed whenever the app resumes.
   final bool notificationsEnabled;
 
+  /// Release channel being checked. Stable by default, persisted in [UpdateStore].
+  final UpdateChannel channel;
+
   const UpdateState({
     this.status = UpdateStatus.idle,
     this.manifest,
@@ -74,6 +78,7 @@ class UpdateState {
     this.dismissedVersion,
     this.autoCheck = true,
     this.notificationsEnabled = false,
+    this.channel = UpdateChannel.stable,
   });
 
   bool get hasUpdate =>
@@ -96,6 +101,7 @@ class UpdateState {
     String? dismissedVersion,
     bool? autoCheck,
     bool? notificationsEnabled,
+    UpdateChannel? channel,
     bool clearError = false,
     bool clearManifest = false,
     bool clearCheckResult = false,
@@ -119,6 +125,7 @@ class UpdateState {
           : dismissedVersion ?? this.dismissedVersion,
       autoCheck: autoCheck ?? this.autoCheck,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      channel: channel ?? this.channel,
     );
   }
 }
@@ -175,6 +182,7 @@ class UpdateNotifier extends Notifier<UpdateState> {
     final result = await _store.lastUpdateCheckResult();
     final dismissed = await _store.dismissedVersion();
     final autoCheck = await _store.autoCheckEnabled();
+    final channel = await _store.channel();
     if (!ref.mounted) return;
     if (last != null) {
       ref.read(lastUpdateCheckProvider.notifier).state = last;
@@ -182,7 +190,11 @@ class UpdateNotifier extends Notifier<UpdateState> {
     if (result != null) {
       ref.read(lastUpdateCheckResultProvider.notifier).state = result;
     }
-    state = state.copyWith(dismissedVersion: dismissed, autoCheck: autoCheck);
+    state = state.copyWith(
+      dismissedVersion: dismissed,
+      autoCheck: autoCheck,
+      channel: channel,
+    );
     await refreshNotificationPermission();
   }
 
@@ -197,12 +209,17 @@ class UpdateNotifier extends Notifier<UpdateState> {
     final previousStatus = state.status;
     state = state.copyWith(status: UpdateStatus.checking, clearError: true);
 
-    final manifest = await ref.read(updateServiceProvider).fetchManifest();
+    final service = ref.read(updateServiceProvider);
+    final channel = state.channel;
+    final manifest = await service.fetchManifest(channel: channel);
     if (!ref.mounted) return;
 
-    final outcome = ref
-        .read(updateServiceProvider)
-        .check(manifest: manifest, currentVersionCode: AppInfo.buildNumber);
+    final outcome = service.check(
+      manifest: manifest,
+      currentVersionCode: AppInfo.buildNumber,
+      currentVersionName: AppInfo.version,
+      channel: channel,
+    );
 
     if (outcome == UpdateCheckResult.checkFailed) {
       // A failed check is still a check: persist the timestamp + "failed"
@@ -254,6 +271,7 @@ class UpdateNotifier extends Notifier<UpdateState> {
       await _notifications.notifyUpdateAvailable(
         version: manifest.latestVersionName,
         releaseNotes: manifest.releaseNotes,
+        isBeta: state.channel == UpdateChannel.beta,
       );
       await _store.saveLastUpdateNotifiedVersion(manifest.latestVersionName);
     } on Object catch (_) {
@@ -307,6 +325,28 @@ class UpdateNotifier extends Notifier<UpdateState> {
     if (!ref.mounted) return;
     state = state.copyWith(autoCheck: enabled);
     if (enabled) unawaited(maybePromptForNotifications());
+  }
+
+  /// Switches the release channel, persists the choice and re-checks at once.
+  ///
+  /// Clearing the dismissed version and stale release prevents a banner
+  /// dismissed on one channel from hiding a release on the other. A switch is
+  /// never a downgrade: Android refuses an older versionCode anyway, and the
+  /// check reports "up to date" when the new channel has nothing newer.
+  Future<void> setChannel(UpdateChannel channel) async {
+    if (state.channel == channel) return;
+    await _store.saveChannel(channel);
+    await _store.clearDismissedVersion();
+    if (!ref.mounted) return;
+    state = state.copyWith(
+      channel: channel,
+      status: UpdateStatus.idle,
+      clearManifest: true,
+      clearCheckResult: true,
+      clearDismissedVersion: true,
+      clearError: true,
+    );
+    await checkForUpdates(userInitiated: false);
   }
 
   /// Hides the global banner for the currently offered version only.

@@ -1417,6 +1417,7 @@ class NotificationService {
   Future<void> notifyUpdateAvailable({
     required String version,
     required String releaseNotes,
+    bool isBeta = false,
   }) async {
     if (!hasNotificationPermission) return;
     // Full init rather than a second `_plugin.initialize`: the plugin stores
@@ -1426,7 +1427,9 @@ class NotificationService {
     await init(allowPrompt: false);
     await _plugin.show(
       id: _updateNotificationId,
-      title: AmbientL10n.instance.notifUpdateAvailable(version),
+      title: isBeta
+          ? AmbientL10n.instance.notifUpdateAvailableBeta(version)
+          : AmbientL10n.instance.notifUpdateAvailable(version),
       body: _updateSummary(releaseNotes),
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(

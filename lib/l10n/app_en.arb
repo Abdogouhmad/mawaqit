@@ -1129,11 +1129,23 @@
   },
   "updateBannerBody": "Mawaqit v{version} is ready to install",
   "@updateBannerBody": {
-    "description": "Subtitle of the global update banner, naming the offered version."
+    "description": "Subtitle of the global update banner, naming the offered version.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.17.0"
+      }
+    }
   },
   "updateBannerSemantics": "Update available: Mawaqit {version}. Open software update.",
   "@updateBannerSemantics": {
-    "description": "Screen-reader label for the tappable update banner."
+    "description": "Screen-reader label for the tappable update banner.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.17.0"
+      }
+    }
   },
   "updateDismissBanner": "Dismiss update banner",
   "@updateDismissBanner": {
@@ -1143,7 +1155,7 @@
   "@updateAutoCheckTitle": {
     "description": "Title of the automatic update check switch in Software Update."
   },
-  "updateAutoCheckSubtitle": "On launch and whenever you return to the app.",
+  "updateAutoCheckSubtitle": "On launch and whenever you return to the app, on the selected channel.",
   "@updateAutoCheckSubtitle": {
     "description": "Explanation under the automatic update check switch."
   },
@@ -1153,8 +1165,78 @@
   "@updateEnableNotifications": {
     "description": "Button in Software Update that opens the notification permission dialog."
   },
-  "updatePrivacyNotice": "Checks read only the public release manifest. Your location and prayer data never leave this device.",
+  "updatePrivacyNotice": "Checks read only the public manifest for the selected channel. Your location and prayer data never leave this device.",
   "@updatePrivacyNotice": {
     "description": "Privacy reassurance shown at the bottom of the Software Update screen."
+  },
+  "notifUpdateAvailableBeta": "Mawaqit {version} is available (Beta)",
+  "@notifUpdateAvailableBeta": {
+    "description": "Update notification title for a pre-release from the beta channel.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.17.0-beta.1"
+      }
+    }
+  },
+  "updateReleaseChannel": "Release channel",
+  "@updateReleaseChannel": {
+    "description": "Heading of the stable/beta channel selector in Software Update."
+  },
+  "updateChannelStable": "Stable",
+  "@updateChannelStable": {
+    "description": "Label of the stable release channel."
+  },
+  "updateChannelBeta": "Beta",
+  "@updateChannelBeta": {
+    "description": "Label of the beta release channel."
+  },
+  "updateChannelStableDescription": "Verified releases everyone receives",
+  "@updateChannelStableDescription": {
+    "description": "Short explanation under the stable channel option."
+  },
+  "updateChannelBetaDescription": "Early builds with the latest features. They may be less stable.",
+  "@updateChannelBetaDescription": {
+    "description": "Short explanation under the beta channel option."
+  },
+  "updateBetaBadge": "BETA",
+  "@updateBetaBadge": {
+    "description": "Badge shown next to a pre-release version in Software Update."
+  },
+  "updateNoBetaRelease": "No beta release yet · Version {version} installed",
+  "@updateNoBetaRelease": {
+    "description": "Status shown when the beta channel has no published release yet.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.16.0"
+      }
+    }
+  },
+  "updateBannerBodyOnChannel": "Mawaqit v{version} is ready to install ({channel})",
+  "@updateBannerBodyOnChannel": {
+    "description": "Global banner subtitle for a pre-release; the channel makes it clear this is a beta build.",
+    "placeholders": {
+      "version": {
+        "type": "String",
+        "example": "0.17.0-beta.1"
+      },
+      "channel": {
+        "type": "String",
+        "example": "Beta"
+      }
+    }
+  },
+  "updateSecurityNote": "The APK must use HTTPS and its SHA-256 must be verified before installation.",
+  "@updateSecurityNote": {
+    "description": "Short reassurance about the fail-closed update check."
+  },
+  "updateDownloadSize": "Download size",
+  "@updateDownloadSize": {
+    "description": "Label for the APK size shown before downloading."
+  },
+  "updatePublished": "Published",
+  "@updatePublished": {
+    "description": "Label for the manifest's publication date."
   }
 }

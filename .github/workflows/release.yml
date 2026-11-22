@@ -3,33 +3,32 @@ name: release
 # Builds and publishes the Android release on every push/merge to `main`
 # (plus manual runs via workflow_dispatch). The git tag `v<version>` is created
 # automatically from `version:` in pubspec.yaml — there is no tag-trigger to
-# maintain; CHANGELOG.md stays the single source of truth for release notes.
+# maintain; CHANGELOG.md stays the single source of truth for stable notes.
 #
-#   Signs-policy: Android refuses to install an UNSIGNED release APK
-#   (`INSTALL_FAILED_INVALID_APK`). Every APK here is signed with the SAME
-#   stable keystore provisioned from the WAQT_* secrets, the build FAILS when
-#   the secrets are missing (never ship unsigned/debug again), and build.sh
-#   verifies every APK's signature with apksigner before publish.
+#   Channels:
+#     - push to main                 → stable release, rewrites update_manifest.json
+#     - workflow_dispatch, stable    → same as a push
+#     - workflow_dispatch, beta      → GitHub PRERELEASE with a separate APK asset,
+#                                      rewrites ONLY update_manifest_beta.json
+#   Beta is manual-only: a push can never publish a prerelease, and a beta run
+#   can never touch the stable manifest or the `latest` release marker.
 #
-#   Builds 3 APKs from a single trigger:
-#     - split-per-abi arm64-v8a + armeabi-v7a
-#     - a universal fat APK (the primary sideload artifact)
-#   Computes SHA-256 checksums for every APK (`checksums.txt`).
-#   Extracts the matching `## [<version>]` section from CHANGELOG.md and uses
-#   it verbatim as the GitHub release notes.
-#
-#   Release type: a published release (NOT a pre-release). The app is still in
-#   active testing under 0.x versions, but the release is a stable channel
-#   release so the "latest" tag always points at an installable build.
+#   Both channels use the SAME stable keystore provisioned from WAQT_* secrets.
+#   A build FAILS when those secrets are missing and apksigner verifies every
+#   APK before publish; beta is never debug-signed.
 #
 # The heavy lifting — keystore provisioning, APK builds, staging, checksums,
 # signature verification, release-notes extraction — lives in ./build.sh, so
 # this file stays a thin declarative wrapper.
 #
-# To release a new version:
+# To release a stable version:
 #   1. Bump `version:` in pubspec.yaml.
 #   2. Add a `## [<version>]` section to CHANGELOG.md.
 #   3. Merge onto main — the tag + GitHub release follow.
+#
+# To publish a beta:
+#   Run this workflow manually with channel=beta, beta_version=<semver> and
+#   beta_notes=<markdown>. No CHANGELOG entry or version bump is needed.
 #
 # Secrets to configure in the repo:
 #   WAQT_KEYSTORE_BASE64        = base64 of the mawaqit-release.jks keystore
@@ -44,9 +43,35 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Release channel'
+        required: true
+        default: stable
+        type: choice
+        options:
+          - stable
+          - beta
+      beta_version:
+        description: 'Beta version, e.g. 0.17.0-beta.1'
+        required: false
+        type: string
+      beta_notes:
+        description: 'Beta release notes (Markdown)'
+        required: false
+        type: string
 
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MAWAQIT_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && inputs.channel || 'stable' }}
+  MAWAQIT_RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.channel == 'beta' && inputs.beta_version || '' }}
+  MAWAQIT_RELEASE_NOTES: ${{ github.event_name == 'workflow_dispatch' && inputs.channel == 'beta' && inputs.beta_notes || '' }}
 
 jobs:
   build:
@@ -54,6 +79,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate channel inputs
+        run: |
+          set -euo pipefail
+          echo "Release channel: $MAWAQIT_CHANNEL"
+          if [[ "$MAWAQIT_CHANNEL" == "beta" ]]; then
+            if [[ -z "${MAWAQIT_RELEASE_VERSION}" ]]; then
+              echo "::error::A beta release needs beta_version (e.g. 0.17.0-beta.1)."
+              exit 1
+            fi
+            if ! [[ "${MAWAQIT_RELEASE_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+              echo "::error::beta_version must be a semver string."
+              exit 1
+            fi
+            if [[ -z "${MAWAQIT_RELEASE_NOTES}" ]]; then
+              echo "::error::A beta release needs beta_notes."
+              exit 1
+            fi
+          fi
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -91,10 +135,12 @@ jobs:
       # Provisions the stable keystore from secrets (fails the build if the
       # secrets are missing), builds the split-per-abi + universal APKs, stages
       # versioned copies under dist/, writes checksums.txt and verifies every
-      # APK's signature with apksigner.
+      # APK's signature with apksigner. Beta overrides the version/notes.
       - name: Build, sign and stage APKs
         env:
           CI: "true"
+          MAWAQIT_RELEASE_VERSION: ${{ env.MAWAQIT_RELEASE_VERSION }}
+          MAWAQIT_RELEASE_NOTES: ${{ env.MAWAQIT_RELEASE_NOTES }}
           WAQT_KEYSTORE_BASE64: ${{ secrets.WAQT_KEYSTORE_BASE64 }}
           WAQT_KEYSTORE_PASSWORD: ${{ secrets.WAQT_KEYSTORE_PASSWORD }}
           WAQT_KEY_ALIAS: ${{ secrets.WAQT_KEY_ALIAS }}
@@ -105,20 +151,25 @@ jobs:
 
       - name: Determine version
         id: version
+        env:
+          MAWAQIT_RELEASE_VERSION: ${{ env.MAWAQIT_RELEASE_VERSION }}
         run: ./build.sh --detect-version >> "$GITHUB_OUTPUT"
 
-      # Extract ONLY this release's `## [<version>]` section from CHANGELOG.md
-      # (fails when it's missing so an unreleased change never ships silently).
-      - name: Extract release notes from CHANGELOG
+      # Stable notes are extracted ONLY from this release's `## [<version>]`
+      # section (fails when missing). Beta notes come from the dispatch input.
+      - name: Extract release notes
+        env:
+          MAWAQIT_RELEASE_VERSION: ${{ env.MAWAQIT_RELEASE_VERSION }}
+          MAWAQIT_RELEASE_NOTES: ${{ env.MAWAQIT_RELEASE_NOTES }}
         run: ./build.sh --release-notes
 
-      # Collision-safe: a re-merge into main of the SAME version re-releases
-      # it at the new commit (delete the old release + tag, then recreate).
-      # Published as a full release (not a pre-release/draft).
+      # Collision-safe: re-releasing the same version re-creates the release at
+      # the new commit. Beta adds --prerelease so it never becomes `latest`.
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           TAG="${{ steps.version.outputs.tag }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release delete "$TAG" --yes --cleanup-tag
@@ -131,35 +182,46 @@ jobs:
             echo "::error::No APK artifacts found under dist/"; exit 1
           fi
 
+          prerelease=()
+          title_suffix=""
+          if [[ "$MAWAQIT_CHANNEL" == "beta" ]]; then
+            prerelease=(--prerelease)
+            title_suffix=" (beta)"
+          fi
+
           git tag "$TAG"
           git push origin "$TAG"
           gh release create "$TAG" \
-            --title "Mawaqit ${{ steps.version.outputs.version }}" \
+            --title "Mawaqit ${{ steps.version.outputs.version }}${title_suffix}" \
             --notes-file dist/notes.md \
+            "${prerelease[@]}" \
             "${artifacts[@]}"
 
-      # Rewrite the OTA manifest: version, universal-APK URL + its fresh
-      # sha256, and this release's notes (from CHANGELOG.md, not duplicated).
-      - name: Update update_manifest.json
+      # Rewrite only the manifest of the channel being published. The other
+      # channel's file is never opened, let alone committed.
+      - name: Update channel manifest
         env:
           VERSION: ${{ steps.version.outputs.version }}
           VERSION_CODE: ${{ steps.version.outputs.versionCode }}
           TAG: ${{ steps.version.outputs.tag }}
+          CHANNEL: ${{ env.MAWAQIT_CHANNEL }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, os, glob, hashlib, datetime
+          import json, os, glob, hashlib, datetime, time, urllib.request
 
           version = os.environ["VERSION"]
           version_code = int(os.environ["VERSION_CODE"])
           tag = os.environ["TAG"]
+          channel = os.environ["CHANNEL"]
+          is_prerelease = channel == "beta"
+          manifest_path = "update_manifest_beta.json" if is_prerelease else "update_manifest.json"
 
           with open("dist/notes.md") as fh:
               release_notes = fh.read().strip()
-          with open("update_manifest.json") as fh:
+          with open(manifest_path) as fh:
               manifest = json.load(fh)
 
-          # The universal APK is what the in-app updater always downloads.
           manifest["latestVersionName"] = version
           manifest["latestVersionCode"] = version_code
           manifest["minSupportedVersionCode"] = int(
@@ -169,33 +231,70 @@ jobs:
               f"https://github.com/Abdogouhmad/mawaqit/releases/download/"
               f"{tag}/mawaqit-v{version}-universal.apk"
           )
-
-          # sha256 of the freshly built, staged universal APK.
-          built = glob.glob(f"dist/mawaqit-v{version}-universal.apk")[0]
-          with open(built, "rb") as fh:
-              manifest["sha256"] = hashlib.sha256(fh.read()).hexdigest()
-
           manifest["releaseNotes"] = release_notes
           manifest["publishedAt"] = (
               f"{datetime.datetime.now(datetime.timezone.utc).isoformat()}"
           )
+          manifest["channel"] = channel
+          manifest["isPrerelease"] = is_prerelease
 
-          with open("update_manifest.json", "w") as fh:
+          built = glob.glob(f"dist/mawaqit-v{version}-universal.apk")[0]
+          with open(built, "rb") as fh:
+              data = fh.read()
+          checksum = hashlib.sha256(data).hexdigest()
+          manifest["sha256"] = checksum
+          manifest["size"] = len(data)
+
+          with open(manifest_path, "w") as fh:
               json.dump(manifest, fh, indent=2, ensure_ascii=False)
               fh.write("\n")
-          PY
-          cat update_manifest.json
 
-      - name: Commit manifest back to main
+          # Verify the bytes GitHub actually serves match the manifest. A CDN
+          # or upload mismatch fails the release instead of shipping a build
+          # whose checksum can never verify on a device.
+          request = urllib.request.Request(
+              manifest["apkUrl"], headers={"User-Agent": "mawaqit-release-verifier"}
+          )
+          last_error = None
+          for attempt in range(5):
+              try:
+                  with urllib.request.urlopen(request, timeout=120) as response:
+                      downloaded = response.read()
+                  break
+              except Exception as error:  # a fresh asset can take a few seconds to appear
+                  last_error = error
+                  if attempt < 4:
+                      time.sleep(5)
+          else:
+              raise SystemExit(f"Could not download published APK: {last_error}")
+          served = hashlib.sha256(downloaded).hexdigest()
+          if served != checksum:
+              raise SystemExit(
+                  f"Published APK checksum mismatch: manifest {checksum}, GitHub {served}"
+              )
+          print(f"Verified published {channel} APK: {checksum}")
+          print(f"Updated {manifest_path}")
+          PY
+          cat "$([ "$CHANNEL" = beta ] && echo update_manifest_beta.json || echo update_manifest.json)"
+
+      - name: Commit channel manifest back to main
         env:
           GH_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ env.MAWAQIT_CHANNEL }}
         run: |
-          if git diff --quiet update_manifest.json; then
-            echo "No manifest changes."
+          set -euo pipefail
+          manifest="update_manifest.json"
+          label="OTA manifest"
+          if [[ "$CHANNEL" == "beta" ]]; then
+            manifest="update_manifest_beta.json"
+            label="beta OTA manifest"
+          fi
+          if git diff --quiet "$manifest"; then
+            echo "No $manifest changes."
           else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add update_manifest.json
-            git commit -m "chore(release): update OTA manifest for v${{ steps.version.outputs.version }}"
+            git add "$manifest"
+            git commit -m "chore(release): update $label for v${{ steps.version.outputs.version }}"
             git push origin HEAD:main
           fi

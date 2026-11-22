@@ -60,13 +60,15 @@ class AppPill extends StatelessWidget {
           Icon(icon, size: AppIconSize.sm, color: foreground),
           const SizedBox(width: AppSpacing.xs + 2),
         ],
-        UiText(
-          label,
-          type: UiTextType.labelSmall,
-          color: foreground,
-          fontWeight: FontWeight.w600,
-          letterSpacing: letterSpacing,
-          style: const TextStyle(height: 1),
+        Flexible(
+          child: UiText(
+            label,
+            type: UiTextType.labelSmall,
+            color: foreground,
+            fontWeight: FontWeight.w600,
+            letterSpacing: letterSpacing,
+            style: const TextStyle(height: 1),
+          ),
         ),
       ],
     );

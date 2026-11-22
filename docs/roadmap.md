@@ -150,7 +150,7 @@ onboarding/permissions flow, and a refreshed home-screen widget.
 
 | Version | Phase | Est. | Status |
 |---|---|---|---|
-| 0.16.0 | Release channels (stable/beta) + new Update Center | 2–3 days | ☐ |
+| 0.16.0 | Release channels (stable/beta) + new Update Center | 2–3 days | ◐ |
 | 0.17.0 | Design system 2.0 + app shell + navigation | 2–3 days | ☐ |
 | 0.18.0 | New Home UI | 2–3 days | ☐ |
 | 0.19.0 | New Times UI | 2 days | ☐ |
@@ -179,9 +179,14 @@ scope, not quality.
 
 ## 0.16.0 — Release channels & the new Update Center
 
+**Status:** code complete on `phase/0.16-channels`; awaiting merge/CI
+verification of the beta `workflow_dispatch` path.
+
 **Goal:** users can consciously choose stable or beta, understand the
 difference, and see a redesigned, trustworthy Update Center. Full detail in
-[`roadmap_0.16.0.md`](roadmap_0.16.0.md).
+[`roadmap_0.16.0.md`](roadmap_0.16.0.md). The stable/beta release procedure and
+the decisions behind the two manifests are recorded in
+[`DECISIONS.md`](DECISIONS.md).
 
 **Definition of done**
 

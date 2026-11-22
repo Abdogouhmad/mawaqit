@@ -32,6 +32,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   still verified against the manifest checksum before the system installer
   runs, and mandatory/support-floor updates are honoured as before.
 
+## [0.16.0] - 2026-11-22
+
+### Added
+
+- **Stable and beta release channels.** Software Update now explains both
+  channels, remembers your choice, and re-checks immediately when you switch.
+  Beta is opt-in, ships as a signed GitHub prerelease, and can never change what
+  stable users receive.
+- **A minimal-modern Update Center layout** with a channel picker, a beta badge
+  on prereleases, download size and publication date where available, and a
+  short HTTPS/SHA-256 security note.
+- **Beta release automation.** A manual `workflow_dispatch` publishes a
+  prerelease, writes only `update_manifest_beta.json`, and verifies the
+  published APK's SHA-256 before committing the manifest.
+- **Localization parity coverage** for EN/FR/AR ARB keys and placeholder docs.
+
+### Changed
+
+- Update checks for both channels remain fail-closed (HTTPS + strict 64-hex
+  SHA-256), with semver prerelease precedence and a second gate that keeps
+  prereleases off the stable channel.
+- Beta updates are labelled in the global banner and in update notifications so
+  testers always know which channel an install came from.
+
+### Fixed
+
+- Update-screen rows, pills and card headers no longer overflow at 200% text
+  scale in English, French or Arabic, including RTL layout.
+
 ## [0.15.2] - 2026-10-25
 
 ### Fixed

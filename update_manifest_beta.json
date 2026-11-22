@@ -1,0 +1,13 @@
+{
+  "latestVersionName": "",
+  "latestVersionCode": 0,
+  "minSupportedVersionCode": 3,
+  "mandatory": false,
+  "apkUrl": "",
+  "sha256": "",
+  "size": 0,
+  "releaseNotes": "No beta release has been published yet. Beta builds are published manually via workflow_dispatch (channel=beta) as GitHub prereleases and are offered only through this manifest; stable releases continue to use update_manifest.json.",
+  "publishedAt": "2026-11-22T00:00:00.000000+00:00",
+  "channel": "beta",
+  "isPrerelease": true
+}

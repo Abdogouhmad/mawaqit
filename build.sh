@@ -86,11 +86,24 @@ err() { printf '\033[1;31m[mawaqit]\033[0m %s\n' "$*" >&2; }
 # semi-ordered number can be used for tags/manifests regardless of `+<build>`.
 get_version() { sed -n 's/^version: *//p' pubspec.yaml | head -n1; }
 
-VERSION_RAW="$(get_version)"
-VERSION="${VERSION_RAW%%+*}"          # strip any +<build-number> metadata
-BUILD_NUMBER="${VERSION_RAW#*+}"
-[[ "$BUILD_NUMBER" == "$VERSION_RAW" ]] && BUILD_NUMBER=""   # no '+' present
-IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+# A manual beta dispatch publishes a prerelease whose version is NOT the one in
+# pubspec.yaml (which always describes the next stable release). The override is
+# therefore the only source of truth for that run.
+VERSION_OVERRIDE="${MAWAQIT_RELEASE_VERSION:-}"
+if [[ -n "$VERSION_OVERRIDE" ]]; then
+  VERSION="${VERSION_OVERRIDE%%+*}"
+  BUILD_NUMBER=""   # beta has no pubspec +N to cross-check
+  VERSION_RAW="$VERSION_OVERRIDE"
+else
+  VERSION_RAW="$(get_version)"
+  VERSION="${VERSION_RAW%%+*}"        # strip any +<build-number> metadata
+  BUILD_NUMBER="${VERSION_RAW#*+}"
+  [[ "$BUILD_NUMBER" == "$VERSION_RAW" ]] && BUILD_NUMBER=""   # no '+' present
+fi
+# Pre-release suffixes (e.g. -beta.1) do not change the Android versionCode,
+# so compare and tag on the core semver only.
+SEMVER_CORE="${VERSION%%-*}"
+IFS='.' read -r MAJOR MINOR PATCH <<< "$SEMVER_CORE"
 VERSION_CODE=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
 TAG="v${VERSION}"
 
@@ -103,6 +116,13 @@ fi
 # ── Mode: extract this release's CHANGELOG section into dist/notes.md ─────────
 if [[ "$MODE" == release-notes ]]; then
   mkdir -p dist
+  if [[ -n "${MAWAQIT_RELEASE_NOTES:-}" ]]; then
+    # Beta prereleases are not in CHANGELOG.md; their notes come from the
+    # workflow_dispatch input verbatim.
+    printf '%s\n' "$MAWAQIT_RELEASE_NOTES" > dist/notes.md
+    info "Release notes taken from beta dispatch input."
+    exit 0
+  fi
   sed -n "/^## \\[$VERSION\\]/,/^## \\[/p" CHANGELOG.md \
     | sed '$d' \
     | sed -E '/^[[:space:]]*\[[^]]+\]:[[:space:]]/d' \
@@ -195,6 +215,7 @@ build_split_abis() {
   info "Building split-per-ABI release APKs (arm / arm64)..."
   flutter build apk --release --split-per-abi \
     --target-platform android-arm,android-arm64 \
+    --build-name "$VERSION" --build-number "$VERSION_CODE" \
     -Pforce-version-code-ignoring-abi=true
 }
 
@@ -203,7 +224,8 @@ build_split_abis() {
 build_universal() {
   info "Building universal release APK (arm + arm64)..."
   flutter build apk --release \
-    --target-platform android-arm,android-arm64
+    --target-platform android-arm,android-arm64 \
+    --build-name "$VERSION" --build-number "$VERSION_CODE"
 }
 
 # ── Stage + checksum ─────────────────────────────────────────────────────────
@@ -273,6 +295,8 @@ verify_signing() {
 # like a downgrade while local builds, the OTA manifest and the tags all appear
 # perfectly consistent.
 check_build_number() {
+  # A beta dispatch deliberately builds a version pubspec.yaml does not know.
+  if [[ -n "$VERSION_OVERRIDE" ]]; then return; fi
   if [[ -z "$BUILD_NUMBER" ]]; then
     err "pubspec.yaml has no '+<build number>' in \`version: ${VERSION}\`."
     err "Nothing downstream can read a versionCode without one."

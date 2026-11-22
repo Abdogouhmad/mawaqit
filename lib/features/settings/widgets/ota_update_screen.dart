@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/data/models/update_channel.dart';
 import 'package:mawaqit/data/services/update_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
@@ -70,6 +71,8 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _StatusHeader(state: state),
+              const SizedBox(height: AppSpacing.tera),
+              _ChannelCard(state: state),
               const SizedBox(height: AppSpacing.tera),
               if (state.status == UpdateStatus.checking) ...[
                 const _CheckingCard(),
@@ -149,6 +152,11 @@ class _StatusHeader extends StatelessWidget {
     final update =
         state.hasUpdate && state.status != UpdateStatus.error && !failed;
     final checking = state.status == UpdateStatus.checking;
+    final noBeta =
+        !failed &&
+        !checking &&
+        state.channel == UpdateChannel.beta &&
+        (state.manifest?.isEmptySeed ?? false);
 
     final accent = failed
         ? scheme.error
@@ -231,7 +239,146 @@ class _StatusHeader extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.huge),
         pill,
+        if (noBeta) ...[
+          const SizedBox(height: AppSpacing.sm),
+          UiText(
+            AppLocalizations.of(context).updateNoBetaRelease(AppInfo.version),
+            type: UiTextType.bodySmall,
+            color: scheme.onSurfaceVariant,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ],
+    );
+  }
+}
+
+/// Stable/beta selector. Each option explains itself so switching is a
+/// conscious choice rather than a hidden developer toggle.
+class _ChannelCard extends ConsumerWidget {
+  const _ChannelCard({required this.state});
+
+  final UpdateState state;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final notifier = ref.read(updateProvider.notifier);
+
+    return _Card(
+      title: l10n.updateReleaseChannel,
+      icon: Icons.alt_route_rounded,
+      children: [
+        for (final channel in UpdateChannel.values)
+          _ChannelOption(
+            channel: channel,
+            label: channel == UpdateChannel.stable
+                ? l10n.updateChannelStable
+                : l10n.updateChannelBeta,
+            description: channel == UpdateChannel.stable
+                ? l10n.updateChannelStableDescription
+                : l10n.updateChannelBetaDescription,
+            selected: state.channel == channel,
+            enabled: !state.isDownloading,
+            onTap: () => notifier.setChannel(channel),
+          ),
+      ],
+    );
+  }
+}
+
+class _ChannelOption extends StatelessWidget {
+  const _ChannelOption({
+    required this.channel,
+    required this.label,
+    required this.description,
+    required this.selected,
+    required this.enabled,
+    required this.onTap,
+  });
+
+  final UpdateChannel channel;
+  final String label;
+  final String description;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final borderColor = selected ? scheme.primary : scheme.outlineVariant;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Semantics(
+        selected: selected,
+        enabled: enabled,
+        button: true,
+        child: InkWell(
+          onTap: enabled ? onTap : null,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: Opacity(
+            opacity: enabled ? 1 : 0.55,
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.giga),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: borderColor),
+                color: selected
+                    ? scheme.primaryContainer.withValues(alpha: 0.5)
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 18,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: selected ? scheme.primary : scheme.outline,
+                        width: 2,
+                      ),
+                    ),
+                    child: selected
+                        ? Center(
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: scheme.primary,
+                              ),
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: AppSpacing.giga),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        UiText(
+                          label,
+                          type: UiTextType.titleSmall,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        UiText(
+                          description,
+                          type: UiTextType.bodySmall,
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -291,6 +438,12 @@ class _VersionCard extends ConsumerWidget {
         '${two(local.hour)}:${two(local.minute)}';
   }
 
+  static String _formatDate(DateTime value) {
+    final local = value.toLocal();
+    String two(int v) => v.toString().padLeft(2, '0');
+    return '${two(local.day)}/${two(local.month)}/${local.year}';
+  }
+
   static String _resultLabel(AppLocalizations l10n, UpdateCheckResult? result) {
     return switch (result) {
       UpdateCheckResult.upToDate => l10n.updateUpToDateShort,
@@ -308,10 +461,25 @@ class _VersionCard extends ConsumerWidget {
     final lastChecked = ref.watch(lastUpdateCheckProvider);
     final lastResult = ref.watch(lastUpdateCheckResultProvider);
 
+    final scheme = Theme.of(context).colorScheme;
+    final manifest = state.manifest;
+    final isBeta = manifest?.isPrerelease ?? false;
+
     return _Card(
       title: AppLocalizations.of(context).updateVersionDetails,
       icon: Icons.smartphone_rounded,
       children: [
+        if (isBeta) ...[
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: AppPill(
+              label: AppLocalizations.of(context).updateBetaBadge,
+              color: scheme.primary,
+              icon: Icons.science_outlined,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
         InfoRow(
           icon: Icons.layers_rounded,
           label: AppLocalizations.of(context).updateCurrentVersion,
@@ -326,6 +494,25 @@ class _VersionCard extends ConsumerWidget {
               : 'v$latest',
           highlight: state.hasUpdate,
         ),
+        if (manifest != null &&
+            (manifest.formattedSize.isNotEmpty ||
+                manifest.publishedAt != null)) ...[
+          _divider(context),
+          if (manifest.formattedSize.isNotEmpty)
+            InfoRow(
+              icon: Icons.data_usage_outlined,
+              label: AppLocalizations.of(context).updateDownloadSize,
+              value: manifest.formattedSize,
+            ),
+          if (manifest.publishedAt != null) ...[
+            if (manifest.formattedSize.isNotEmpty) _divider(context),
+            InfoRow(
+              icon: Icons.event_outlined,
+              label: AppLocalizations.of(context).updatePublished,
+              value: _formatDate(manifest.publishedAt!),
+            ),
+          ],
+        ],
         _divider(context),
         InfoRow(
           icon: Icons.insert_drive_file_outlined,
@@ -346,6 +533,25 @@ class _VersionCard extends ConsumerWidget {
           highlight:
               lastResult == UpdateCheckResult.checkFailed ||
               lastResult == UpdateCheckResult.updateMandatory,
+        ),
+        const SizedBox(height: AppSpacing.giga),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.verified_user_outlined,
+              size: AppIconSize.md,
+              color: scheme.primary,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: UiText(
+                AppLocalizations.of(context).updateSecurityNote,
+                type: UiTextType.bodySmall,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -685,6 +891,7 @@ class _PreferencesCard extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 state.notificationsEnabled
@@ -693,23 +900,31 @@ class _PreferencesCard extends ConsumerWidget {
                 color: scheme.onSurfaceVariant,
               ),
               const SizedBox(width: AppSpacing.md),
+              // The status and its action stack instead of sharing one row: at
+              // 200% text in FR/AR the button alone can exceed the card width.
               Expanded(
-                child: UiText(
-                  state.notificationsEnabled
-                      ? l10n.updateNotificationsOn
-                      : l10n.updateNotificationsOff,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    UiText(
+                      state.notificationsEnabled
+                          ? l10n.updateNotificationsOn
+                          : l10n.updateNotificationsOff,
+                    ),
+                    if (!state.notificationsEnabled && state.autoCheck) ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      TextButton(
+                        onPressed: notifier.maybePromptForNotifications,
+                        child: UiText(
+                          l10n.updateEnableNotifications,
+                          type: UiTextType.labelLarge,
+                          color: scheme.primary,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              if (!state.notificationsEnabled && state.autoCheck) ...[
-                TextButton(
-                  onPressed: notifier.maybePromptForNotifications,
-                  child: UiText(
-                    l10n.updateEnableNotifications,
-                    type: UiTextType.labelLarge,
-                    color: scheme.primary,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -749,10 +964,12 @@ class _Card extends StatelessWidget {
             children: [
               IconBadge(icon: icon, square: true, iconSize: AppIconSize.xl),
               const SizedBox(width: AppSpacing.md),
-              UiText(
-                title,
-                type: UiTextType.titleMedium,
-                fontWeight: FontWeight.w700,
+              Expanded(
+                child: UiText(
+                  title,
+                  type: UiTextType.titleMedium,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),

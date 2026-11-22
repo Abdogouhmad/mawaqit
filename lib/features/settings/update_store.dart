@@ -1,3 +1,4 @@
+import 'package:mawaqit/data/models/update_channel.dart';
 import 'package:mawaqit/data/services/update_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,9 @@ class UpdateStore {
   /// Whether the one-time notification permission prompt was already shown.
   static const String kNotificationPromptShownKey =
       'update_notification_prompt_shown';
+
+  /// Selected release channel (`stable` unless explicitly set to `beta`).
+  static const String kUpdateChannelKey = 'update_channel';
 
   Future<DateTime?> lastUpdateCheck() async {
     final prefs = await SharedPreferences.getInstance();
@@ -71,6 +75,12 @@ class UpdateStore {
     await _write((prefs) => prefs.setString(kDismissedVersionKey, version));
   }
 
+  /// Forgets the dismissed version, used when switching channels so a banner
+  /// dismissed on one channel cannot hide a release on the other.
+  Future<void> clearDismissedVersion() async {
+    await _write((prefs) => prefs.remove(kDismissedVersionKey));
+  }
+
   Future<bool> autoCheckEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(kAutoCheckKey) ?? true;
@@ -78,6 +88,18 @@ class UpdateStore {
 
   Future<void> saveAutoCheck(bool enabled) async {
     await _write((prefs) => prefs.setBool(kAutoCheckKey, enabled));
+  }
+
+  /// The persisted channel. A missing or unknown value stays on stable.
+  Future<UpdateChannel> channel() async {
+    final prefs = await SharedPreferences.getInstance();
+    return UpdateChannel.fromStorage(prefs.getString(kUpdateChannelKey));
+  }
+
+  Future<void> saveChannel(UpdateChannel channel) async {
+    await _write(
+      (prefs) => prefs.setString(kUpdateChannelKey, channel.storageKey),
+    );
   }
 
   Future<bool> notificationPromptShown() async {

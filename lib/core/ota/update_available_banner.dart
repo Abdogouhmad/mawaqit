@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mawaqit/core/ui/theme/motion.dart';
+import 'package:mawaqit/data/models/update_channel.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 
@@ -36,6 +37,9 @@ class UpdateAvailableBanner extends ConsumerWidget {
           hasUpdate: s.hasUpdate,
           version: s.manifest?.latestVersionName,
           dismissedVersion: s.dismissedVersion,
+          isBeta:
+              s.channel == UpdateChannel.beta &&
+              s.manifest?.isPrerelease == true,
         ),
       ),
     );
@@ -57,6 +61,7 @@ class UpdateAvailableBanner extends ConsumerWidget {
               ? const SizedBox.shrink()
               : _Banner(
                   version: version,
+                  isBeta: banner.isBeta,
                   onOpen: onOpen,
                   onDismiss: () => unawaited(
                     ref.read(updateProvider.notifier).dismissUpdateBanner(),
@@ -72,11 +77,13 @@ class UpdateAvailableBanner extends ConsumerWidget {
 class _Banner extends StatelessWidget {
   const _Banner({
     required this.version,
+    required this.isBeta,
     required this.onOpen,
     required this.onDismiss,
   });
 
   final String version;
+  final bool isBeta;
   final VoidCallback onOpen;
   final VoidCallback onDismiss;
 
@@ -121,7 +128,12 @@ class _Banner extends StatelessWidget {
                               ),
                         ),
                         Text(
-                          l10n.updateBannerBody(version),
+                          isBeta
+                              ? l10n.updateBannerBodyOnChannel(
+                                  version,
+                                  l10n.updateChannelBeta,
+                                )
+                              : l10n.updateBannerBody(version),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: (text.bodySmall ?? const TextStyle()).copyWith(

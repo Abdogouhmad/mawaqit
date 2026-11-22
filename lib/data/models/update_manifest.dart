@@ -11,6 +11,8 @@ library;
 
 import 'dart:convert';
 
+import 'package:mawaqit/data/models/update_channel.dart';
+
 /// Strict 64-hex SHA-256 — the only checksum an update may be installed with.
 final RegExp _checksumPattern = RegExp(r'^[a-fA-F0-9]{64}$');
 
@@ -111,11 +113,24 @@ class UpdateManifest {
     return floor != null && currentVersionCode < floor;
   }
 
+  /// Parsed channel, or `null` when the manifest declares an unknown channel.
+  UpdateChannel? get channelType => UpdateChannel.tryFromStorage(channel);
+
+  /// Whether this manifest belongs to [target].
+  bool belongsTo(UpdateChannel target) => channelType == target;
+
+  /// The beta manifest ships as an empty placeholder until the first prerelease
+  /// is published. It is valid JSON but intentionally offers nothing.
+  bool get isEmptySeed =>
+      latestVersionName.trim().isEmpty && apkUrl.trim().isEmpty;
+
   /// Whether this release may be offered to the updater at all.
   ///
-  /// A broken publish (no 64-hex hash, non-HTTPS APK or empty version) is not
-  /// a candidate: it is a failed release, not something to install unverified.
+  /// A broken publish (unknown channel, no 64-hex hash, non-HTTPS APK or empty
+  /// version) is not a candidate: it is a failed release, not something to
+  /// install unverified.
   bool get isInstallable =>
+      channelType != null &&
       latestVersionName.trim().isNotEmpty &&
       isSecureUpdateUrl(apkUrl) &&
       isValidUpdateChecksum(sha256);
@@ -139,4 +154,59 @@ class UpdateManifest {
       return null;
     }
   }
+}
+
+/// Compares two version strings using SemVer precedence, including
+/// pre-releases (`1.9.0 > 1.9.0-beta.10 > 1.9.0-beta.2 > 1.9.0-beta.1`).
+///
+/// Android's `versionCode` is authoritative for installing, but beta builds
+/// share the core code with their eventual stable release, so it cannot tell
+/// `0.17.0-beta.1` from `0.17.0`. This comparison breaks that tie. Malformed
+/// input degrades to comparing zero-valued cores rather than throwing.
+int compareUpdateVersions(String a, String b) {
+  final coreA = _versionCore(a);
+  final coreB = _versionCore(b);
+  for (var i = 0; i < coreA.length; i++) {
+    if (coreA[i] != coreB[i]) return coreA[i].compareTo(coreB[i]);
+  }
+
+  final preA = _prerelease(a);
+  final preB = _prerelease(b);
+  if (preA.isEmpty && preB.isEmpty) return 0;
+  // A release version always outranks any of its pre-releases.
+  if (preA.isEmpty) return 1;
+  if (preB.isEmpty) return -1;
+
+  final idsA = preA.split('.');
+  final idsB = preB.split('.');
+  for (var i = 0; i < idsA.length && i < idsB.length; i++) {
+    final numA = int.tryParse(idsA[i]);
+    final numB = int.tryParse(idsB[i]);
+    if (numA != null && numB != null) {
+      if (numA != numB) return numA.compareTo(numB);
+    } else if (numA != null) {
+      // Numeric identifiers always have lower precedence than non-numeric.
+      return -1;
+    } else if (numB != null) {
+      return 1;
+    } else if (idsA[i] != idsB[i]) {
+      return idsA[i].compareTo(idsB[i]);
+    }
+  }
+  return idsA.length.compareTo(idsB.length);
+}
+
+List<int> _versionCore(String version) {
+  final withoutBuild = version.split('+').first;
+  final core = withoutBuild.split('-').first.split('.');
+  return List<int>.generate(
+    3,
+    (i) => i < core.length ? int.tryParse(core[i]) ?? 0 : 0,
+  );
+}
+
+String _prerelease(String version) {
+  final withoutBuild = version.split('+').first;
+  final parts = withoutBuild.split('-');
+  return parts.length < 2 ? '' : parts.sublist(1).join('-');
 }
