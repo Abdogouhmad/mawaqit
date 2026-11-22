@@ -14,7 +14,7 @@ done**, merge the phase branch to `main`, let CI cut the release, then move on.
 > builds on. See [`CHANGELOG.md`](../CHANGELOG.md) Unreleased and
 > [`production-readiness.md`](production-readiness.md).
 
-**Current phase:** [`0.19.0 — new Times UI`](roadmap_0.19.0.md).
+**Current phase:** [`0.20.0 — new Settings, onboarding & permissions UI`](roadmap_0.20.0.md).
 
 ---
 
@@ -154,7 +154,7 @@ onboarding/permissions flow, and a refreshed home-screen widget.
 | 0.17.0 | Design system 2.0 + app shell + navigation | 2–3 days | ☑ |
 | 0.18.0 | New Home UI | 2–3 days | ☑ |
 | 0.19.0 | New Times UI | 2 days | ☑ |
-| 0.20.0 | New Settings, onboarding & permissions UI | 2–3 days | ☐ |
+| 0.20.0 | New Settings, onboarding & permissions UI | 2–3 days | ◐ |
 | 0.21.0 | Feature: Adhan 2.0 (tone preview, schedule control, reliability) | 3–4 days | ☐ |
 | 0.22.0 | Feature: home-screen widget 2.0 & quick actions | 2–3 days | ☐ |
 | 0.23.0 | Feature: Qibla direction & travel / multi-location mode | 3–4 days | ☐ |
@@ -278,6 +278,9 @@ month and understand prayer-time shifts.
 ---
 
 ## 0.20.0 — New Settings, onboarding & permissions UI
+
+**Status:** in progress on `phase/0.20-settings-onboarding-ui`; see
+[`roadmap_0.20.0.md`](roadmap_0.20.0.md) for the phase detail.
 
 **Goal:** a single, understandable place for every choice, plus a first-run
 experience that explains the alarms instead of just asking for permissions.
