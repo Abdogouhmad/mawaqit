@@ -155,6 +155,16 @@ class _ToneSheetState extends State<ToneSheet> {
               type: UiTextType.labelMedium,
               color: scheme.onSurfaceVariant,
             ),
+            const SizedBox(height: AppSpacing.md),
+            _ExplanationRow(
+              icon: Icons.volume_up_outlined,
+              text: AppLocalizations.of(context).toneLoudnessNote,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _ExplanationRow(
+              icon: Icons.layers_outlined,
+              text: AppLocalizations.of(context).toneMergeNote,
+            ),
             const SizedBox(height: AppSpacing.xxxl),
             _sectionLabel(
               context,
@@ -228,7 +238,7 @@ class _ToneSheetState extends State<ToneSheet> {
           child: Row(
             children: [
               const SizedBox.square(
-                dimension: 18,
+                dimension: AppSpacing.jumbo,
                 child: CircularProgressIndicator(strokeWidth: AppStroke.focus),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -403,6 +413,37 @@ class _ToneSheetState extends State<ToneSheet> {
       label,
       type: UiTextType.titleSmall,
       color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
+  }
+}
+
+/// One-line, icon-led explanation above the tone list.
+///
+/// The preview answers "what does it sound like"; these two lines answer the
+/// questions the preview cannot: how loud it will be in practice and what
+/// happens when a reminder is still in flight when the adhan starts.
+class _ExplanationRow extends StatelessWidget {
+  const _ExplanationRow({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: AppIconSize.md, color: scheme.onSurfaceVariant),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: UiText(
+            text,
+            type: UiTextType.labelMedium,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -2,6 +2,8 @@ import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
+import 'package:mawaqit/data/models/prayer_schedule.dart';
+import 'package:mawaqit/data/models/prayer_time.dart';
 import 'package:mawaqit/data/repositories/settings_repository.dart';
 import 'package:mawaqit/l10n/ambient_l10n.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -96,6 +98,97 @@ void main() {
     );
     expect(device.usesDeviceTone, isTrue);
     expect(device.adhanLabel, 'Chime');
+  });
+
+  group('Adhan 2.0 per-prayer schedules', () {
+    test('an untouched prayer keeps the legacy behaviour', () {
+      const settings = AppSettings();
+      for (final kind in PrayerKind.five) {
+        expect(settings.scheduleFor(kind), const PrayerSchedule());
+      }
+    });
+
+    test('round-trips every choice for all five prayers', () async {
+      var settings = const AppSettings();
+      for (final (index, kind) in PrayerKind.five.indexed) {
+        settings = settings.withPrayerSchedule(
+          kind,
+          PrayerSchedule(
+            enabled: index != 2,
+            adhanOffsetMinutes: index * 3 - 5,
+            reminderLeadMinutes: index == 0 ? 0 : 5 + index,
+            mode: index.isEven ? AdhanMode.silent : AdhanMode.full,
+          ),
+        );
+      }
+      SharedPreferences.setMockInitialValues({});
+      await repository.save(settings);
+      final loaded = await repository.load();
+
+      for (final (index, kind) in PrayerKind.five.indexed) {
+        expect(loaded.scheduleFor(kind).enabled, index != 2);
+        expect(loaded.scheduleFor(kind).adhanOffsetMinutes, index * 3 - 5);
+        expect(
+          loaded.scheduleFor(kind).reminderLeadMinutes,
+          index == 0 ? 0 : 5 + index,
+        );
+        expect(
+          loaded.scheduleFor(kind).mode,
+          index.isEven ? AdhanMode.silent : AdhanMode.full,
+        );
+      }
+    });
+
+    test('editing one prayer leaves the other four untouched', () {
+      const first = PrayerSchedule(adhanOffsetMinutes: 5);
+      final settings = const AppSettings()
+          .withPrayerSchedule(PrayerKind.fajr, first)
+          .withPrayerSchedule(
+            PrayerKind.isha,
+            const PrayerSchedule(mode: AdhanMode.silent),
+          );
+      expect(settings.scheduleFor(PrayerKind.fajr), first);
+      expect(settings.scheduleFor(PrayerKind.isha).mode, AdhanMode.silent);
+      expect(settings.scheduleFor(PrayerKind.dhuhr), const PrayerSchedule());
+    });
+
+    test('a settings blob from before 0.21 still loads', () async {
+      SharedPreferences.setMockInitialValues({
+        'app_settings_v1': '{"leadMinutes":5,"preAlertTone":"Zen Bow"}',
+      });
+      final loaded = await repository.load();
+      expect(loaded.leadMinutes, 5);
+      expect(loaded.preAlertTone, 'Zen Bow');
+      expect(loaded.prayerSchedules, isEmpty);
+      expect(loaded.scheduleFor(PrayerKind.fajr), const PrayerSchedule());
+    });
+
+    test(
+      'a corrupt schedule entry falls back instead of breaking the load',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'app_settings_v1':
+              '{"prayerSchedules":{"fajr":{"enabled":false},'
+              '"asr":{"adhanOffsetMinutes":999,"mode":"unknown"},'
+              '"isha":"not a map"}}',
+        });
+        final loaded = await repository.load();
+        expect(loaded.scheduleFor(PrayerKind.fajr).enabled, isFalse);
+        expect(loaded.scheduleFor(PrayerKind.asr).adhanOffsetMinutes, 30);
+        expect(loaded.scheduleFor(PrayerKind.asr).mode, AdhanMode.full);
+        expect(loaded.scheduleFor(PrayerKind.isha), const PrayerSchedule());
+      },
+    );
+
+    test('a schedule edit triggers the reschedule gate', () {
+      const before = AppSettings();
+      final after = before.withPrayerSchedule(
+        PrayerKind.maghrib,
+        const PrayerSchedule(adhanOffsetMinutes: -5),
+      );
+      expect(after.changesNotificationsFrom(before), isTrue);
+      expect(before.changesNotificationsFrom(before), isFalse);
+    });
   });
 
   group('language', () {

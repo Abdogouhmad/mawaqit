@@ -32,6 +32,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   still verified against the manifest checksum before the system installer
   runs, and mandatory/support-floor updates are honoured as before.
 
+## [0.21.0] - 2026-11-23
+
+### Added
+
+- **Adhan 2.0 per-prayer controls.** Each of the five prayers now has its own
+  enable switch, −30…+30 minute adhan offset, reminder lead and *Full adhan* /
+  *Silent card* choice. The weekly summary shows the resulting plan at a glance,
+  and every choice survives restarts without changing the old defaults.
+- **Tone previews now explain what you hear.** One line covers alarm-volume
+  loudness and another explains that a reminder stops when the adhan starts, so
+  the two never overlap. Previews still play in place for bundled and device
+  tones.
+- **A reliability dashboard in Settings → Permissions.** Live exact-alarm,
+  full-screen, overlay, notification-policy and battery states are summarized
+  with the familiar *Allowed / Fix* pills and open the matching Android screen.
+
+### Changed
+
+- Per-prayer changes now re-arm today's notifications immediately through the
+  existing reschedule gate. The native alarm engine, notification policy and
+  OTA checks are unchanged.
+
 ## [0.20.0] - 2026-11-23
 
 ### Added

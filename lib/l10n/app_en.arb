@@ -1265,5 +1265,133 @@
         "example": "4"
       }
     }
+  },
+  "toneLoudnessNote": "The adhan uses the alarm volume, so it rings louder than the reminder chime.",
+  "toneMergeNote": "If a reminder is still playing, it stops when the adhan starts — the two never overlap.",
+  "scheduleTitle": "Prayer schedule",
+  "scheduleSectionDesc": "Choose when and how each adhan rings.",
+  "scheduleRowTitle": "Per-prayer controls",
+  "scheduleRowSubtitle": "Offsets, silent calls and a weekly summary",
+  "scheduleWeeklyTitle": "Your week",
+  "scheduleWeeklyNote": "The same plan repeats every day, Monday through Sunday.",
+  "scheduleSummaryOff": "{prayer}: off all week",
+  "scheduleSummaryEnabled": "{prayer}: {mode}, adhan {offset}, {reminder}",
+  "scheduleModeFull": "Full adhan",
+  "scheduleModeSilent": "Silent card",
+  "scheduleOffsetLabel": "Adhan offset",
+  "scheduleOffsetEarlier": "Move adhan earlier",
+  "scheduleOffsetLater": "Move adhan later",
+  "scheduleReminderLabel": "Reminder card",
+  "scheduleReminderGlobal": "Same as global ({minutes} min)",
+  "scheduleReminderOff": "No reminder",
+  "scheduleReminderCustom": "{minutes} min before",
+  "scheduleEnabledLabel": "Prayer alerts",
+  "scheduleResetAction": "Reset this prayer",
+  "scheduleResetTooltip": "Reset to the original timing",
+  "@toneLoudnessNote": {
+    "description": "One-line explanation of adhan loudness in the tone picker."
+  },
+  "@toneMergeNote": {
+    "description": "One-line explanation of what happens when a reminder overlaps the adhan."
+  },
+  "@scheduleTitle": {
+    "description": "Title of Settings → Notifications → Prayer schedule."
+  },
+  "@scheduleSectionDesc": {
+    "description": "Subtitle for the per-prayer schedule section."
+  },
+  "@scheduleRowTitle": {
+    "description": "Title of the row that opens the per-prayer schedule editor."
+  },
+  "@scheduleRowSubtitle": {
+    "description": "Subtitle of the row that opens the per-prayer schedule editor."
+  },
+  "@scheduleWeeklyTitle": {
+    "description": "Header of the weekly schedule summary."
+  },
+  "@scheduleWeeklyNote": {
+    "description": "Explains that the per-prayer plan repeats on every weekday."
+  },
+  "@scheduleSummaryOff": {
+    "description": "Weekly summary line for a prayer whose alerts are off.",
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Fajr"
+      }
+    }
+  },
+  "@scheduleSummaryEnabled": {
+    "description": "Weekly summary line for an armed prayer.",
+    "placeholders": {
+      "prayer": {
+        "type": "String",
+        "example": "Fajr"
+      },
+      "mode": {
+        "type": "String",
+        "example": "Full adhan"
+      },
+      "offset": {
+        "type": "String",
+        "example": "5 min"
+      },
+      "reminder": {
+        "type": "String",
+        "example": "10 min before"
+      }
+    }
+  },
+  "@scheduleModeFull": {
+    "description": "Audible adhan mode option in the per-prayer editor."
+  },
+  "@scheduleModeSilent": {
+    "description": "Quiet adhan mode option in the per-prayer editor."
+  },
+  "@scheduleOffsetLabel": {
+    "description": "Label of the per-prayer adhan minute-offset stepper."
+  },
+  "@scheduleOffsetEarlier": {
+    "description": "Tooltip for the button that moves an adhan earlier."
+  },
+  "@scheduleOffsetLater": {
+    "description": "Tooltip for the button that moves an adhan later."
+  },
+  "@scheduleReminderLabel": {
+    "description": "Label of the per-prayer reminder-lead picker."
+  },
+  "@scheduleReminderGlobal": {
+    "description": "Reminder option that follows the global lead time.",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "@scheduleReminderOff": {
+    "description": "Reminder option that disables the countdown for one prayer."
+  },
+  "@scheduleReminderCustom": {
+    "description": "Reminder option with a per-prayer lead time.",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "10"
+      }
+    }
+  },
+  "@scheduleEnabledLabel": {
+    "description": "Switch label for one prayer's alerts."
+  },
+  "@scheduleResetAction": {
+    "description": "Button that restores one prayer's legacy schedule."
+  },
+  "@scheduleResetTooltip": {
+    "description": "Tooltip for the per-prayer reset button."
+  },
+  "scheduleModeLabel": "Adhan mode",
+  "@scheduleModeLabel": {
+    "description": "Heading of the per-prayer adhan mode selector."
   }
 }

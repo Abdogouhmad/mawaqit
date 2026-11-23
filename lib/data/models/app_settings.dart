@@ -1,7 +1,10 @@
 import 'package:adhan_dart/adhan_dart.dart';
 
+import 'package:mawaqit/core/const/prayer_keys.dart';
 import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
+import 'package:mawaqit/data/models/prayer_schedule.dart';
+import 'package:mawaqit/data/models/prayer_time.dart';
 
 enum AppThemeMode { system, light, dark }
 
@@ -47,6 +50,7 @@ class AppSettings {
     this.adhanDeviceToneUri,
     this.adhanDeviceToneName,
     this.preAlertTone = 'Silent',
+    this.prayerSchedules = const {},
     this.themeMode = AppThemeMode.system,
     this.language = AppLanguage.system,
     this.locationMode = LocationMode.autoGps,
@@ -73,6 +77,13 @@ class AppSettings {
 
   /// Bundled sound for the pre-prayer countdown card (its own channel).
   final String preAlertTone;
+
+  /// Per-prayer Adhan 2.0 choices, keyed by the stable [PrayerKeys.id].
+  ///
+  /// An empty map is the pre-0.21 state: every prayer inherits the behaviour it
+  /// had before the editor existed. Keys that are unknown to this build are
+  /// ignored rather than throwing, so a newer app's blob cannot brick alarms.
+  final Map<String, PrayerSchedule> prayerSchedules;
 
   final AppThemeMode themeMode;
 
@@ -139,6 +150,7 @@ class AppSettings {
       adhanTone != previous.adhanTone ||
       adhanDeviceToneUri != previous.adhanDeviceToneUri ||
       preAlertTone != previous.preAlertTone ||
+      !prayerSchedulesMatch(previous) ||
       language != previous.language;
 
   bool get hasCityCoordinates => cityLatitude != null && cityLongitude != null;
@@ -173,6 +185,27 @@ class AppSettings {
         NotificationKind.adhan => copyWith(adhanSoundEnabled: enabled),
       };
 
+  /// The Adhan 2.0 choices for one prayer, defaulting to the legacy behaviour.
+  PrayerSchedule scheduleFor(PrayerKind kind) =>
+      prayerSchedules[PrayerKeys.id(kind)] ?? const PrayerSchedule();
+
+  /// Replaces one prayer's choices, leaving the other four untouched.
+  ///
+  /// Always allocates a fresh map: mutating the stored one would leave the
+  /// previous [AppSettings] instance pointing at the new value, which breaks
+  /// Riverpod's identity-based state comparison and the reschedule gate.
+  AppSettings withPrayerSchedule(PrayerKind kind, PrayerSchedule schedule) {
+    final next = Map<String, PrayerSchedule>.from(prayerSchedules)
+      ..[PrayerKeys.id(kind)] = schedule;
+    return copyWith(prayerSchedules: next);
+  }
+
+  /// Value comparison for the reschedule gate; map identity is not enough
+  /// because a repository load produces a different map with equal contents.
+  bool prayerSchedulesMatch(AppSettings other) => PrayerKind.five.every(
+    (kind) => scheduleFor(kind) == other.scheduleFor(kind),
+  );
+
   AppSettings copyWith({
     CalculationMethod? calculationMethod,
     Madhab? madhab,
@@ -184,6 +217,7 @@ class AppSettings {
     String? adhanDeviceToneName,
     bool clearDeviceTone = false,
     String? preAlertTone,
+    Map<String, PrayerSchedule>? prayerSchedules,
     AppThemeMode? themeMode,
     AppLanguage? language,
     LocationMode? locationMode,
@@ -209,6 +243,7 @@ class AppSettings {
           ? null
           : (adhanDeviceToneName ?? this.adhanDeviceToneName),
       preAlertTone: preAlertTone ?? this.preAlertTone,
+      prayerSchedules: prayerSchedules ?? this.prayerSchedules,
       themeMode: themeMode ?? this.themeMode,
       language: language ?? this.language,
       locationMode: locationMode ?? this.locationMode,

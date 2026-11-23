@@ -4,6 +4,7 @@ import 'package:adhan_dart/adhan_dart.dart';
 import 'package:mawaqit/core/const/pref_keys.dart';
 import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
+import 'package:mawaqit/data/models/prayer_schedule.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsRepository {
@@ -33,6 +34,9 @@ class SettingsRepository {
     'adhanDeviceToneUri': s.adhanDeviceToneUri,
     'adhanDeviceToneName': s.adhanDeviceToneName,
     'preAlertTone': s.preAlertTone,
+    'prayerSchedules': s.prayerSchedules.map(
+      (id, schedule) => MapEntry(id, schedule.toJson()),
+    ),
     'themeMode': s.themeMode.name,
     'language': s.language.name,
     'locationMode': s.locationMode.name,
@@ -63,6 +67,7 @@ class SettingsRepository {
     adhanDeviceToneUri: json['adhanDeviceToneUri'] as String?,
     adhanDeviceToneName: json['adhanDeviceToneName'] as String?,
     preAlertTone: json['preAlertTone'] as String? ?? 'Silent',
+    prayerSchedules: _readSchedules(json['prayerSchedules']),
     themeMode: AppThemeMode.values.firstWhere(
       (e) => e.name == json['themeMode'],
       orElse: () => AppThemeMode.system,
@@ -87,4 +92,21 @@ class SettingsRepository {
     reduceTransparency: json['reduceTransparency'] as bool? ?? false,
     reduceMotion: json['reduceMotion'] as bool? ?? false,
   );
+
+  /// Reads the Adhan 2.0 block defensively.
+  ///
+  /// A blob written before 0.21 has no such key, and a partially written one
+  /// can still be recovered entry by entry: a bad prayer simply falls back to
+  /// legacy behaviour instead of taking the whole settings screen down.
+  Map<String, PrayerSchedule> _readSchedules(Object? raw) {
+    if (raw is! Map) return const {};
+    final result = <String, PrayerSchedule>{};
+    for (final entry in raw.entries) {
+      final id = entry.key;
+      final value = entry.value;
+      if (id is! String || value is! Map) continue;
+      result[id] = PrayerSchedule.fromJson(Map<String, dynamic>.from(value));
+    }
+    return result;
+  }
 }

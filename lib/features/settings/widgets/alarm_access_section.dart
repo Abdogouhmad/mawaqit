@@ -126,10 +126,8 @@ class _AlarmAccessSectionState extends ConsumerState<AlarmAccessSection>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SectionHeader(
-          label: AppLocalizations.of(context).accessReliability,
-          description: access.canRingOnTime
-              ? AppLocalizations.of(context).accessCanRingDescription
-              : AppLocalizations.of(context).accessCannotRingDescription,
+          label: AppLocalizations.of(context).reliabilityTitle,
+          description: AppLocalizations.of(context).reliabilitySubtitle,
           icon: Icons.shield_moon_outlined,
         ),
         SettingsGroup(
@@ -160,11 +158,12 @@ class _AlarmAccessSectionState extends ConsumerState<AlarmAccessSection>
                   Expanded(
                     child: UiText(
                       missing.isEmpty
-                          ? AppLocalizations.of(context).accessAllGranted
-                          : AppLocalizations.of(context).accessMissingSummary(
-                              missing.length,
-                              AlarmPermission.values.length,
-                            ),
+                          ? AppLocalizations.of(context).reliabilityAllGood
+                          : AppLocalizations.of(context)
+                                .reliabilityIssueSummary(
+                                  missing.length,
+                                  AlarmPermission.values.length,
+                                ),
                       type: UiTextType.labelMedium,
                       color: missing.isEmpty
                           ? scheme.onSurfaceVariant

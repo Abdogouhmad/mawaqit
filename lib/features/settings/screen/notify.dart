@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
+import 'package:mawaqit/features/settings/screen/prayer_schedule.dart';
 import 'package:mawaqit/features/settings/widgets/notification_settings_section.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/components/section_header.dart';
 import 'package:mawaqit/shared/components/settings_group.dart';
+import 'package:mawaqit/shared/components/settings_row.dart';
 import 'package:mawaqit/shared/ui/ui_text.dart';
 
 /// Settings → Notifications.
@@ -54,6 +56,30 @@ class NotificationsScreen extends StatelessWidget {
                 children: [
                   NotificationSettingsSection(kind: NotificationKind.prePrayer),
                   NotificationSettingsSection(kind: NotificationKind.adhan),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.mega),
+              SectionHeader(
+                label: l10n.scheduleTitle,
+                description: l10n.scheduleSectionDesc,
+                icon: Icons.event_repeat_outlined,
+              ),
+              SettingsGroup(
+                children: [
+                  SettingsRow(
+                    icon: Icons.event_note_outlined,
+                    title: l10n.scheduleRowTitle,
+                    subtitle: l10n.scheduleRowSubtitle,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const PrayerScheduleScreen(),
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.chevron_right,
+                      size: AppIconSize.xl,
+                    ),
+                  ),
                 ],
               ),
             ],

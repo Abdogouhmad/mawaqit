@@ -67,7 +67,7 @@ void main() {
 
     await pump(tester);
 
-    expect(find.text('ALARM RELIABILITY'), findsOneWidget);
+    expect(find.text('ADHAN RELIABILITY'), findsOneWidget);
     expect(find.text('Notifications'), findsOneWidget);
     expect(find.text('Alarms & reminders'), findsOneWidget);
     expect(find.text('Full-screen notifications'), findsOneWidget);
@@ -79,7 +79,7 @@ void main() {
     // granted; exact alarms and Do Not Disturb access are not.
     expect(find.text('Allowed'), findsNWidgets(4));
     expect(find.text('Fix'), findsNWidgets(2));
-    expect(find.textContaining('2 of 6 accesses are off'), findsOneWidget);
+    expect(find.textContaining('2 of 6 checks need attention'), findsOneWidget);
 
     usePlatform(null);
   });
@@ -91,7 +91,10 @@ void main() {
 
     await pump(tester);
 
-    expect(find.text('All alarm accesses granted'), findsOneWidget);
+    expect(
+      find.text('Everything is set. The adhan should ring on time.'),
+      findsOneWidget,
+    );
     expect(find.text('Fix'), findsNothing);
     expect(find.text('Allowed'), findsNWidgets(6));
 
@@ -104,7 +107,7 @@ void main() {
     await pump(tester);
 
     expect(find.byType(AlarmAccessSection), findsOneWidget);
-    expect(find.text('ALARM RELIABILITY'), findsNothing);
+    expect(find.text('ADHAN RELIABILITY'), findsNothing);
 
     usePlatform(null);
   });
