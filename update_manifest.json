@@ -1,13 +1,13 @@
 {
-  "latestVersionName": "0.20.0",
-  "latestVersionCode": 2000,
+  "latestVersionName": "0.21.0",
+  "latestVersionCode": 2100,
   "minSupportedVersionCode": 3,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.20.0/mawaqit-v0.20.0-universal.apk",
-  "sha256": "e05eedba477ff2ca0447cdb31f09554ebeee0ee11d6a08e6a3a61509ed549841",
-  "releaseNotes": "## [0.20.0] - 2026-11-23\n\n### Added\n\n- **A first-run walkthrough now explains the app before asking for access.**\nFour short, localized pages cover the adhan reminders, the Android alarm\npermissions, the screen/battery exceptions and choosing a city. Each\npermission shows its live *Allowed / Fix* state, and the flow can be skipped\nor resumed where you left it.\n\n### Changed\n\n- **Settings is now one scannable column.** Related preferences are grouped\nwith a one-line explanation, every row says what it controls, and the\nstable/beta release channel is an ordinary, clearly explained setting rather\nthan a separate screen.\n- **The Home app bar no longer duplicates the Settings action.** Settings stays\nin the bottom navigation, so the header has one clear Times shortcut.\n- Settings, the channel selector and the walkthrough share the 0.17 design\ntokens, keeping spacing, type, colour and motion consistent at large text\nsizes and in RTL.",
-  "publishedAt": "2026-11-23T18:17:42.678214+00:00",
+  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.21.0/mawaqit-v0.21.0-universal.apk",
+  "sha256": "6fb917464ade77b07734a5305c7e9f66cc16d19ba2fa3f2c18816e77eed55ca8",
+  "releaseNotes": "## [0.21.0] - 2026-11-23\n\n### Added\n\n- **Adhan 2.0 per-prayer controls.** Each of the five prayers now has its own\nenable switch, −30…+30 minute adhan offset, reminder lead and *Full adhan* /\n*Silent card* choice. The weekly summary shows the resulting plan at a glance,\nand every choice survives restarts without changing the old defaults.\n- **Tone previews now explain what you hear.** One line covers alarm-volume\nloudness and another explains that a reminder stops when the adhan starts, so\nthe two never overlap. Previews still play in place for bundled and device\ntones.\n- **A reliability dashboard in Settings → Permissions.** Live exact-alarm,\nfull-screen, overlay, notification-policy and battery states are summarized\nwith the familiar *Allowed / Fix* pills and open the matching Android screen.\n\n### Changed\n\n- Per-prayer changes now re-arm today's notifications immediately through the\nexisting reschedule gate. The native alarm engine, notification policy and\nOTA checks are unchanged.",
+  "publishedAt": "2026-11-23T19:09:24.762120+00:00",
   "channel": "stable",
   "isPrerelease": false,
-  "size": 75489431
+  "size": 75588119
 }
