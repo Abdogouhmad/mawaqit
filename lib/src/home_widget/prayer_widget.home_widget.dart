@@ -12,6 +12,7 @@ class PrayerWidgetHomeWidget {
   static const String _$paramPrefix = 'home_widget.PrayerWidget';
 
   static Future<void> saveData({
+    bool? amoled,
     String? locationShort,
     String? nextPrayerName,
     String? nextPrayerCountdown,
@@ -26,8 +27,12 @@ class PrayerWidgetHomeWidget {
     bool? maghribIsPast,
     bool? ishaIsActive,
     bool? ishaIsPast,
+    bool? showHijri,
+    String? hijriDate,
+    bool? showQuickActions,
   }) {
     return Future.wait([
+      if (amoled != null) HomeWidget.saveWidgetData<bool>('${_$paramPrefix}.amoled', amoled),
       if (locationShort != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.locationShort', locationShort),
       if (nextPrayerName != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.nextPrayerName', nextPrayerName),
       if (nextPrayerCountdown != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', nextPrayerCountdown),
@@ -42,10 +47,14 @@ class PrayerWidgetHomeWidget {
       if (maghribIsPast != null) HomeWidget.saveWidgetData<bool>('${_$paramPrefix}.maghribIsPast', maghribIsPast),
       if (ishaIsActive != null) HomeWidget.saveWidgetData<bool>('${_$paramPrefix}.ishaIsActive', ishaIsActive),
       if (ishaIsPast != null) HomeWidget.saveWidgetData<bool>('${_$paramPrefix}.ishaIsPast', ishaIsPast),
+      if (showHijri != null) HomeWidget.saveWidgetData<bool>('${_$paramPrefix}.showHijri', showHijri),
+      if (hijriDate != null) HomeWidget.saveWidgetData<String>('${_$paramPrefix}.hijriDate', hijriDate),
+      if (showQuickActions != null) HomeWidget.saveWidgetData<bool>('${_$paramPrefix}.showQuickActions', showQuickActions),
     ]);
   }
 
   static Future<void> deleteData({
+    bool amoled = false,
     bool locationShort = false,
     bool nextPrayerName = false,
     bool nextPrayerCountdown = false,
@@ -60,8 +69,12 @@ class PrayerWidgetHomeWidget {
     bool maghribIsPast = false,
     bool ishaIsActive = false,
     bool ishaIsPast = false,
+    bool showHijri = false,
+    bool hijriDate = false,
+    bool showQuickActions = false,
   }) {
     return Future.wait([
+      if (amoled) HomeWidget.saveWidgetData('${_$paramPrefix}.amoled', null),
       if (locationShort) HomeWidget.saveWidgetData('${_$paramPrefix}.locationShort', null),
       if (nextPrayerName) HomeWidget.saveWidgetData('${_$paramPrefix}.nextPrayerName', null),
       if (nextPrayerCountdown) HomeWidget.saveWidgetData('${_$paramPrefix}.nextPrayerCountdown', null),
@@ -76,15 +89,19 @@ class PrayerWidgetHomeWidget {
       if (maghribIsPast) HomeWidget.saveWidgetData('${_$paramPrefix}.maghribIsPast', null),
       if (ishaIsActive) HomeWidget.saveWidgetData('${_$paramPrefix}.ishaIsActive', null),
       if (ishaIsPast) HomeWidget.saveWidgetData('${_$paramPrefix}.ishaIsPast', null),
+      if (showHijri) HomeWidget.saveWidgetData('${_$paramPrefix}.showHijri', null),
+      if (hijriDate) HomeWidget.saveWidgetData('${_$paramPrefix}.hijriDate', null),
+      if (showQuickActions) HomeWidget.saveWidgetData('${_$paramPrefix}.showQuickActions', null),
     ]);
   }
 
-  static Future<({String? locationShort, String? nextPrayerName, String? nextPrayerCountdown, String? nextPrayerTime, bool? fajrIsActive, bool? fajrIsPast, bool? dhuhrIsActive, bool? dhuhrIsPast, bool? asrIsActive, bool? asrIsPast, bool? maghribIsActive, bool? maghribIsPast, bool? ishaIsActive, bool? ishaIsPast})> getData() async {
+  static Future<({bool? amoled, String? locationShort, String? nextPrayerName, String? nextPrayerCountdown, String? nextPrayerTime, bool? fajrIsActive, bool? fajrIsPast, bool? dhuhrIsActive, bool? dhuhrIsPast, bool? asrIsActive, bool? asrIsPast, bool? maghribIsActive, bool? maghribIsPast, bool? ishaIsActive, bool? ishaIsPast, bool? showHijri, String? hijriDate, bool? showQuickActions})> getData() async {
     return (
+      amoled: await HomeWidget.getWidgetData<bool>('${_$paramPrefix}.amoled', defaultValue: false),
       locationShort: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.locationShort', defaultValue: '—'),
-      nextPrayerName: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerName', defaultValue: 'ASR'),
-      nextPrayerCountdown: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', defaultValue: '01h 24m'),
-      nextPrayerTime: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerTime', defaultValue: '3:45 PM'),
+      nextPrayerName: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerName', defaultValue: '—'),
+      nextPrayerCountdown: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerCountdown', defaultValue: '—'),
+      nextPrayerTime: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.nextPrayerTime', defaultValue: '—'),
       fajrIsActive: await HomeWidget.getWidgetData<bool>('${_$paramPrefix}.fajrIsActive', defaultValue: false),
       fajrIsPast: await HomeWidget.getWidgetData<bool>('${_$paramPrefix}.fajrIsPast', defaultValue: false),
       dhuhrIsActive: await HomeWidget.getWidgetData<bool>('${_$paramPrefix}.dhuhrIsActive', defaultValue: false),
@@ -95,6 +112,9 @@ class PrayerWidgetHomeWidget {
       maghribIsPast: await HomeWidget.getWidgetData<bool>('${_$paramPrefix}.maghribIsPast', defaultValue: false),
       ishaIsActive: await HomeWidget.getWidgetData<bool>('${_$paramPrefix}.ishaIsActive', defaultValue: false),
       ishaIsPast: await HomeWidget.getWidgetData<bool>('${_$paramPrefix}.ishaIsPast', defaultValue: false),
+      showHijri: await HomeWidget.getWidgetData<bool>('${_$paramPrefix}.showHijri', defaultValue: true),
+      hijriDate: await HomeWidget.getWidgetData<String>('${_$paramPrefix}.hijriDate', defaultValue: ''),
+      showQuickActions: await HomeWidget.getWidgetData<bool>('${_$paramPrefix}.showQuickActions', defaultValue: true),
     );
   }
 

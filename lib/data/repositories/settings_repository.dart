@@ -50,6 +50,8 @@ class SettingsRepository {
     'amoled': s.amoled,
     'reduceTransparency': s.reduceTransparency,
     'reduceMotion': s.reduceMotion,
+    'widgetShowHijri': s.widgetShowHijri,
+    'widgetShowQuickActions': s.widgetShowQuickActions,
   };
 
   AppSettings _fromJson(Map<String, dynamic> json) => AppSettings(
@@ -97,6 +99,8 @@ class SettingsRepository {
     amoled: json['amoled'] as bool? ?? false,
     reduceTransparency: json['reduceTransparency'] as bool? ?? false,
     reduceMotion: json['reduceMotion'] as bool? ?? false,
+    widgetShowHijri: json['widgetShowHijri'] as bool? ?? true,
+    widgetShowQuickActions: json['widgetShowQuickActions'] as bool? ?? true,
   );
 
   /// Reads the Adhan 2.0 block defensively.

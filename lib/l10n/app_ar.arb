@@ -953,5 +953,9 @@
   },
   "@hijriEventMawlid": {
     "description": "Name of a well-known Hijri calendar event."
+  },
+  "widgetSizeHint": "أضف الأداة ثم اسحب حافتها للتبديل بين الصغيرة والمتوسطة.",
+  "@widgetSizeHint": {
+    "description": "Explains that the launcher chooses the widget size."
   }
 }

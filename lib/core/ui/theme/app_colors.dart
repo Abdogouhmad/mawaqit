@@ -265,6 +265,13 @@ abstract final class AppColors {
   static const Color amoledHigh = Color(0xFF181818);
   static const Color amoledHighest = Color(0xFF202020);
 
+  /// Native widget mirror of [amoledSurface]. The Glance card goes true black
+  /// only when the app is in dark mode *and* AMOLED is enabled, so the widget
+  /// matches the app instead of glowing against it.
+  static const Color widgetCanvasAmoled = Color(0xFF000000);
+  static const Color widgetMutedAmoled = Color(0x99B8C0BA);
+  static const Color widgetMutedTintAmoled = Color(0x445A655D);
+
   // ──────────────────────── Raw ARGB for native ─────────────────────────
   // The Android home-screen card (Glance) annotates ints, not Colors; these
   // mirror the values above so the widget can never drift from the app theme.
@@ -283,4 +290,7 @@ abstract final class AppColors {
   static const int widgetMutedDarkArgb = 0x668A918C;
   static const int widgetMutedTintLightArgb = 0x336F7A72;
   static const int widgetMutedTintDarkArgb = 0x338A918C;
+  static const int amoledSurfaceArgb = 0xFF000000;
+  static const int widgetMutedAmoledArgb = 0x99B8C0BA;
+  static const int widgetMutedTintAmoledArgb = 0x445A655D;
 }

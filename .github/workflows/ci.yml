@@ -42,6 +42,17 @@ jobs:
       - name: Analyze
         run: flutter analyze --fatal-infos --fatal-warnings
 
+      # The Glance/Dart widget output is checked in so the release build does not
+      # need the generator, which means it can silently drift from the DSL.
+      # Regenerate here and fail on any diff; never hand-edit generated Kotlin.
+      - name: Verify generated home widget
+        run: |
+          dart run home_widget_cli:home_widget generate -i lib/src/home_widget
+          git diff --exit-code -- \
+            lib/src/home_widget \
+            android/app/src/main/kotlin/com/freesoftware/mawaqit \
+            android/app/src/main/res
+
   # Unit + widget tests.
   test:
     name: test

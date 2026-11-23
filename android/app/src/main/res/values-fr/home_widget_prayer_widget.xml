@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_widget_prayer_widget_label">Prières Mawaqit</string>
+    <string name="home_widget_prayer_widget_description">Prochaine prière, compte à rebours et séquence du jour</string>
+    <string name="home_widget_prayer_widget_t_0304834c">MAWAQIT</string>
+    <string name="home_widget_prayer_widget_t_ae92fb6e">PROCHAINE PRIÈRE</string>
+    <string name="home_widget_prayer_widget_t_c610bf72">Ouvrir les horaires · silence dans Réglages</string>
+</resources>

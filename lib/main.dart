@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:home_widget/home_widget.dart';
 import 'package:mawaqit/app.dart';
-import 'package:mawaqit/core/navigation/app_shell.dart';
+import 'package:mawaqit/core/navigation/widget_launch_target.dart';
 import 'package:mawaqit/core/ota/update_check_host.dart';
 import 'package:mawaqit/core/utils/timezone_setup.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
@@ -74,7 +74,7 @@ Future<void> main() async {
 /// unrecognised route to `GoRouter` would fall through to its `errorBuilder`.
 Future<String?> _launchRoute() async {
   try {
-    return _routeFrom(
+    return WidgetLaunchTarget.route(
       await PrayerWidgetHomeWidget.initiallyLaunchedFromWidget(),
     );
   } catch (_) {
@@ -105,17 +105,10 @@ Future<void> _followWidgetTaps() async {
 
   try {
     await for (final uri in PrayerWidgetHomeWidget.widgetClicked) {
-      final route = _routeFrom(uri);
+      final route = WidgetLaunchTarget.route(uri);
       if (route != null) MawaqitApp.navigateTo(route);
     }
   } catch (_) {
     // The event channel dies with the engine; nothing to recover.
   }
-}
-
-/// [uri]'s path as one of the app's tab routes, or `null` if it is not one.
-String? _routeFrom(Uri? uri) {
-  final path = uri?.path;
-  if (path == null || path.isEmpty) return null;
-  return AppRoutes.tabs.contains(path) ? path : null;
 }

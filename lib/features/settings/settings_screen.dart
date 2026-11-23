@@ -10,6 +10,7 @@ import 'package:mawaqit/features/qibla/travel_screen.dart';
 import 'package:mawaqit/features/settings/screen/general.dart';
 import 'package:mawaqit/features/settings/screen/notify.dart';
 import 'package:mawaqit/features/settings/screen/permission.dart';
+import 'package:mawaqit/features/settings/screen/widget.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/features/settings/widgets/update_channel_selector.dart';
@@ -206,6 +207,17 @@ class _SettingsBody extends ConsumerWidget {
                   '${settings.language.localized(l10n)} · '
                   '${settings.themeMode.localized(l10n)}',
               onTap: () => _openGeneral(context),
+              trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
+            ),
+            SettingsRow(
+              icon: Icons.widgets_outlined,
+              title: l10n.widgetTitle,
+              subtitle: l10n.widgetDesc,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const WidgetSettingsScreen(),
+                ),
+              ),
               trailing: const Icon(Icons.chevron_right, size: AppIconSize.xl),
             ),
           ],

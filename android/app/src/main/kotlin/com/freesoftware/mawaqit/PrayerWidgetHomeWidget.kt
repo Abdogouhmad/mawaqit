@@ -18,33 +18,44 @@ import androidx.glance.text.Text
 import es.antonborri.home_widget.HomeWidgetGlanceState
 import es.antonborri.home_widget.HomeWidgetGlanceStateDefinition
 import es.antonborri.home_widget.HomeWidgetPlugin
+import androidx.glance.LocalSize
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.glance.layout.Column
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.Row
-import androidx.glance.layout.fillMaxWidth
-import androidx.compose.ui.unit.dp
 import androidx.glance.ColorFilter
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.layout.size
 import es.antonborri.home_widget.HomeWidgetFonts
 import androidx.glance.color.ColorProvider
-import androidx.glance.layout.padding
 import androidx.glance.text.TextStyle
 import androidx.compose.ui.unit.sp
 import androidx.glance.text.FontWeight
+import androidx.glance.layout.padding
 import androidx.glance.GlanceTheme
+import androidx.glance.layout.fillMaxWidth
 import androidx.glance.appwidget.cornerRadius
 import androidx.core.os.ConfigurationCompat
 import java.util.Locale
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.action.clickable
 import android.net.Uri
 import es.antonborri.home_widget.actionStartActivity
 
 class PrayerWidgetHomeWidget : GlanceAppWidget() {
   override val stateDefinition = HomeWidgetGlanceStateDefinition()
+
+  override val sizeMode = SizeMode.Responsive(
+      setOf(
+          DpSize(110.dp, 110.dp),
+          DpSize(250.dp, 110.dp),
+      )
+  )
+  override val previewSizeMode = sizeMode
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
     provideContent { WidgetContent(context, currentState()) }
@@ -59,7 +70,7 @@ class PrayerWidgetHomeWidget : GlanceAppWidget() {
     val hwPreviewData =
         PrayerWidgetData.fromPreferences(HomeWidgetPlugin.getData(context))
     return listOf(
-      "ec9ddcf5",
+      "0a4c6e25",
       hwLocales.joinToString(","),
       hwPreviewData.toString(),
     ).joinToString("|")
@@ -71,77 +82,348 @@ class PrayerWidgetHomeWidget : GlanceAppWidget() {
     val widgetData = PrayerWidgetData.fromPreferences(prefs)
     GlanceTheme {
             Box(modifier = GlanceModifier.background(GlanceTheme.colors.widgetBackground).fillMaxSize().clickable(onClick = actionStartActivity<MainActivity>(context, Uri.parse("mawaqit:///times?homeWidget"))), contentAlignment = Alignment.Center) {
-                Box(
-                    modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color(0xFFE2E6E1), night = Color(0xFF1E2A23))).cornerRadius(24.0.dp).padding(1.0.dp)
-                ) {
-                    Box(
-                        modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color(0xFFF7F8F5), night = Color(0xFF131A16))).cornerRadius(23.0.dp)
-                    ) {
-                        Column(modifier = GlanceModifier.fillMaxSize().padding(start = 16.0.dp, top = 16.0.dp, end = 16.0.dp, bottom = 16.0.dp), horizontalAlignment = Alignment.Start) {
-                            Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Image(modifier = GlanceModifier.padding(start = 0.0.dp, top = 0.0.dp, end = 6.0.dp, bottom = 0.0.dp).size(16.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xF0355, 16f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF3FA184))))
-                                    Text(text = "MAWAQIT", style = TextStyle(color = ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF3FA184)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
+                when (LocalSize.current) {
+                    DpSize(250.dp, 110.dp) -> {
+                        if (widgetData.amoled == true) {
+                            Box(
+                                modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color(0xFFE2E6E1), night = Color(0xFF1E2A23))).cornerRadius(24.0.dp).padding(1.0.dp)
+                            ) {
+                                Box(
+                                    modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color(0xFF000000), night = Color(0xFF000000))).cornerRadius(23.0.dp)
+                                ) {
+                                    Column(modifier = GlanceModifier.fillMaxSize().padding(start = 12.0.dp, top = 12.0.dp, end = 12.0.dp, bottom = 12.0.dp), horizontalAlignment = Alignment.Start) {
+                                        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                                            Column(horizontalAlignment = Alignment.Start) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Image(modifier = GlanceModifier.size(16.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xF0355, 16f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                                    Text(modifier = GlanceModifier.padding(start = 4.0.dp, top = 0.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = context.getString(R.string.home_widget_prayer_widget_t_0304834c), style = TextStyle(color = ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
+                                                }
+                                                Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 2.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.locationShort ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.showHijri == true) {
+                                                Box {
+                                                    Text(text = widgetData.hijriDate ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Normal))
+                                                }
+                                            } else {
+
+                                            }
+                                        }
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        Column(horizontalAlignment = Alignment.Start) {
+                                            Text(text = context.getString(R.string.home_widget_prayer_widget_t_ae92fb6e), style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold))
+                                            Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 2.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.nextPrayerName ?: "", style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold))
+                                            Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 6.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.nextPrayerCountdown ?: "", style = TextStyle(color = ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80)), fontSize = 22.sp, fontWeight = FontWeight.Bold))
+                                            Text(text = widgetData.nextPrayerTime ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 16.sp, fontWeight = FontWeight.Normal))
+                                        }
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                            if (widgetData.fajrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.fajrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x99B8C0BA), night = Color(0x99B8C0BA))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x445A655D), night = Color(0x445A655D))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.dhuhrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.dhuhrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x99B8C0BA), night = Color(0x99B8C0BA))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x445A655D), night = Color(0x445A655D))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.asrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.asrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x99B8C0BA), night = Color(0x99B8C0BA))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x445A655D), night = Color(0x445A655D))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.maghribIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.maghribIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x99B8C0BA), night = Color(0x99B8C0BA))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x445A655D), night = Color(0x445A655D))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.ishaIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.ishaIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x99B8C0BA), night = Color(0x99B8C0BA))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x445A655D), night = Color(0x445A655D))))
+                                                }
+                                            }
+                                        }
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        if (widgetData.showQuickActions == true) {
+                                            Text(text = context.getString(R.string.home_widget_prayer_widget_t_c610bf72), style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Medium))
+                                        } else {
+
+                                        }
+                                    }
                                 }
-                                Spacer(modifier = GlanceModifier.defaultWeight())
-                                Text(text = widgetData.locationShort ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium))
                             }
-                            Spacer(modifier = GlanceModifier.defaultWeight())
-                            Column(horizontalAlignment = Alignment.Start) {
-                                Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 0.0.dp, end = 0.0.dp, bottom = 4.0.dp), text = "NEXT PRAYER", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Bold))
-                                Text(text = widgetData.nextPrayerName ?: "", style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold))
-                                Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 8.0.dp, end = 0.0.dp, bottom = 4.0.dp), text = widgetData.nextPrayerCountdown ?: "", style = TextStyle(color = ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80)), fontSize = 22.sp, fontWeight = FontWeight.Bold))
-                                Text(text = widgetData.nextPrayerTime ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 16.sp, fontWeight = FontWeight.Normal))
+                        } else {
+                            Box(
+                                modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color(0xFFE2E6E1), night = Color(0xFF1E2A23))).cornerRadius(24.0.dp).padding(1.0.dp)
+                            ) {
+                                Box(
+                                    modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color(0xFFF7F8F5), night = Color(0xFF131A16))).cornerRadius(23.0.dp)
+                                ) {
+                                    Column(modifier = GlanceModifier.fillMaxSize().padding(start = 12.0.dp, top = 12.0.dp, end = 12.0.dp, bottom = 12.0.dp), horizontalAlignment = Alignment.Start) {
+                                        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                                            Column(horizontalAlignment = Alignment.Start) {
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Image(modifier = GlanceModifier.size(16.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xF0355, 16f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                                    Text(modifier = GlanceModifier.padding(start = 4.0.dp, top = 0.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = context.getString(R.string.home_widget_prayer_widget_t_0304834c), style = TextStyle(color = ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
+                                                }
+                                                Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 2.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.locationShort ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.showHijri == true) {
+                                                Box {
+                                                    Text(text = widgetData.hijriDate ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Normal))
+                                                }
+                                            } else {
+
+                                            }
+                                        }
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        Column(horizontalAlignment = Alignment.Start) {
+                                            Text(text = context.getString(R.string.home_widget_prayer_widget_t_ae92fb6e), style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold))
+                                            Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 2.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.nextPrayerName ?: "", style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold))
+                                            Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 6.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.nextPrayerCountdown ?: "", style = TextStyle(color = ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80)), fontSize = 22.sp, fontWeight = FontWeight.Bold))
+                                            Text(text = widgetData.nextPrayerTime ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 16.sp, fontWeight = FontWeight.Normal))
+                                        }
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                            if (widgetData.fajrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.fajrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.dhuhrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.dhuhrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.asrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.asrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.maghribIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.maghribIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.ishaIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.ishaIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                                                }
+                                            }
+                                        }
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        if (widgetData.showQuickActions == true) {
+                                            Text(text = context.getString(R.string.home_widget_prayer_widget_t_c610bf72), style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Medium))
+                                        } else {
+
+                                        }
+                                    }
+                                }
                             }
-                            Spacer(modifier = GlanceModifier.defaultWeight())
-                            Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                if (widgetData.fajrIsActive == true) {
-                                    Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
-                                } else {
-                                    if (widgetData.fajrIsPast == true) {
-                                        Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
-                                    } else {
-                                        Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                        }
+                    }
+                    else -> {
+                        if (widgetData.amoled == true) {
+                            Box(
+                                modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color(0xFFE2E6E1), night = Color(0xFF1E2A23))).cornerRadius(24.0.dp).padding(1.0.dp)
+                            ) {
+                                Box(
+                                    modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color(0xFF000000), night = Color(0xFF000000))).cornerRadius(23.0.dp)
+                                ) {
+                                    Column(modifier = GlanceModifier.fillMaxSize().padding(start = 12.0.dp, top = 12.0.dp, end = 12.0.dp, bottom = 12.0.dp), horizontalAlignment = Alignment.Start) {
+                                        Column(horizontalAlignment = Alignment.Start) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Image(modifier = GlanceModifier.size(16.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xF0355, 16f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                                Text(modifier = GlanceModifier.padding(start = 4.0.dp, top = 0.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = context.getString(R.string.home_widget_prayer_widget_t_0304834c), style = TextStyle(color = ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
+                                            }
+                                            Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 2.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.locationShort ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                        }
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        Column(horizontalAlignment = Alignment.Start) {
+                                            Text(text = context.getString(R.string.home_widget_prayer_widget_t_ae92fb6e), style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold))
+                                            Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 2.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.nextPrayerName ?: "", style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold))
+                                            Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 6.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.nextPrayerCountdown ?: "", style = TextStyle(color = ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80)), fontSize = 22.sp, fontWeight = FontWeight.Bold))
+                                            Text(text = widgetData.nextPrayerTime ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 16.sp, fontWeight = FontWeight.Normal))
+                                        }
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                            if (widgetData.fajrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.fajrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x99B8C0BA), night = Color(0x99B8C0BA))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x445A655D), night = Color(0x445A655D))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.dhuhrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.dhuhrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x99B8C0BA), night = Color(0x99B8C0BA))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x445A655D), night = Color(0x445A655D))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.asrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.asrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x99B8C0BA), night = Color(0x99B8C0BA))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x445A655D), night = Color(0x445A655D))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.maghribIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.maghribIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x99B8C0BA), night = Color(0x99B8C0BA))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x445A655D), night = Color(0x445A655D))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.ishaIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.ishaIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x99B8C0BA), night = Color(0x99B8C0BA))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x445A655D), night = Color(0x445A655D))))
+                                                }
+                                            }
+                                        }
                                     }
                                 }
-                                Spacer(modifier = GlanceModifier.defaultWeight())
-                                if (widgetData.dhuhrIsActive == true) {
-                                    Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
-                                } else {
-                                    if (widgetData.dhuhrIsPast == true) {
-                                        Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
-                                    } else {
-                                        Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
-                                    }
-                                }
-                                Spacer(modifier = GlanceModifier.defaultWeight())
-                                if (widgetData.asrIsActive == true) {
-                                    Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
-                                } else {
-                                    if (widgetData.asrIsPast == true) {
-                                        Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
-                                    } else {
-                                        Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
-                                    }
-                                }
-                                Spacer(modifier = GlanceModifier.defaultWeight())
-                                if (widgetData.maghribIsActive == true) {
-                                    Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
-                                } else {
-                                    if (widgetData.maghribIsPast == true) {
-                                        Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
-                                    } else {
-                                        Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
-                                    }
-                                }
-                                Spacer(modifier = GlanceModifier.defaultWeight())
-                                if (widgetData.ishaIsActive == true) {
-                                    Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
-                                } else {
-                                    if (widgetData.ishaIsPast == true) {
-                                        Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
-                                    } else {
-                                        Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                            }
+                        } else {
+                            Box(
+                                modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color(0xFFE2E6E1), night = Color(0xFF1E2A23))).cornerRadius(24.0.dp).padding(1.0.dp)
+                            ) {
+                                Box(
+                                    modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color(0xFFF7F8F5), night = Color(0xFF131A16))).cornerRadius(23.0.dp)
+                                ) {
+                                    Column(modifier = GlanceModifier.fillMaxSize().padding(start = 12.0.dp, top = 12.0.dp, end = 12.0.dp, bottom = 12.0.dp), horizontalAlignment = Alignment.Start) {
+                                        Column(horizontalAlignment = Alignment.Start) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Image(modifier = GlanceModifier.size(16.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xF0355, 16f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                                Text(modifier = GlanceModifier.padding(start = 4.0.dp, top = 0.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = context.getString(R.string.home_widget_prayer_widget_t_0304834c), style = TextStyle(color = ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80)), fontSize = 12.sp, fontWeight = FontWeight.Bold))
+                                            }
+                                            Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 2.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.locationShort ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Medium))
+                                        }
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        Column(horizontalAlignment = Alignment.Start) {
+                                            Text(text = context.getString(R.string.home_widget_prayer_widget_t_ae92fb6e), style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 11.sp, fontWeight = FontWeight.Bold))
+                                            Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 2.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.nextPrayerName ?: "", style = TextStyle(color = GlanceTheme.colors.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold))
+                                            Text(modifier = GlanceModifier.padding(start = 0.0.dp, top = 6.0.dp, end = 0.0.dp, bottom = 0.0.dp), text = widgetData.nextPrayerCountdown ?: "", style = TextStyle(color = ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80)), fontSize = 22.sp, fontWeight = FontWeight.Bold))
+                                            Text(text = widgetData.nextPrayerTime ?: "", style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = 16.sp, fontWeight = FontWeight.Normal))
+                                        }
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                                            if (widgetData.fajrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.fajrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.dhuhrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.dhuhrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.asrIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.asrIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.maghribIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.maghribIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                                                }
+                                            }
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            if (widgetData.ishaIsActive == true) {
+                                                Image(modifier = GlanceModifier.size(9.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 9f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0xFF0F5C4A), night = Color(0xFF4ADE80))))
+                                            } else {
+                                                if (widgetData.ishaIsPast == true) {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x666F7A72), night = Color(0x668A918C))))
+                                                } else {
+                                                    Image(modifier = GlanceModifier.size(6.dp), provider = ImageProvider(HomeWidgetFonts.iconBitmap(context, R.font.hw_font_prayer_widget__icons_materialicons, 0xE163, 6f)), contentDescription = null, colorFilter = ColorFilter.tint(ColorProvider(day = Color(0x336F7A72), night = Color(0x338A918C))))
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -155,6 +437,7 @@ class PrayerWidgetHomeWidget : GlanceAppWidget() {
 }
 
 data class PrayerWidgetData(
+    val amoled: Boolean? = null,
     val locationShort: String? = null,
     val nextPrayerName: String? = null,
     val nextPrayerCountdown: String? = null,
@@ -169,16 +452,20 @@ data class PrayerWidgetData(
     val maghribIsPast: Boolean? = null,
     val ishaIsActive: Boolean? = null,
     val ishaIsPast: Boolean? = null,
+    val showHijri: Boolean? = null,
+    val hijriDate: String? = null,
+    val showQuickActions: Boolean? = null,
 ) {
     companion object {
         private const val PREFERENCES_PREFIX = "home_widget.PrayerWidget"
 
         fun fromPreferences(prefs: android.content.SharedPreferences): PrayerWidgetData {
             return PrayerWidgetData(
+                amoled = if (prefs.contains("${PREFERENCES_PREFIX}.amoled")) prefs.getBoolean("${PREFERENCES_PREFIX}.amoled", false) else false,
                 locationShort = prefs.getString("${PREFERENCES_PREFIX}.locationShort", "—"),
-                nextPrayerName = prefs.getString("${PREFERENCES_PREFIX}.nextPrayerName", "ASR"),
-                nextPrayerCountdown = prefs.getString("${PREFERENCES_PREFIX}.nextPrayerCountdown", "01h 24m"),
-                nextPrayerTime = prefs.getString("${PREFERENCES_PREFIX}.nextPrayerTime", "3:45 PM"),
+                nextPrayerName = prefs.getString("${PREFERENCES_PREFIX}.nextPrayerName", "—"),
+                nextPrayerCountdown = prefs.getString("${PREFERENCES_PREFIX}.nextPrayerCountdown", "—"),
+                nextPrayerTime = prefs.getString("${PREFERENCES_PREFIX}.nextPrayerTime", "—"),
                 fajrIsActive = if (prefs.contains("${PREFERENCES_PREFIX}.fajrIsActive")) prefs.getBoolean("${PREFERENCES_PREFIX}.fajrIsActive", false) else false,
                 fajrIsPast = if (prefs.contains("${PREFERENCES_PREFIX}.fajrIsPast")) prefs.getBoolean("${PREFERENCES_PREFIX}.fajrIsPast", false) else false,
                 dhuhrIsActive = if (prefs.contains("${PREFERENCES_PREFIX}.dhuhrIsActive")) prefs.getBoolean("${PREFERENCES_PREFIX}.dhuhrIsActive", false) else false,
@@ -189,6 +476,9 @@ data class PrayerWidgetData(
                 maghribIsPast = if (prefs.contains("${PREFERENCES_PREFIX}.maghribIsPast")) prefs.getBoolean("${PREFERENCES_PREFIX}.maghribIsPast", false) else false,
                 ishaIsActive = if (prefs.contains("${PREFERENCES_PREFIX}.ishaIsActive")) prefs.getBoolean("${PREFERENCES_PREFIX}.ishaIsActive", false) else false,
                 ishaIsPast = if (prefs.contains("${PREFERENCES_PREFIX}.ishaIsPast")) prefs.getBoolean("${PREFERENCES_PREFIX}.ishaIsPast", false) else false,
+                showHijri = if (prefs.contains("${PREFERENCES_PREFIX}.showHijri")) prefs.getBoolean("${PREFERENCES_PREFIX}.showHijri", false) else true,
+                hijriDate = prefs.getString("${PREFERENCES_PREFIX}.hijriDate", ""),
+                showQuickActions = if (prefs.contains("${PREFERENCES_PREFIX}.showQuickActions")) prefs.getBoolean("${PREFERENCES_PREFIX}.showQuickActions", false) else true,
             )
         }
     }

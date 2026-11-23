@@ -64,6 +64,8 @@ class AppSettings {
     this.amoled = false,
     this.reduceTransparency = false,
     this.reduceMotion = false,
+    this.widgetShowHijri = true,
+    this.widgetShowQuickActions = true,
   });
 
   final CalculationMethod calculationMethod;
@@ -128,6 +130,14 @@ class AppSettings {
   /// is offered separately because the platform flag does not always reach a
   /// Flutter app and does not cover the spring physics.
   final bool reduceMotion;
+
+  /// Whether the Glance card shows the Hijri line (medium widget only).
+  final bool widgetShowHijri;
+
+  /// Whether the medium widget shows the quick-action hint. Actual actions live
+  /// in the widget configuration screen: Glance emits one root tap target, so
+  /// a second tappable region would need hand-written native code.
+  final bool widgetShowQuickActions;
 
   static const List<int> leadOptions = [0, 5, 10, 15];
 
@@ -272,6 +282,8 @@ class AppSettings {
     bool? amoled,
     bool? reduceTransparency,
     bool? reduceMotion,
+    bool? widgetShowHijri,
+    bool? widgetShowQuickActions,
   }) {
     return AppSettings(
       calculationMethod: calculationMethod ?? this.calculationMethod,
@@ -305,6 +317,9 @@ class AppSettings {
       amoled: amoled ?? this.amoled,
       reduceTransparency: reduceTransparency ?? this.reduceTransparency,
       reduceMotion: reduceMotion ?? this.reduceMotion,
+      widgetShowHijri: widgetShowHijri ?? this.widgetShowHijri,
+      widgetShowQuickActions:
+          widgetShowQuickActions ?? this.widgetShowQuickActions,
     );
   }
 

@@ -63,6 +63,7 @@ void main() {
                 find.text(l10n.settingsSectionAbout.toUpperCase()),
                 findsOneWidget,
               );
+              expect(find.text(l10n.widgetTitle), findsOneWidget);
               expect(find.text(l10n.updateReleaseChannel), findsOneWidget);
               expect(find.text(l10n.updateChannelStable), findsOneWidget);
               expect(find.text(l10n.updateChannelBeta), findsOneWidget);

@@ -738,5 +738,9 @@
   },
   "@hijriEventMawlid": {
     "description": "Name of a well-known Hijri calendar event."
+  },
+  "widgetSizeHint": "Placez le widget, puis faites glisser son bord pour passer de Petit à Moyen.",
+  "@widgetSizeHint": {
+    "description": "Explains that the launcher chooses the widget size."
   }
 }
