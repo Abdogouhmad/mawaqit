@@ -1,13 +1,13 @@
 {
-  "latestVersionName": "0.19.0",
-  "latestVersionCode": 1900,
+  "latestVersionName": "0.20.0",
+  "latestVersionCode": 2000,
   "minSupportedVersionCode": 3,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.19.0/mawaqit-v0.19.0-universal.apk",
-  "sha256": "12b97421038c6426fc631dcec7a2f333bb6ab63062a79602dbdc3c69e44ebf4c",
-  "releaseNotes": "## [0.19.0] - 2026-11-22\n\n### Changed\n\n- **The monthly schedule is calmer and easier to scan.** Full-size prayer\ncolumns, one clear today treatment and a pinned label header replace the\ncramped table, with a quiet solar summary for the current day.\n- **The month at a glance is now its own card.** Each prayer shows how many\nminutes earlier or later it falls from the first day to the last, with\nlocalized direction labels instead of a bare number.\n- **Month paging follows the reading direction.** The month name opens a\ntwelve-month picker, the chevrons mirror in RTL, and a Today shortcut appears\nonly after paging away. The picker scrolls at large text sizes.\n- Times-screen controls and labels now use the 0.17 design-system tokens and\nexpose clearer screen-reader labels for paging, today and shift directions.",
-  "publishedAt": "2026-11-22T22:49:24.947655+00:00",
+  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v0.20.0/mawaqit-v0.20.0-universal.apk",
+  "sha256": "e05eedba477ff2ca0447cdb31f09554ebeee0ee11d6a08e6a3a61509ed549841",
+  "releaseNotes": "## [0.20.0] - 2026-11-23\n\n### Added\n\n- **A first-run walkthrough now explains the app before asking for access.**\nFour short, localized pages cover the adhan reminders, the Android alarm\npermissions, the screen/battery exceptions and choosing a city. Each\npermission shows its live *Allowed / Fix* state, and the flow can be skipped\nor resumed where you left it.\n\n### Changed\n\n- **Settings is now one scannable column.** Related preferences are grouped\nwith a one-line explanation, every row says what it controls, and the\nstable/beta release channel is an ordinary, clearly explained setting rather\nthan a separate screen.\n- **The Home app bar no longer duplicates the Settings action.** Settings stays\nin the bottom navigation, so the header has one clear Times shortcut.\n- Settings, the channel selector and the walkthrough share the 0.17 design\ntokens, keeping spacing, type, colour and motion consistent at large text\nsizes and in RTL.",
+  "publishedAt": "2026-11-23T18:17:42.678214+00:00",
   "channel": "stable",
   "isPrerelease": false,
-  "size": 75423827
+  "size": 75489431
 }
