@@ -57,6 +57,9 @@ class AppSettings {
     this.cityName,
     this.cityLatitude,
     this.cityLongitude,
+    this.travelName,
+    this.travelLatitude,
+    this.travelLongitude,
     this.palette = AppPalette.emerald,
     this.amoled = false,
     this.reduceTransparency = false,
@@ -95,6 +98,13 @@ class AppSettings {
   final double? cityLatitude;
   final double? cityLongitude;
 
+  /// Temporary travel override. Never written into the saved city/GPS fields:
+  /// leaving travel mode simply clears these three values and restores the home
+  /// location exactly as it was, with no permission prompt or network lookup.
+  final String? travelName;
+  final double? travelLatitude;
+  final double? travelLongitude;
+
   /// Hand-tuned colour scheme. No dynamic colour — see `AppPalette`.
   final AppPalette palette;
 
@@ -132,7 +142,10 @@ class AppSettings {
       locationMode != previous.locationMode ||
       cityName != previous.cityName ||
       cityLatitude != previous.cityLatitude ||
-      cityLongitude != previous.cityLongitude;
+      cityLongitude != previous.cityLongitude ||
+      travelName != previous.travelName ||
+      travelLatitude != previous.travelLatitude ||
+      travelLongitude != previous.travelLongitude;
 
   /// Whether moving from [previous] to this value changes anything the alarm
   /// scheduler reads.
@@ -154,6 +167,33 @@ class AppSettings {
       language != previous.language;
 
   bool get hasCityCoordinates => cityLatitude != null && cityLongitude != null;
+
+  /// Whether a temporary travel location is currently in effect.
+  bool get isTraveling => hasTravelCoordinates;
+
+  /// Whether the travel override carries usable coordinates.
+  bool get hasTravelCoordinates =>
+      travelLatitude != null && travelLongitude != null;
+
+  /// Effective coordinates for prayer times and Qibla: travel wins over the
+  /// saved city and GPS, but never mutates either.
+  double? get effectiveLatitude => travelLatitude ?? cityLatitude;
+  double? get effectiveLongitude => travelLongitude ?? cityLongitude;
+  String? get effectiveLocationName => travelName ?? cityName;
+
+  /// Arms a temporary travel location, leaving the home location untouched.
+  AppSettings withTravel({
+    required String name,
+    required double latitude,
+    required double longitude,
+  }) => copyWith(
+    travelName: name,
+    travelLatitude: latitude,
+    travelLongitude: longitude,
+  );
+
+  /// Returns to the saved home location without discarding it.
+  AppSettings clearTravel() => copyWith(clearTravel: true);
 
   /// Whether a device sound overrides the bundled tone.
   bool get usesDeviceTone =>
@@ -224,6 +264,10 @@ class AppSettings {
     String? cityName,
     double? cityLatitude,
     double? cityLongitude,
+    String? travelName,
+    double? travelLatitude,
+    double? travelLongitude,
+    bool clearTravel = false,
     AppPalette? palette,
     bool? amoled,
     bool? reduceTransparency,
@@ -250,6 +294,13 @@ class AppSettings {
       cityName: cityName ?? this.cityName,
       cityLatitude: cityLatitude ?? this.cityLatitude,
       cityLongitude: cityLongitude ?? this.cityLongitude,
+      travelName: clearTravel ? null : (travelName ?? this.travelName),
+      travelLatitude: clearTravel
+          ? null
+          : (travelLatitude ?? this.travelLatitude),
+      travelLongitude: clearTravel
+          ? null
+          : (travelLongitude ?? this.travelLongitude),
       palette: palette ?? this.palette,
       amoled: amoled ?? this.amoled,
       reduceTransparency: reduceTransparency ?? this.reduceTransparency,
@@ -268,8 +319,15 @@ class AppSettings {
   AppSettings withDeviceTone({required String name, required String uri}) =>
       copyWith(adhanDeviceToneName: name, adhanDeviceToneUri: uri);
 
-  /// Effective coordinates: chosen city first, else resolved GPS.
+  /// Effective coordinates: temporary travel override, then chosen city.
+  ///
+  /// GPS has no stored coordinates here — the background scheduler falls back
+  /// to the platform cache when this is null. Travel still wins because it is
+  /// the only explicit override the user can set for the current session.
   Coordinates? get effectiveCoordinates {
+    if (hasTravelCoordinates) {
+      return Coordinates(travelLatitude!, travelLongitude!);
+    }
     if (locationMode == LocationMode.city && hasCityCoordinates) {
       return Coordinates(cityLatitude!, cityLongitude!);
     }

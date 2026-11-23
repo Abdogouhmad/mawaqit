@@ -59,7 +59,9 @@ abstract final class PrayerWidgetService {
       }
 
       await PrayerWidgetHomeWidget.saveData(
-        locationShort: _shorten(locationShort ?? settings.cityName),
+        locationShort: _shorten(
+          locationShort ?? settings.effectiveLocationName ?? settings.cityName,
+        ),
         nextPrayerName: next.kind.localized(l10n),
         nextPrayerTime: TimeFormatter.clock(next.time),
         nextPrayerCountdown: l10n.widgetIn(TimeFormatter.longCountdown(nextIn)),

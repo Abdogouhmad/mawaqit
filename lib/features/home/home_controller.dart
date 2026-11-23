@@ -23,6 +23,8 @@ class HomeState {
     this.latitude,
     this.longitude,
     this.fromManual = false,
+    this.isTraveling = false,
+    this.travelName,
     this.currentPrayer,
     this.nextPrayer,
     this.methodLabel = '',
@@ -45,6 +47,12 @@ class HomeState {
   final double? longitude;
 
   final bool fromManual;
+
+  /// Temporary travel override in effect for this snapshot. Rendered as a
+  /// one-tap banner on Home so the user can always get back to the saved city.
+  final bool isTraveling;
+  final String? travelName;
+
   final PrayerTime? currentPrayer;
   final PrayerTime? nextPrayer;
   final String methodLabel;
@@ -61,6 +69,8 @@ class HomeState {
     double? latitude,
     double? longitude,
     bool? fromManual,
+    bool? isTraveling,
+    String? travelName,
     PrayerTime? currentPrayer,
     PrayerTime? nextPrayer,
     String? methodLabel,
@@ -75,6 +85,8 @@ class HomeState {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       fromManual: fromManual ?? this.fromManual,
+      isTraveling: isTraveling ?? this.isTraveling,
+      travelName: travelName ?? this.travelName,
       currentPrayer: currentPrayer ?? this.currentPrayer,
       nextPrayer: nextPrayer ?? this.nextPrayer,
       methodLabel: methodLabel ?? this.methodLabel,
@@ -211,7 +223,8 @@ class HomeController extends AsyncNotifier<HomeState> {
     // GPS mode renders instantly from the last known fix, then applies the
     // fresh GPS location in the background once it lands. The user never waits
     // on the GPS chip to see prayer times again.
-    if (settings.locationMode == LocationMode.autoGps) {
+    if (settings.locationMode == LocationMode.autoGps &&
+        !settings.isTraveling) {
       final cached = await LocationRepository.cached();
       if (cached != null) {
         final day = _dayFor(cached.latitude, cached.longitude, settings, now);
@@ -242,6 +255,8 @@ class HomeController extends AsyncNotifier<HomeState> {
         latitude: previous?.latitude,
         longitude: previous?.longitude,
         fromManual: previous?.fromManual ?? false,
+        isTraveling: settings.isTraveling,
+        travelName: settings.travelName,
         isLoading: false,
         error: error.toString(),
       );
@@ -301,6 +316,7 @@ class HomeController extends AsyncNotifier<HomeState> {
       final latest = await ref.read(settingsProvider.future);
       if (!ref.mounted ||
           latest.locationMode != LocationMode.autoGps ||
+          latest.isTraveling ||
           latest.calculationMethod != settings.calculationMethod ||
           latest.madhab != settings.madhab) {
         return;
@@ -335,6 +351,8 @@ class HomeController extends AsyncNotifier<HomeState> {
         latitude: location.latitude,
         longitude: location.longitude,
         fromManual: location.fromManual,
+        isTraveling: settings.isTraveling,
+        travelName: settings.travelName,
         methodLabel: PrayerTimesRepository.shortLabel(
           settings.calculationMethod,
         ),

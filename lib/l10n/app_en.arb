@@ -1393,5 +1393,271 @@
   "scheduleModeLabel": "Adhan mode",
   "@scheduleModeLabel": {
     "description": "Heading of the per-prayer adhan mode selector."
+  },
+  "widgetTitle": "Home-screen widget",
+  "widgetDesc": "Choose what the widget shows and launch quick actions.",
+  "widgetSizeSmall": "Small",
+  "widgetSizeMedium": "Medium",
+  "widgetNextPrayer": "Next prayer",
+  "widgetHijriDate": "Hijri date",
+  "widgetQuickActions": "Quick actions",
+  "widgetOpenTimes": "Open Times",
+  "widgetSilenceAdhan": "Silence adhan",
+  "widgetPreview": "Preview",
+  "widgetPinHint": "Long-press your home screen, then add the Mawaqit widget.",
+  "widgetUpdateHint": "Preview also refreshes an already installed widget.",
+  "qiblaTitle": "Qibla",
+  "qiblaSubtitle": "Direction from {city}",
+  "qiblaBearing": "Bearing {degrees}°",
+  "qiblaDistance": "{distance} away",
+  "qiblaCalibrate": "Move your phone in a figure eight to calibrate the compass.",
+  "qiblaSensorUnavailable": "Compass unavailable",
+  "qiblaSensorHint": "This device has no magnetometer. The bearing is still correct; use a map to face the direction.",
+  "qiblaCompassHint": "Hold the phone flat and follow the arrow.",
+  "travelTitle": "Travel mode",
+  "travelDesc": "Use a temporary location for prayer times and Qibla. Your home city is kept.",
+  "travelActive": "Traveling in {city}",
+  "travelReturn": "Return home",
+  "travelSetLocation": "Set travel city",
+  "travelSearchHint": "Search a city",
+  "travelSearching": "Searching…",
+  "travelNoResults": "No cities found",
+  "travelCalculationMethod": "Calculation: {method}",
+  "travelBanner": "Travel mode is on — tap to return home",
+  "insightsTitle": "Prayer insights",
+  "insightsSubtitle": "Local-only patterns from your saved schedule.",
+  "insightsMonth": "This month",
+  "insightsTotal": "Prayers tracked",
+  "insightsOnTime": "On-time rate",
+  "insightsStreak": "Current streak",
+  "insightsDays": "{days} days",
+  "insightsPercent": "{percent}%",
+  "insightsTrend": "Monthly shift",
+  "insightsTrendDesc": "How prayer times move through the month.",
+  "insightsEmpty": "Nothing to show yet. Open Times to build your history.",
+  "calendarTitle": "Hijri calendar",
+  "calendarEvents": "Events",
+  "calendarToday": "Today",
+  "calendarNoEvents": "No events on this day",
+  "calendarGregorian": "Gregorian: {date}",
+  "calendarHijri": "Hijri: {date}",
+  "privacyLocalOnly": "Everything stays on this device. No account, no analytics, no sync.",
+  "@widgetTitle": {
+    "description": "Title of the home-screen widget configuration screen."
+  },
+  "@widgetDesc": {
+    "description": "Subtitle of the home-screen widget configuration screen."
+  },
+  "@widgetSizeSmall": {
+    "description": "Small home-screen widget size option."
+  },
+  "@widgetSizeMedium": {
+    "description": "Medium home-screen widget size option."
+  },
+  "@widgetNextPrayer": {
+    "description": "Label of the next prayer on the home-screen widget."
+  },
+  "@widgetHijriDate": {
+    "description": "Label of the Hijri date on the home-screen widget."
+  },
+  "@widgetQuickActions": {
+    "description": "Heading for widget quick-action options."
+  },
+  "@widgetOpenTimes": {
+    "description": "Widget quick action that opens the Times tab."
+  },
+  "@widgetSilenceAdhan": {
+    "description": "Widget quick action that silences the current adhan."
+  },
+  "@widgetPreview": {
+    "description": "Button that previews and refreshes the home-screen widget."
+  },
+  "@widgetPinHint": {
+    "description": "Explains how to add the widget from the Android home screen."
+  },
+  "@widgetUpdateHint": {
+    "description": "Explains that preview refreshes an installed widget."
+  },
+  "@qiblaTitle": {
+    "description": "Title of the Qibla screen."
+  },
+  "@qiblaSubtitle": {
+    "description": "Subtitle naming the city the Qibla bearing is computed from.",
+    "placeholders": {
+      "city": {
+        "type": "String",
+        "example": "Rabat"
+      }
+    }
+  },
+  "@qiblaBearing": {
+    "description": "Compass bearing in degrees.",
+    "placeholders": {
+      "degrees": {
+        "type": "String",
+        "example": "142"
+      }
+    }
+  },
+  "@qiblaDistance": {
+    "description": "Distance to the Qibla.",
+    "placeholders": {
+      "distance": {
+        "type": "String",
+        "example": "4,200 km"
+      }
+    }
+  },
+  "@qiblaCalibrate": {
+    "description": "Compass calibration guidance."
+  },
+  "@qiblaSensorUnavailable": {
+    "description": "State shown when the device has no magnetometer."
+  },
+  "@qiblaSensorHint": {
+    "description": "Explains the sensor-unavailable state honestly."
+  },
+  "@qiblaCompassHint": {
+    "description": "How to hold the phone while reading the Qibla compass."
+  },
+  "@travelTitle": {
+    "description": "Title of the travel-mode screen."
+  },
+  "@travelDesc": {
+    "description": "Explains that travel mode is temporary and preserves the home city."
+  },
+  "@travelActive": {
+    "description": "Active travel-location label.",
+    "placeholders": {
+      "city": {
+        "type": "String",
+        "example": "Mecca"
+      }
+    }
+  },
+  "@travelReturn": {
+    "description": "Button that clears travel mode and returns home."
+  },
+  "@travelSetLocation": {
+    "description": "Button that opens travel city search."
+  },
+  "@travelSearchHint": {
+    "description": "Hint for the travel city search field."
+  },
+  "@travelSearching": {
+    "description": "Shown while searching for a travel city."
+  },
+  "@travelNoResults": {
+    "description": "Shown when a city search returns nothing."
+  },
+  "@travelCalculationMethod": {
+    "description": "Shows the active prayer calculation method during travel.",
+    "placeholders": {
+      "method": {
+        "type": "String",
+        "example": "Muslim World League"
+      }
+    }
+  },
+  "@travelBanner": {
+    "description": "Home banner shown while travel mode is active."
+  },
+  "@insightsTitle": {
+    "description": "Title of the prayer insights screen."
+  },
+  "@insightsSubtitle": {
+    "description": "Privacy-focused subtitle of the prayer insights screen."
+  },
+  "@insightsMonth": {
+    "description": "Heading for this month’s insights."
+  },
+  "@insightsTotal": {
+    "description": "Label for the number of prayers tracked."
+  },
+  "@insightsOnTime": {
+    "description": "Label for the on-time prayer rate."
+  },
+  "@insightsStreak": {
+    "description": "Label for the current prayer streak."
+  },
+  "@insightsDays": {
+    "description": "Number of days in a streak.",
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "@insightsPercent": {
+    "description": "Percentage value for an insight.",
+    "placeholders": {
+      "percent": {
+        "type": "int",
+        "example": "86"
+      }
+    }
+  },
+  "@insightsTrend": {
+    "description": "Heading for monthly prayer-time shift trends."
+  },
+  "@insightsTrendDesc": {
+    "description": "Explains the monthly prayer-time trend chart."
+  },
+  "@insightsEmpty": {
+    "description": "Shown before any insight history exists."
+  },
+  "@calendarTitle": {
+    "description": "Title of the richer Hijri calendar."
+  },
+  "@calendarEvents": {
+    "description": "Heading for Hijri calendar events."
+  },
+  "@calendarToday": {
+    "description": "Button that jumps the calendar back to today."
+  },
+  "@calendarNoEvents": {
+    "description": "Shown when a selected Hijri day has no events."
+  },
+  "@calendarGregorian": {
+    "description": "Gregorian date mapping for a selected day.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "23 Nov 2026"
+      }
+    }
+  },
+  "@calendarHijri": {
+    "description": "Hijri date mapping for a selected day.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "12 Jumada al-Awwal 1448"
+      }
+    }
+  },
+  "@privacyLocalOnly": {
+    "description": "Privacy note shared by local-only features."
+  },
+  "hijriEventRamadan": "Start of Ramadan",
+  "hijriEventEidAlFitr": "Eid al-Fitr",
+  "hijriEventEidAlAdha": "Eid al-Adha",
+  "hijriEventNewYear": "Hijri New Year",
+  "hijriEventMawlid": "Mawlid an-Nabi",
+  "@hijriEventRamadan": {
+    "description": "Name of a well-known Hijri calendar event."
+  },
+  "@hijriEventEidAlFitr": {
+    "description": "Name of a well-known Hijri calendar event."
+  },
+  "@hijriEventEidAlAdha": {
+    "description": "Name of a well-known Hijri calendar event."
+  },
+  "@hijriEventNewYear": {
+    "description": "Name of a well-known Hijri calendar event."
+  },
+  "@hijriEventMawlid": {
+    "description": "Name of a well-known Hijri calendar event."
   }
 }

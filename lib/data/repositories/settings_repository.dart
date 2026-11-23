@@ -43,6 +43,9 @@ class SettingsRepository {
     'cityName': s.cityName,
     'cityLatitude': s.cityLatitude,
     'cityLongitude': s.cityLongitude,
+    'travelName': s.travelName,
+    'travelLatitude': s.travelLatitude,
+    'travelLongitude': s.travelLongitude,
     'palette': s.palette.storageKey,
     'amoled': s.amoled,
     'reduceTransparency': s.reduceTransparency,
@@ -85,6 +88,9 @@ class SettingsRepository {
     cityName: json['cityName'] as String?,
     cityLatitude: (json['cityLatitude'] as num?)?.toDouble(),
     cityLongitude: (json['cityLongitude'] as num?)?.toDouble(),
+    travelName: json['travelName'] as String?,
+    travelLatitude: (json['travelLatitude'] as num?)?.toDouble(),
+    travelLongitude: (json['travelLongitude'] as num?)?.toDouble(),
     // `fromStorageKey` falls back to the brand palette, so a blob written
     // before palettes existed still renders a coherent theme.
     palette: AppPalette.fromStorageKey(json['palette'] as String?),

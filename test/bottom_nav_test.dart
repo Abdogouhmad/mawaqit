@@ -38,7 +38,7 @@ void main() {
     await tester.pumpWidget(bar());
     await tester.pumpAndSettle();
 
-    for (final label in ['Home', 'Times', 'Settings']) {
+    for (final label in ['Home', 'Times', 'Qibla', 'Settings']) {
       expect(find.text(label), findsOneWidget, reason: label);
     }
   });
@@ -50,20 +50,21 @@ void main() {
 
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
-    expect(selected, [2]);
+    expect(selected, [3]);
   });
 
   testWidgets('labels every destination for assistive tech', (tester) async {
     await tester.pumpWidget(bar());
     await tester.pumpAndSettle();
 
-    // Material puts the semantic "Tab 1 of 3" label on the node and exposes the
+    // Material puts the semantic "Tab 1 of 4" label on the node and exposes the
     // human label as a tooltip, so both must be present for a screen reader to
     // announce a destination properly.
     expect(find.byTooltip('Home'), findsOneWidget);
     expect(find.byTooltip('Times'), findsOneWidget);
+    expect(find.byTooltip('Qibla'), findsOneWidget);
     expect(find.byTooltip('Settings'), findsOneWidget);
-    expect(find.bySemanticsLabel(RegExp(r'Tab 1 of 3')), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp(r'Tab 1 of 4')), findsOneWidget);
   });
 
   testWidgets('navigates to the selected tab through the real router', (

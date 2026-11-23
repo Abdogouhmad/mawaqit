@@ -7,15 +7,16 @@ import 'package:mawaqit/features/onboarding/onboarding_screen.dart';
 
 /// The app's router.
 ///
-/// Three flat tab routes, all rendered by [AppShell], which switches on the path
-/// itself. That is deliberately not three sibling `ShellRoute`s: a shell per tab
-/// would rebuild — and re-run its scroll controllers — on every tab change, and
-/// would give each tab its own back stack, so backing out of Settings would land
-/// on a *stale* Home rather than the one the user actually left.
+/// Four flat tab routes, all rendered by [AppShell], which switches on the path
+/// itself. That is deliberately not sibling `ShellRoute`s: a shell per tab would
+/// rebuild — and re-run its scroll controllers — on every tab change, and would
+/// give each tab its own back stack, so backing out of Settings would land on a
+/// *stale* Home rather than the one the user actually left.
 ///
 /// Unknown paths fall through to `/` instead of throwing a 404 screen: the only
 /// internal links are the three tabs, so an unknown path means a stale deep link
 /// from an older version of the app, and Home is the correct thing to show.
+/// Widget taps are validated against [AppRoutes.tabs] before they reach here.
 GoRouter createRouter({String initialLocation = AppRoutes.home}) {
   return GoRouter(
     // The first-run gate runs here rather than in `MawaqitApp.build` so no frame
@@ -46,6 +47,7 @@ GoRouter createRouter({String initialLocation = AppRoutes.home}) {
     routes: [
       GoRoute(path: AppRoutes.home, builder: (_, _) => const AppShell()),
       GoRoute(path: AppRoutes.times, builder: (_, _) => const AppShell()),
+      GoRoute(path: AppRoutes.qibla, builder: (_, _) => const AppShell()),
       GoRoute(path: AppRoutes.settings, builder: (_, _) => const AppShell()),
       GoRoute(
         path: AppRoutes.onboarding,

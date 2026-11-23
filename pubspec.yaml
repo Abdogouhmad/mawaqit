@@ -45,6 +45,10 @@ dependencies:
   package_info_plus: ^10.2.1
   home_widget: ^0.10.0
   go_router: ^18.0.2
+  # Live compass heading for the Qibla screen. Cached locally and sensor-only:
+  # no location permission, no background tracking, and the screen degrades to
+  # an honest "sensor unavailable" state on hosts without a magnetometer.
+  flutter_compass: ^0.8.1
 
   home_widget_generator: any
 dev_dependencies:

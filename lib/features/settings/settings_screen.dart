@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
+import 'package:mawaqit/features/qibla/travel_screen.dart';
 import 'package:mawaqit/features/settings/screen/general.dart';
 import 'package:mawaqit/features/settings/screen/notify.dart';
 import 'package:mawaqit/features/settings/screen/permission.dart';
@@ -139,6 +140,26 @@ class _SettingsBody extends ConsumerWidget {
             ),
           ),
         ),
+        const SizedBox(height: AppSpacing.sm),
+        AppCard(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xs,
+            vertical: AppSpacing.xs,
+          ),
+          child: SettingsRow(
+            icon: Icons.flight_takeoff_outlined,
+            title: l10n.travelTitle,
+            subtitle: settings.isTraveling
+                ? l10n.travelActive(settings.travelName ?? '')
+                : l10n.travelDesc,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const TravelScreen()),
+            ),
+            trailing: settings.isTraveling
+                ? AppPill(label: l10n.travelReturn, dense: true)
+                : const Icon(Icons.chevron_right, size: AppIconSize.xl),
+          ),
+        ),
         const SizedBox(height: AppSpacing.mega),
 
         // Calculation
@@ -250,6 +271,10 @@ class _SettingsBody extends ConsumerWidget {
   }
 
   String _locationSubtitle(BuildContext context, AppSettings settings) {
+    if (settings.isTraveling) {
+      return AppLocalizations.of(context)
+          .travelActive(settings.travelName ?? '');
+    }
     if (settings.locationMode == LocationMode.city &&
         settings.hasCityCoordinates) {
       return '${settings.cityName} · ${settings.cityLatitude!.toStringAsFixed(2)}, '

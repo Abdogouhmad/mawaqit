@@ -69,6 +69,48 @@ void main() {
     expect(city.effectiveCoordinates!.longitude, -0.1278);
   });
 
+  test(
+    'travel override wins without overwriting the saved home city',
+    () async {
+      const home = AppSettings(
+        locationMode: LocationMode.city,
+        cityName: 'Rabat, Morocco',
+        cityLatitude: 34.0209,
+        cityLongitude: -6.8416,
+      );
+      final traveling = home.withTravel(
+        name: 'Mecca, Saudi Arabia',
+        latitude: 21.4225,
+        longitude: 39.8262,
+      );
+
+      expect(traveling.isTraveling, isTrue);
+      expect(traveling.cityName, 'Rabat, Morocco');
+      expect(traveling.effectiveCoordinates!.latitude, 21.4225);
+      expect(
+        traveling.changesPrayerTimesFrom(home),
+        isTrue,
+        reason: 'travel must re-arm notifications for the new times',
+      );
+
+      SharedPreferences.setMockInitialValues({});
+      await repository.save(traveling);
+      final loaded = await repository.load();
+      expect(loaded.travelName, 'Mecca, Saudi Arabia');
+      expect(loaded.travelLatitude, 21.4225);
+      expect(loaded.isTraveling, isTrue);
+
+      final returned = loaded.clearTravel();
+      expect(returned.isTraveling, isFalse);
+      expect(returned.cityName, 'Rabat, Morocco');
+      expect(returned.effectiveCoordinates!.latitude, 34.0209);
+      await repository.save(returned);
+      final reloaded = await repository.load();
+      expect(reloaded.isTraveling, isFalse);
+      expect(reloaded.cityLatitude, 34.0209);
+    },
+  );
+
   test('device ringtone overrides bundled tone and round-trips', () async {
     const custom = AppSettings(
       adhanTone: 'Mellow Bell',

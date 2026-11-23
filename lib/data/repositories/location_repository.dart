@@ -140,6 +140,20 @@ class LocationRepository {
     required AppSettings settings,
     LocationPermission? grantedPermission,
   }) async {
+    // A travel override wins over both the saved city and GPS. It is deliberately
+    // NOT written to the shared location cache: that cache is the last known home
+    // fix used after clearing travel and by an offline GPS fallback. Background
+    // reschedulers already read AppSettings.effectiveCoordinates, so following
+    // travel never needs to overwrite home. No permission is requested here.
+    if (settings.hasTravelCoordinates) {
+      return ResolvedLocation(
+        latitude: settings.travelLatitude!,
+        longitude: settings.travelLongitude!,
+        displayName: settings.travelName ?? 'Travel',
+        fromManual: true,
+      );
+    }
+
     if (settings.locationMode == LocationMode.city &&
         settings.hasCityCoordinates) {
       final city = ResolvedLocation(

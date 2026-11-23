@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mawaqit/core/ui/widgets/app_chrome.dart';
 import 'package:mawaqit/features/home/home_screen.dart';
+import 'package:mawaqit/features/qibla/qibla_screen.dart';
 import 'package:mawaqit/features/settings/settings_screen.dart';
 import 'package:mawaqit/features/times/times_screen.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
@@ -17,6 +18,7 @@ abstract final class AppRoutes {
 
   static const String home = '/';
   static const String times = '/times';
+  static const String qibla = '/qibla';
   static const String settings = '/settings';
 
   /// First-run walkthrough. A full-screen route, not a tab: there is no bottom
@@ -25,13 +27,14 @@ abstract final class AppRoutes {
 
   /// Tab order, start to end. Material's [NavigationBar] lays its destinations
   /// out directionally, so this logical order is correct in both LTR and RTL.
-  static const List<String> tabs = [home, times, settings];
+  static const List<String> tabs = [home, times, qibla, settings];
 
   static String labelFor(BuildContext context, String path) {
     final l10n = AppLocalizations.of(context);
     return switch (path) {
       home => l10n.navHome,
       times => l10n.navTimes,
+      qibla => l10n.qiblaTitle,
       settings => l10n.navSettings,
       _ => l10n.navHome,
     };
@@ -45,11 +48,13 @@ abstract final class AppRoutes {
   ) => NavigationDestination(
     icon: switch (path) {
       times => const Icon(Icons.calendar_month_outlined),
+      qibla => const Icon(Icons.explore_outlined),
       settings => const Icon(Icons.settings_outlined),
       _ => const Icon(Icons.home_outlined),
     },
     selectedIcon: switch (path) {
       times => const Icon(Icons.calendar_month_rounded),
+      qibla => const Icon(Icons.explore_rounded),
       settings => const Icon(Icons.settings_rounded),
       _ => const Icon(Icons.home_rounded),
     },
@@ -77,6 +82,7 @@ class AppShell extends StatelessWidget {
     return Scaffold(
       body: AppChrome.constrain(switch (location) {
         AppRoutes.times => const TimesScreen(),
+        AppRoutes.qibla => const QiblaScreen(),
         AppRoutes.settings => const SettingsScreen(),
         _ => HomeScreen(
           onOpenTimes: () => context.go(AppRoutes.times),

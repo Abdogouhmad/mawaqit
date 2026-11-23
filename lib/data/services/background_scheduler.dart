@@ -146,7 +146,7 @@ abstract final class BackgroundScheduler {
       return ResolvedLocation(
         latitude: coordinates.latitude,
         longitude: coordinates.longitude,
-        displayName: settings.cityName ?? 'Selected city',
+        displayName: settings.effectiveLocationName ?? 'Selected location',
         fromManual: true,
       );
     }

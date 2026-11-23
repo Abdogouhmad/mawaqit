@@ -12,6 +12,7 @@ import 'package:mawaqit/features/home/widgets/alarm_access_gate.dart';
 import 'package:mawaqit/features/home/widgets/countdown_hero.dart';
 import 'package:mawaqit/features/home/widgets/prayer_schedule_tile.dart';
 import 'package:mawaqit/features/home/widgets/solar_card.dart';
+import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/providers/providers.dart';
@@ -179,6 +180,10 @@ class _HomeBody extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: AppSpacing.xs),
+        if (state.isTraveling) ...[
+          _TravelBanner(name: state.travelName ?? ''),
+          const SizedBox(height: AppSpacing.sm),
+        ],
         _DateLine(now: now, locationName: state.locationName, scheme: scheme),
         const SizedBox(height: AppSpacing.block),
         _LiveCountdown(nextPrayer: next, currentPrayer: state.currentPrayer),
@@ -237,6 +242,69 @@ class _HomeBody extends ConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// One-tap escape from a temporary travel location. Reading the banner states
+/// that travel is active, and tapping it restores the saved home coordinates
+/// without a permission dialog or a network lookup.
+class _TravelBanner extends ConsumerWidget {
+  const _TravelBanner({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Semantics(
+      button: true,
+      label: '${l10n.travelActive(name)}. ${l10n.travelBanner}',
+      child: Material(
+        color: scheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        child: InkWell(
+          onTap: () async {
+            final settings = ref.read(settingsProvider).value;
+            if (settings == null) return;
+            await ref
+                .read(settingsProvider.notifier)
+                .save(settings.clearTravel());
+          },
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.flight_takeoff_outlined,
+                  size: AppIconSize.lg,
+                  color: scheme.onTertiaryContainer,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: UiText(
+                    l10n.travelBanner,
+                    type: UiTextType.labelMedium,
+                    color: scheme.onTertiaryContainer,
+                    maxLines: 2,
+                  ),
+                ),
+                Icon(
+                  Icons.close,
+                  size: AppIconSize.lg,
+                  color: scheme.onTertiaryContainer,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
