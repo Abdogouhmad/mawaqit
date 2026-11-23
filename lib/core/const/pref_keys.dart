@@ -44,4 +44,9 @@ abstract final class PrefKeys {
   /// Per-prayer mutes for a single occurrence, as `2026-09-21_maghrib`. Shared
   /// with the native lock-screen card through the same prefs file.
   static const String mutedPrayers = 'muted_prayers';
+
+  // ── Local-only prayer history ───────────────────────────────────────────
+  /// Manual "prayed" marks used by the Times insights cards. No account, no
+  /// analytics, no device id, no network — just a bounded list in prefs.
+  static const String prayerHistory = 'prayer_history_v1';
 }

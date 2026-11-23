@@ -1663,5 +1663,13 @@
   "widgetSizeHint": "Place the widget, then drag its edge to switch between Small and Medium.",
   "@widgetSizeHint": {
     "description": "Explains that the launcher chooses the widget size."
+  },
+  "calendarPreviousMonth": "Previous Hijri month",
+  "@calendarPreviousMonth": {
+    "description": "Pages the Hijri calendar back one month."
+  },
+  "calendarNextMonth": "Next Hijri month",
+  "@calendarNextMonth": {
+    "description": "Pages the Hijri calendar forward one month."
   }
 }

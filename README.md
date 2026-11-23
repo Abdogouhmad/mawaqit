@@ -47,6 +47,22 @@ like a real alarm clock — plus a Linux desktop target for development.
   Arabic and a bundled Cairo face supplies the Arabic glyphs Manrope lacks.
 - **Privacy-first.** No accounts, no tracking; all computation is on-device.
 
+## Privacy & data
+
+Mawaqit has no backend. There is no account, no analytics SDK, no crash
+reporter, no advertising identifier and no device identifier. Prayer times, the
+Hijri calendar and the Qibla bearing are computed locally; the only network
+request the app ever makes is the optional, user-initiated update check, which
+downloads a signed APK from the project's own release after verifying its
+SHA-256 against the checked-in manifest.
+
+The **Prayer insights** card on the Times tab is built from an explicit,
+local-only history of manual "prayed" marks. Each mark stores just the prayer
+occurrence id, the time you tapped and whether it fell within 30 minutes of the
+prayer time. History is capped at 500 entries, lives in `SharedPreferences`,
+and is never derived from mutes or notification markers. Nothing in it leaves
+the device.
+
 ## Tech stack
 
 | Concern | Choice |

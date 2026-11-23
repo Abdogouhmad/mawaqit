@@ -957,5 +957,13 @@
   "widgetSizeHint": "أضف الأداة ثم اسحب حافتها للتبديل بين الصغيرة والمتوسطة.",
   "@widgetSizeHint": {
     "description": "Explains that the launcher chooses the widget size."
+  },
+  "calendarPreviousMonth": "الشهر الهجري السابق",
+  "@calendarPreviousMonth": {
+    "description": "Pages the Hijri calendar back one month."
+  },
+  "calendarNextMonth": "الشهر الهجري التالي",
+  "@calendarNextMonth": {
+    "description": "Pages the Hijri calendar forward one month."
   }
 }

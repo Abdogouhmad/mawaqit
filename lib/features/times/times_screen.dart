@@ -9,6 +9,8 @@ import 'package:mawaqit/core/utils/time_formatter.dart';
 import 'package:mawaqit/features/times/times_controller.dart';
 import 'package:mawaqit/features/times/widgets/almanac_header.dart';
 import 'package:mawaqit/features/times/widgets/day_row.dart';
+import 'package:mawaqit/features/times/widgets/hijri_calendar_card.dart';
+import 'package:mawaqit/features/times/widgets/insights_card.dart';
 import 'package:mawaqit/features/times/widgets/month_shift_card.dart';
 import 'package:mawaqit/features/times/widgets/prayer_grid.dart';
 import 'package:mawaqit/features/times/widgets/prayer_labels_header.dart';
@@ -295,6 +297,10 @@ class _MonthState extends ConsumerState<_Month> {
                     const SizedBox(height: AppSpacing.giga),
                     MonthShiftCard(shifts: state.shifts!),
                   ],
+                  const SizedBox(height: AppSpacing.giga),
+                  InsightsCard(now: now, today: todayDay),
+                  const SizedBox(height: AppSpacing.giga),
+                  HijriCalendarCard(today: now),
                   const SizedBox(height: AppSpacing.giga),
                 ],
               ),

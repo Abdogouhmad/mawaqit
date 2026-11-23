@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:mawaqit/core/const/prayer_keys.dart';
+import 'package:mawaqit/data/models/prayer_history.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
+import 'package:mawaqit/data/repositories/prayer_history_store.dart';
 import 'package:mawaqit/data/repositories/prayer_times_repository.dart';
 import 'package:mawaqit/data/repositories/settings_repository.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
@@ -27,6 +29,44 @@ final prayerTimesRepositoryProvider = Provider<PrayerTimesRepository>(
 final notificationServiceProvider = Provider<NotificationService>(
   (ref) => NotificationService.instance,
 );
+
+final prayerHistoryStoreProvider = Provider<PrayerHistoryStore>(
+  (ref) => PrayerHistoryStore(),
+);
+
+/// Local-only manual prayer marks. Nothing here is synced or uploaded; the
+/// store is a bounded JSON blob in SharedPreferences and this notifier is the
+/// only writer, so the Times cards and the marking row cannot disagree.
+final prayerHistoryProvider =
+    AsyncNotifierProvider<PrayerHistoryController, List<PrayerHistoryEntry>>(
+      PrayerHistoryController.new,
+    );
+
+class PrayerHistoryController extends AsyncNotifier<List<PrayerHistoryEntry>> {
+  @override
+  Future<List<PrayerHistoryEntry>> build() =>
+      ref.read(prayerHistoryStoreProvider).load();
+
+  bool isMarked(String occurrenceId) =>
+      state.value?.any((e) => e.occurrenceId == occurrenceId) ?? false;
+
+  Future<void> toggle(
+    String occurrenceId, {
+    required DateTime now,
+    required DateTime prayerTime,
+  }) async {
+    state = AsyncData(
+      await ref
+          .read(prayerHistoryStoreProvider)
+          .toggle(occurrenceId, now: now, prayerTime: prayerTime),
+    );
+  }
+
+  Future<void> clear() async {
+    await ref.read(prayerHistoryStoreProvider).clear();
+    state = const AsyncData([]);
+  }
+}
 
 final mutedPrayersStoreProvider = Provider<MutedPrayersStore>(
   (ref) => MutedPrayersStore(),
