@@ -14,7 +14,7 @@ done**, merge the phase branch to `main`, let CI cut the release, then move on.
 > builds on. See [`CHANGELOG.md`](../CHANGELOG.md) Unreleased and
 > [`production-readiness.md`](production-readiness.md).
 
-**Current phase:** [`0.20.0 — new Settings, onboarding & permissions UI`](roadmap_0.20.0.md).
+**Current phase:** [`0.21.0 — Adhan 2.0`](roadmap_0.21.0.md).
 
 ---
 
@@ -155,7 +155,7 @@ onboarding/permissions flow, and a refreshed home-screen widget.
 | 0.18.0 | New Home UI | 2–3 days | ☑ |
 | 0.19.0 | New Times UI | 2 days | ☑ |
 | 0.20.0 | New Settings, onboarding & permissions UI | 2–3 days | ☑ |
-| 0.21.0 | Feature: Adhan 2.0 (tone preview, schedule control, reliability) | 3–4 days | ☐ |
+| 0.21.0 | Feature: Adhan 2.0 (tone preview, schedule control, reliability) | 3–4 days | ◐ |
 | 0.22.0 | Feature: home-screen widget 2.0 & quick actions | 2–3 days | ☐ |
 | 0.23.0 | Feature: Qibla direction & travel / multi-location mode | 3–4 days | ☐ |
 | 0.24.0 | Feature: prayer insights & richer Hijri calendar | 2–3 days | ☐ |
@@ -305,6 +305,9 @@ experience that explains the alarms instead of just asking for permissions.
 ---
 
 ## 0.21.0 — Feature: Adhan 2.0
+
+**Status:** in progress on `phase/0.21-adhan-2`; see
+[`roadmap_0.21.0.md`](roadmap_0.21.0.md) for the phase detail.
 
 **Goal:** make the app's signature feature easier to trust and customize.
 
