@@ -121,6 +121,11 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <!-- Fired at local midnight. The stored alarms are absolute
+                     timestamps for today's prayer times, so a phone left awake
+                     across midnight still holds yesterday's fired/expired alarms
+                     and must rebuild the new day. -->
+                <action android:name="android.intent.action.DATE_CHANGED" />
             </intent-filter>
         </receiver>
         <!-- OTA update file provider (package installer handoff) -->

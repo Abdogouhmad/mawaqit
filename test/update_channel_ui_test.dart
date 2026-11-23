@@ -71,6 +71,35 @@ void main() {
       }
     }
   }
+
+  testWidgets('the picker cannot switch channels mid-download', (tester) async {
+    final stub = _StubUpdate(
+      const UpdateState(status: UpdateStatus.downloading),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [updateProvider.overrideWith(() => stub)],
+        child: MaterialApp(
+          theme: AppTheme.light(),
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(body: OtaUpdateScreen()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(OtaUpdateScreen)),
+    );
+    await tester.ensureVisible(find.text(l10n.updateChannelBeta));
+    await tester.tap(find.text(l10n.updateChannelBeta));
+    await tester.pumpAndSettle();
+
+    expect(stub.switched, isEmpty);
+  });
 }
 
 /// Keeps the layout test focused on the picker: no network, no shared prefs,

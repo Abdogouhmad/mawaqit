@@ -70,6 +70,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Verify localization parity
+        run: flutter test test/l10n_parity_test.dart
+
       - name: Run tests
         run: flutter test --coverage
 

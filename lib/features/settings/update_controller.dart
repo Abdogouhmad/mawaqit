@@ -335,6 +335,12 @@ class UpdateNotifier extends Notifier<UpdateState> {
   /// check reports "up to date" when the new channel has nothing newer.
   Future<void> setChannel(UpdateChannel channel) async {
     if (state.channel == channel) return;
+    // The selector also disables the toggle while downloading, but that is a UI
+    // nicety, not the rule: a deep link, a restored state or a future screen
+    // could still call this. Switching mid-download would check the new
+    // channel's manifest while the old channel's APK is being written, then
+    // verify it against the wrong checksum.
+    if (state.isDownloading) return;
     await _store.saveChannel(channel);
     await _store.clearDismissedVersion();
     if (!ref.mounted) return;

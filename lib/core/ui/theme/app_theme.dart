@@ -189,9 +189,10 @@ abstract final class AppTheme {
         AppPalette.midnight => AppColors.primaryMidnightDark,
         _ => generated.primary,
       },
-      onPrimary: palette == AppPalette.sage
-          ? AppColors.white
-          : AppColors.deepInk,
+      // Deep ink on every palette. White on sage's lighter green reached only
+      // 3.41:1 (WCAG AA needs 4.5:1), while the ink reads at 5.02:1 — and the
+      // same shared value clears AA for all the generated palettes too.
+      onPrimary: AppColors.deepInk,
       tertiary: switch (palette) {
         AppPalette.emerald => AppColors.goldDark,
         AppPalette.sage => AppColors.radiantSage,

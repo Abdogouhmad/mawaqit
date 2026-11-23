@@ -130,7 +130,11 @@ abstract final class AppColors {
   static const Color primaryEmeraldDark = Color(0xFF3FA184);
 
   /// Sand gold tertiary, used for sunrise/sunset accents and the times calendar.
-  static const Color goldLight = Color(0xFFC9A24B);
+  ///
+  /// Darkened from the original `#C9A24B` (2.29:1 on the light canvas) to meet
+  /// WCAG AA for the small solar labels that use this role. The lighter value
+  /// survives only in the dark palette as [goldDark].
+  static const Color goldLight = Color(0xFF8A6A1F);
   static const Color goldDark = Color(0xFFE0BC6C);
 
   /// The app's dark canvas (feat.md §6).
@@ -153,7 +157,10 @@ abstract final class AppColors {
   // ────────────────────── Midnight (dark palette) ────────────────────────
   static const Color primaryMidnight = Color(0xFF2E3A7A);
   static const Color primaryMidnightDark = Color(0xFF9BA6F0);
-  static const Color amberLight = Color(0xFFC98A2B);
+
+  /// Midnight palette's light-scheme tertiary. Darkened to 4.78:1 on the light
+  /// canvas so the small solar fact labels clear WCAG AA.
+  static const Color amberLight = Color(0xFF9A6410);
   static const Color amberDark = Color(0xFFE8B768);
 
   // ─────────────────────────── Light surfaces ───────────────────────────
