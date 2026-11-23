@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/core/ui/widgets/blur_surface.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
@@ -36,7 +36,7 @@ class _AboutCard extends StatelessWidget {
       // `Material` the button needs for its ink — are ours to provide.
       type: MaterialType.transparency,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 360),
+        constraints: const BoxConstraints(maxWidth: AppSize.dialogMaxWidth),
         child: BlurSurface(
           radius: AppRadius.sheet,
           // The screen behind the card is already blurred full-screen by
@@ -65,7 +65,7 @@ class _AboutCard extends StatelessWidget {
               UiText(
                 l10n.appTitle,
                 type: UiTextType.titleLarge,
-                fontWeight: FontWeight.w700,
+                fontWeight: AppWeight.bold,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xs),
@@ -81,8 +81,10 @@ class _AboutCard extends StatelessWidget {
               // identity and its specification, the way an imprint page divides
               // a colophon from its title.
               Container(
-                height: 1,
-                color: scheme.outlineVariant.withValues(alpha: 0.6),
+                height: AppStroke.hairline,
+                color: scheme.outlineVariant.withValues(
+                  alpha: AppOpacity.neutralPill,
+                ),
               ),
 
               const SizedBox(height: AppSpacing.giga),
@@ -90,11 +92,13 @@ class _AboutCard extends StatelessWidget {
               // Capped so the centred paragraph keeps a comfortable measure
               // instead of running the full width of the card.
               ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 288),
+                constraints: const BoxConstraints(
+                  maxWidth: AppSize.aboutBodyMaxWidth,
+                ),
                 child: UiText(
                   l10n.updateAboutDescription,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(height: 1.5),
+                  style: const TextStyle(height: AppTypeDetail.bodyLineHeight),
                 ),
               ),
 
@@ -135,8 +139,8 @@ class _MihrabNiche extends StatelessWidget {
 
   /// Outer width. Half of it is the arch's radius, which gives the top a clean
   /// semicircle rather than an approximate curve.
-  static const double _width = 112;
-  static const double _height = 124;
+  static const double _width = AppSize.nicheWidth;
+  static const double _height = AppSize.nicheHeight;
 
   final Widget child;
 
@@ -159,11 +163,13 @@ class _MihrabNiche extends StatelessWidget {
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
           colors: [
-            scheme.primary.withValues(alpha: 0.14),
-            scheme.primary.withValues(alpha: 0),
+            scheme.primary.withValues(alpha: AppOpacity.ambient),
+            scheme.primary.withValues(alpha: AppOpacity.none),
           ],
         ),
-        border: Border.all(color: scheme.tertiary.withValues(alpha: 0.55)),
+        border: Border.all(
+          color: scheme.tertiary.withValues(alpha: AppOpacity.badge),
+        ),
       ),
       child: Center(child: child),
     );

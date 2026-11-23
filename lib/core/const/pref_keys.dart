@@ -27,6 +27,10 @@ abstract final class PrefKeys {
   /// the walkthrough is shown exactly once per install.
   static const String onboardingComplete = 'onboarding_complete';
 
+  /// Last page reached in the walkthrough. Lets an interrupted run resume where
+  /// the user left, and is cleared when the flow is finished.
+  static const String onboardingStep = 'onboarding_step';
+
   // ── Scheduled events ────────────────────────────────────────────────────
   /// Fingerprint of the event list last handed to native. Lets the Dart side
   /// skip a reschedule when nothing actually changed.

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
 import 'package:mawaqit/features/settings/widgets/about_dialog.dart';

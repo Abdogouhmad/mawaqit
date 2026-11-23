@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mawaqit/core/ui/theme/app_colors.dart';
 import 'package:mawaqit/core/ui/theme/app_theme.dart';
-import 'package:mawaqit/core/ui/theme/motion.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
 import 'package:mawaqit/l10n/enum_localization.dart';
@@ -36,12 +34,12 @@ class GeneralScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         centerTitle: true,
         title: UiText(
           l10n.settingsSectionGeneral,
           type: UiTextType.titleLarge,
-          fontWeight: FontWeight.w700,
+          fontWeight: AppWeight.bold,
         ),
       ),
       body: SafeArea(
@@ -344,7 +342,7 @@ class _ChoiceTile extends StatelessWidget {
                 label,
                 type: UiTextType.labelMedium,
                 color: content,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                fontWeight: selected ? AppWeight.bold : AppWeight.medium,
                 textAlign: TextAlign.center,
                 maxLines: 2,
               ),
@@ -373,7 +371,7 @@ class _ThemePreview extends StatelessWidget {
 
     return AppCard(
       color: scheme.primaryContainer,
-      borderColor: Colors.transparent,
+      borderColor: AppColors.transparent,
       ambient: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,9 +379,11 @@ class _ThemePreview extends StatelessWidget {
           UiText(
             l10n.homeNextPrayer,
             type: UiTextType.labelSmall,
-            color: scheme.onPrimaryContainer.withValues(alpha: 0.7),
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.4,
+            color: scheme.onPrimaryContainer.withValues(
+              alpha: AppOpacity.mutedCaption,
+            ),
+            fontWeight: AppWeight.bold,
+            letterSpacing: AppTypeDetail.sectionLetterSpacing,
           ),
           const SizedBox(height: AppSpacing.sm),
           Row(
@@ -393,7 +393,7 @@ class _ThemePreview extends StatelessWidget {
                   l10n.prayerMaghrib,
                   type: UiTextType.headlineSmall,
                   color: scheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: AppWeight.bold,
                 ),
               ),
               Container(
@@ -409,7 +409,7 @@ class _ThemePreview extends StatelessWidget {
                   '18:42',
                   type: UiTextType.labelLarge,
                   color: scheme.onTertiary,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: AppWeight.bold,
                 ),
               ),
             ],
@@ -455,14 +455,14 @@ class _PaletteSettingRow extends StatelessWidget {
                       l10n.appearancePalette,
                       type: UiTextType.titleMedium,
                       fontSize: AppFontSize.lg,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: AppWeight.semibold,
                     ),
                     const SizedBox(height: AppSpacing.xxs),
                     UiText(
                       value.localized(l10n),
                       type: UiTextType.labelMedium,
                       color: scheme.primary,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: AppWeight.medium,
                     ),
                   ],
                 ),
@@ -511,8 +511,8 @@ class _PaletteSwatch extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  static const double _diameter = 46;
-  static const double _accent = 24;
+  static const double _diameter = AppSize.paletteSwatch;
+  static const double _accent = AppSize.paletteAccent;
 
   @override
   Widget build(BuildContext context) {
@@ -570,7 +570,7 @@ class _PaletteSwatch extends StatelessWidget {
                         Center(
                           child: Icon(
                             Icons.check_rounded,
-                            size: 20,
+                            size: AppIconSize.xl,
                             color: scheme.onPrimary,
                           ),
                         ),
@@ -586,7 +586,7 @@ class _PaletteSwatch extends StatelessWidget {
                   type: UiTextType.labelSmall,
                   textAlign: TextAlign.center,
                   color: selected ? ring : theme.colorScheme.onSurfaceVariant,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  fontWeight: selected ? AppWeight.bold : AppWeight.medium,
                   maxLines: 2,
                 ),
               ),

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/services/notification_service.dart';
@@ -67,7 +67,7 @@ class NotificationSettingsSection extends ConsumerWidget {
                     UiText(
                       kind.localized(AppLocalizations.of(context)),
                       type: UiTextType.titleMedium,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: AppWeight.bold,
                     ),
                     UiText(
                       enabled
@@ -121,8 +121,10 @@ class NotificationSettingsSection extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
             child: Divider(
-              height: 1,
-              color: scheme.outlineVariant.withValues(alpha: 0.4),
+              height: AppStroke.hairline,
+              color: scheme.outlineVariant.withValues(
+                alpha: AppOpacity.hairline,
+              ),
             ),
           ),
           SettingsRow(
@@ -140,8 +142,10 @@ class NotificationSettingsSection extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
               child: Divider(
-                height: 1,
-                color: scheme.outlineVariant.withValues(alpha: 0.4),
+                height: AppStroke.hairline,
+                color: scheme.outlineVariant.withValues(
+                  alpha: AppOpacity.hairline,
+                ),
               ),
             ),
             SettingsRow(
@@ -192,7 +196,7 @@ class NotificationSettingsSection extends ConsumerWidget {
               fontSize: AppFontSize.lg,
             ),
             AnimatedSwitcher(
-              duration: const Duration(milliseconds: 320),
+              duration: AppMotion.medium,
               switchInCurve: Curves.easeOutBack,
               switchOutCurve: Curves.easeIn,
               transitionBuilder: (child, animation) => FadeTransition(

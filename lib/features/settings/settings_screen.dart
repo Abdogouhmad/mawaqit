@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/repositories/location_repository.dart';
 import 'package:mawaqit/features/settings/screen/general.dart';
@@ -11,6 +11,7 @@ import 'package:mawaqit/features/settings/screen/notify.dart';
 import 'package:mawaqit/features/settings/screen/permission.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
+import 'package:mawaqit/features/settings/widgets/update_channel_selector.dart';
 import 'package:mawaqit/features/settings/widgets/update_section.dart';
 import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
@@ -20,6 +21,7 @@ import 'package:mawaqit/shared/components/settings_group.dart';
 import 'package:mawaqit/shared/components/settings_row.dart';
 import 'package:mawaqit/shared/ui/app_button.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
+import 'package:mawaqit/shared/ui/app_loading_state.dart';
 import 'package:mawaqit/shared/ui/app_mark.dart';
 import 'package:mawaqit/shared/ui/app_pill.dart';
 import 'package:mawaqit/shared/ui/option_sheet.dart';
@@ -41,7 +43,7 @@ class SettingsScreen extends ConsumerWidget {
             const _SettingsHeader(),
             Expanded(
               child: asyncSettings.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
+                loading: () => const AppLoadingState(),
                 error: (error, _) => Center(
                   child: UiText(error.toString(), textAlign: TextAlign.center),
                 ),
@@ -82,8 +84,8 @@ class _SettingsHeader extends StatelessWidget {
           UiText(
             AppLocalizations.of(context).settingsTitle,
             type: UiTextType.titleLarge,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.2,
+            fontWeight: AppWeight.bold,
+            letterSpacing: AppTypeDetail.titleLetterSpacing,
           ),
           const SizedBox(height: AppSpacing.xxs),
           UiText(
@@ -233,6 +235,14 @@ class _SettingsBody extends ConsumerWidget {
           icon: Icons.info_outline,
         ),
         const UpdateSection(),
+        const SizedBox(height: AppSpacing.md),
+        UiText(
+          l10n.updatePrivacyNotice,
+          type: UiTextType.bodySmall,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        const UpdateChannelSelector(),
         const SizedBox(height: AppSpacing.tera),
         const _Footer(),
       ],
@@ -416,7 +426,7 @@ class _LocationSheetState extends State<_LocationSheet> {
 
   void _scheduleSearch() {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 450), _search);
+    _debounce = Timer(AppMotion.long, _search);
   }
 
   @override
@@ -470,7 +480,9 @@ class _LocationSheetState extends State<_LocationSheet> {
                           child: SizedBox(
                             width: AppIconSize.xl,
                             height: AppIconSize.xl,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              strokeWidth: AppStroke.focus,
+                            ),
                           ),
                         )
                       : IconButton(
@@ -504,15 +516,19 @@ class _LocationSheetState extends State<_LocationSheet> {
                 const SizedBox(height: AppSpacing.xl),
                 AppCard(
                   padding: EdgeInsets.zero,
-                  borderColor: scheme.outlineVariant.withValues(alpha: 0.4),
+                  borderColor: scheme.outlineVariant.withValues(
+                    alpha: AppOpacity.hairline,
+                  ),
                   ambient: false,
                   child: Column(
                     children: [
                       for (final (index, result) in _results.indexed) ...[
                         if (index > 0)
                           Divider(
-                            height: 1,
-                            color: scheme.outlineVariant.withValues(alpha: 0.4),
+                            height: AppStroke.hairline,
+                            color: scheme.outlineVariant.withValues(
+                              alpha: AppOpacity.hairline,
+                            ),
                           ),
                         ListTile(
                           dense: true,
@@ -537,7 +553,7 @@ class _LocationSheetState extends State<_LocationSheet> {
                               : null,
                           selected: _draft.cityName == result.name,
                           selectedTileColor: scheme.primary.withValues(
-                            alpha: 0.06,
+                            alpha: AppOpacity.selectedRow,
                           ),
                           onTap: () => setState(
                             () => _draft = _draft.copyWith(
@@ -595,7 +611,7 @@ class _Footer extends StatelessWidget {
         UiText(
           l10n.appTitle,
           type: UiTextType.titleMedium,
-          fontWeight: FontWeight.w700,
+          fontWeight: AppWeight.bold,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.xxs),
@@ -613,7 +629,7 @@ class _Footer extends StatelessWidget {
         UiText(
           l10n.settingsAboutVersion(AppInfo.version),
           type: UiTextType.labelSmall,
-          color: scheme.onSurfaceVariant.withValues(alpha: 0.55),
+          color: scheme.onSurfaceVariant.withValues(alpha: AppOpacity.badge),
           textAlign: TextAlign.center,
         ),
       ],

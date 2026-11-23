@@ -28,6 +28,12 @@ abstract final class AppOpacity {
   /// Accent pills and small tinted chips.
   static const double accent = 0.12;
 
+  /// Soft brand wash behind the About dialog's mark.
+  static const double ambient = 0.14;
+
+  /// Error-coloured hairline around an inline error card.
+  static const double errorOutline = 0.3;
+
   /// Leading-icon badge fill used across settings rows.
   static const double badge = 0.55;
 
@@ -144,6 +150,22 @@ abstract final class AppSize {
   static const double markAbout = 72;
   static const double markFooter = 44;
 
+  /// Maximum widths of the About dialog and its body copy.
+  static const double dialogMaxWidth = 360;
+  static const double aboutBodyMaxWidth = 288;
+
+  /// Status-card and large success glyphs in the Update Center.
+  static const double statusIcon = 42;
+  static const double largeStatusIcon = 64;
+
+  /// Palette choice swatch and the accent dot drawn inside it.
+  static const double paletteSwatch = 46;
+  static const double paletteAccent = 24;
+
+  /// Mihrab niche around the About dialog's brand mark.
+  static const double nicheWidth = 112;
+  static const double nicheHeight = 124;
+
   /// Smallest segment that can still carry an icon beside its label.
   static const double minSegmentForIcon = 100;
 
@@ -202,6 +224,7 @@ abstract final class AppTypeDetail {
   const AppTypeDetail._();
 
   static const double compactLineHeight = 1;
+  static const double bodyLineHeight = 1.5;
   static const double untacked = 0;
   static const double labelTracking = 0.2;
   static const double fineTracking = 0.1;

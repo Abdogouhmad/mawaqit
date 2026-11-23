@@ -2,6 +2,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:mawaqit/core/navigation/app_navigator.dart';
 import 'package:mawaqit/core/navigation/app_shell.dart';
+import 'package:mawaqit/features/onboarding/onboarding_gate.dart';
+import 'package:mawaqit/features/onboarding/onboarding_screen.dart';
 
 /// The app's router.
 ///
@@ -16,6 +18,26 @@ import 'package:mawaqit/core/navigation/app_shell.dart';
 /// from an older version of the app, and Home is the correct thing to show.
 GoRouter createRouter({String initialLocation = AppRoutes.home}) {
   return GoRouter(
+    // The first-run gate runs here rather than in `MawaqitApp.build` so no frame
+    // of Home can flash before the walkthrough is shown. The flag is loaded in
+    // `main()` before the router is first read, so this is a synchronous check.
+    // A deep link or widget tap that arrives during onboarding is remembered and
+    // resumed once the flow is dismissed.
+    redirect: (_, state) {
+      final gate = OnboardingGate.instance;
+      final path = state.uri.path;
+      final atOnboarding = path == AppRoutes.onboarding;
+      if (!gate.isComplete && !atOnboarding) {
+        gate.pendingTarget = path;
+        return AppRoutes.onboarding;
+      }
+      if (gate.isComplete && atOnboarding) {
+        final target = gate.pendingTarget ?? AppRoutes.home;
+        gate.pendingTarget = null;
+        return target;
+      }
+      return null;
+    },
     // Shared with the notification service, which pushes the raw full-screen
     // adhan `PageRoute` from outside the widget tree. Sharing one key puts that
     // route above the shell instead of inside one tab's stack.
@@ -25,6 +47,10 @@ GoRouter createRouter({String initialLocation = AppRoutes.home}) {
       GoRoute(path: AppRoutes.home, builder: (_, _) => const AppShell()),
       GoRoute(path: AppRoutes.times, builder: (_, _) => const AppShell()),
       GoRoute(path: AppRoutes.settings, builder: (_, _) => const AppShell()),
+      GoRoute(
+        path: AppRoutes.onboarding,
+        builder: (_, _) => const OnboardingScreen(),
+      ),
     ],
     errorBuilder: (context, state) => const AppShell(),
   );

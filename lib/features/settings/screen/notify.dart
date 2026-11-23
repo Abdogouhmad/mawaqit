@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/features/settings/widgets/notification_settings_section.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
@@ -25,12 +25,12 @@ class NotificationsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         centerTitle: true,
         title: UiText(
           l10n.settingsSectionNotifications,
           type: UiTextType.titleLarge,
-          fontWeight: FontWeight.w700,
+          fontWeight: AppWeight.bold,
         ),
       ),
       body: SafeArea(

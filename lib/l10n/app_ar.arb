@@ -545,5 +545,19 @@
   "updateBannerBodyOnChannel": "إصدار مواقيت v{version} جاهز للتثبيت ({channel})",
   "updateSecurityNote": "يجب أن يكون رابط APK ببروتوكول HTTPS وأن يتم التحقق من SHA-256 قبل التثبيت.",
   "updateDownloadSize": "حجم التنزيل",
-  "updatePublished": "تاريخ النشر"
+  "updatePublished": "تاريخ النشر",
+  "onboardingWelcomeTitle": "صلِّ في وقتها، بلا ضجيج",
+  "onboardingWelcomeBody": "يمنحك مواقيت أوقات الصلاة والأذان ومكانًا هادئًا للاطلاع عليهما. بضع خطوات سريعة تجعل التطبيق لك.",
+  "onboardingAlertsTitle": "لا تفوّت الأذان",
+  "onboardingAlertsBody": "إعدادان في النظام يضمنان وصول التنبيه في وقته: الإشعارات لبطاقة التذكير، والتنبيهات الدقيقة حتى لا يؤخرها أندرويد.",
+  "onboardingTakeoverTitle": "دع الأذان يظهر أمامك",
+  "onboardingTakeoverBody": "يسمح الوصول إلى ملء الشاشة بعرض الأذان فوق شاشة القفل، ويتيح الوصول إلى «عدم الإزعاج» سماعه عند كتمان الهاتف، وتمنع استثناء البطارية أندرويد من تجميده.",
+  "onboardingLocationTitle": "مواقيت مكانك",
+  "onboardingLocationBody": "اختر مدينة أو اسمح بالموقع مرة واحدة من الإعدادات. لا يتتبّع مواقيت موقعك في الخلفية أبدًا.",
+  "onboardingPermissionHint": "مسموح أو بحاجة إلى إصلاح — يمكنك تغيير كل ذلك لاحقًا من الإعدادات.",
+  "onboardingOpenSettings": "اختر مدينة من الإعدادات",
+  "onboardingSkip": "تخطٍ الآن",
+  "onboardingNext": "متابعة",
+  "onboardingFinish": "افتح مواقيت",
+  "onboardingStep": "الخطوة {current} من {total}"
 }

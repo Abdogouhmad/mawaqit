@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/data/models/alarm_access.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
 import 'package:mawaqit/features/settings/settings_controller.dart';
@@ -148,8 +148,10 @@ class _AlarmAccessSectionState extends ConsumerState<AlarmAccessSection>
                         ? Icons.verified_outlined
                         : Icons.warning_amber_rounded,
                     color: missing.isEmpty
-                        ? scheme.primary.withValues(alpha: 0.1)
-                        : scheme.error.withValues(alpha: 0.1),
+                        ? scheme.primary.withValues(
+                            alpha: AppOpacity.navOverlay,
+                          )
+                        : scheme.error.withValues(alpha: AppOpacity.navOverlay),
                     foregroundColor: missing.isEmpty
                         ? scheme.primary
                         : scheme.error,

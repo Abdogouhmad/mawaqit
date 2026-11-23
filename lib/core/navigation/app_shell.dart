@@ -19,6 +19,10 @@ abstract final class AppRoutes {
   static const String times = '/times';
   static const String settings = '/settings';
 
+  /// First-run walkthrough. A full-screen route, not a tab: there is no bottom
+  /// navigation until the user skips or finishes it.
+  static const String onboarding = '/onboarding';
+
   /// Tab order, start to end. Material's [NavigationBar] lays its destinations
   /// out directionally, so this logical order is correct in both LTR and RTL.
   static const List<String> tabs = [home, times, settings];

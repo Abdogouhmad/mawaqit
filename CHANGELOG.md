@@ -32,6 +32,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   still verified against the manifest checksum before the system installer
   runs, and mandatory/support-floor updates are honoured as before.
 
+## [0.20.0] - 2026-11-23
+
+### Added
+
+- **A first-run walkthrough now explains the app before asking for access.**
+  Four short, localized pages cover the adhan reminders, the Android alarm
+  permissions, the screen/battery exceptions and choosing a city. Each
+  permission shows its live *Allowed / Fix* state, and the flow can be skipped
+  or resumed where you left it.
+
+### Changed
+
+- **Settings is now one scannable column.** Related preferences are grouped
+  with a one-line explanation, every row says what it controls, and the
+  stable/beta release channel is an ordinary, clearly explained setting rather
+  than a separate screen.
+- **The Home app bar no longer duplicates the Settings action.** Settings stays
+  in the bottom navigation, so the header has one clear Times shortcut.
+- Settings, the channel selector and the walkthrough share the 0.17 design
+  tokens, keeping spacing, type, colour and motion consistent at large text
+  sizes and in RTL.
+
 ## [0.19.0] - 2026-11-22
 
 ### Changed

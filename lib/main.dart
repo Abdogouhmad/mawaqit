@@ -8,6 +8,7 @@ import 'package:mawaqit/core/navigation/app_shell.dart';
 import 'package:mawaqit/core/ota/update_check_host.dart';
 import 'package:mawaqit/core/utils/timezone_setup.dart';
 import 'package:mawaqit/data/services/background_scheduler.dart';
+import 'package:mawaqit/features/onboarding/onboarding_gate.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/src/home_widget/prayer_widget.home_widget.dart';
 
@@ -38,6 +39,11 @@ Future<void> main() async {
       // Home-screen widget launch, resolved *before* the first frame so the app
       // opens on the tab the card was showing instead of flashing Home first.
       MawaqitApp.launchRoute = await _launchRoute();
+
+      // The router's first redirect is synchronous, so the first-run flag must
+      // be in memory before the first frame. A preference failure degrades to
+      // showing the walkthrough, never to a blank app.
+      await OnboardingGate.instance.load();
 
       runApp(
         const ProviderScope(

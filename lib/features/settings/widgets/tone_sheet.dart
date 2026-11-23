@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mawaqit/core/audio/tone_catalog.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/data/models/notification_kind.dart';
 import 'package:mawaqit/data/services/tone_preview_service.dart';
@@ -229,7 +229,7 @@ class _ToneSheetState extends State<ToneSheet> {
             children: [
               const SizedBox.square(
                 dimension: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(strokeWidth: AppStroke.focus),
               ),
               const SizedBox(width: AppSpacing.md),
               UiText(
@@ -333,7 +333,7 @@ class _ToneSheetState extends State<ToneSheet> {
     final scheme = Theme.of(context).colorScheme;
     return AppCard(
       padding: EdgeInsets.zero,
-      borderColor: scheme.outlineVariant.withValues(alpha: 0.4),
+      borderColor: scheme.outlineVariant.withValues(alpha: AppOpacity.hairline),
       ambient: false,
       child: Column(children: children),
     );
@@ -353,8 +353,8 @@ class _ToneSheetState extends State<ToneSheet> {
       children: [
         if (!first)
           Divider(
-            height: 1,
-            color: scheme.outlineVariant.withValues(alpha: 0.4),
+            height: AppStroke.hairline,
+            color: scheme.outlineVariant.withValues(alpha: AppOpacity.hairline),
           ),
         ListTile(
           title: UiText(title, type: UiTextType.bodyLarge),
@@ -368,7 +368,9 @@ class _ToneSheetState extends State<ToneSheet> {
                 )
               : null,
           selected: selected,
-          selectedTileColor: scheme.primary.withValues(alpha: 0.06),
+          selectedTileColor: scheme.primary.withValues(
+            alpha: AppOpacity.selectedRow,
+          ),
           onTap: onTap,
         ),
       ],
@@ -390,7 +392,7 @@ class _ToneSheetState extends State<ToneSheet> {
         playing ? Icons.stop_circle_outlined : Icons.play_circle_outline,
         color: enabled
             ? scheme.primary
-            : scheme.onSurfaceVariant.withValues(alpha: 0.4),
+            : scheme.onSurfaceVariant.withValues(alpha: AppOpacity.hairline),
       ),
       onPressed: enabled ? onPressed : null,
     );

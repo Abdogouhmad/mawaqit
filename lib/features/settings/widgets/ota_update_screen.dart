@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/data/models/update_channel.dart';
 import 'package:mawaqit/data/services/update_service.dart';
 import 'package:mawaqit/features/settings/services/app_info.dart';
 import 'package:mawaqit/features/settings/update_controller.dart';
+import 'package:mawaqit/features/settings/widgets/update_channel_selector.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/components/info_row.dart';
 import 'package:mawaqit/shared/ui/app_button.dart';
@@ -50,12 +51,12 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         centerTitle: true,
         title: UiText(
           AppLocalizations.of(context).updateSoftwareUpdate,
           type: UiTextType.titleLarge,
-          fontWeight: FontWeight.w700,
+          fontWeight: AppWeight.bold,
         ),
       ),
       body: SafeArea(
@@ -72,7 +73,7 @@ class _OtaUpdateScreenState extends ConsumerState<OtaUpdateScreen> {
             children: [
               _StatusHeader(state: state),
               const SizedBox(height: AppSpacing.tera),
-              _ChannelCard(state: state),
+              const UpdateChannelSelector(),
               const SizedBox(height: AppSpacing.tera),
               if (state.status == UpdateStatus.checking) ...[
                 const _CheckingCard(),
@@ -210,7 +211,7 @@ class _StatusHeader extends StatelessWidget {
                   width: 104,
                   height: 104,
                   decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.4),
+                    color: accent.withValues(alpha: AppOpacity.hairline),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -229,7 +230,7 @@ class _StatusHeader extends StatelessWidget {
                         : update
                         ? Icons.system_update_alt_rounded
                         : Icons.check_circle_outline_rounded,
-                    size: 42,
+                    size: AppSize.statusIcon,
                     color: accentFg,
                   ),
                 ),
@@ -249,136 +250,6 @@ class _StatusHeader extends StatelessWidget {
           ),
         ],
       ],
-    );
-  }
-}
-
-/// Stable/beta selector. Each option explains itself so switching is a
-/// conscious choice rather than a hidden developer toggle.
-class _ChannelCard extends ConsumerWidget {
-  const _ChannelCard({required this.state});
-
-  final UpdateState state;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final notifier = ref.read(updateProvider.notifier);
-
-    return _Card(
-      title: l10n.updateReleaseChannel,
-      icon: Icons.alt_route_rounded,
-      children: [
-        for (final channel in UpdateChannel.values)
-          _ChannelOption(
-            channel: channel,
-            label: channel == UpdateChannel.stable
-                ? l10n.updateChannelStable
-                : l10n.updateChannelBeta,
-            description: channel == UpdateChannel.stable
-                ? l10n.updateChannelStableDescription
-                : l10n.updateChannelBetaDescription,
-            selected: state.channel == channel,
-            enabled: !state.isDownloading,
-            onTap: () => notifier.setChannel(channel),
-          ),
-      ],
-    );
-  }
-}
-
-class _ChannelOption extends StatelessWidget {
-  const _ChannelOption({
-    required this.channel,
-    required this.label,
-    required this.description,
-    required this.selected,
-    required this.enabled,
-    required this.onTap,
-  });
-
-  final UpdateChannel channel;
-  final String label;
-  final String description;
-  final bool selected;
-  final bool enabled;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final borderColor = selected ? scheme.primary : scheme.outlineVariant;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Semantics(
-        selected: selected,
-        enabled: enabled,
-        button: true,
-        child: InkWell(
-          onTap: enabled ? onTap : null,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          child: Opacity(
-            opacity: enabled ? 1 : 0.55,
-            child: Container(
-              padding: const EdgeInsets.all(AppSpacing.giga),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: borderColor),
-                color: selected
-                    ? scheme.primaryContainer.withValues(alpha: 0.5)
-                    : null,
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: selected ? scheme.primary : scheme.outline,
-                        width: 2,
-                      ),
-                    ),
-                    child: selected
-                        ? Center(
-                            child: Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: scheme.primary,
-                              ),
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(width: AppSpacing.giga),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        UiText(
-                          label,
-                          type: UiTextType.titleSmall,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        UiText(
-                          description,
-                          type: UiTextType.bodySmall,
-                          color: scheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -406,7 +277,7 @@ class _CheckingCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.giga),
           LinearProgressIndicator(
-            minHeight: 4,
+            minHeight: AppSpacing.xs,
             borderRadius: BorderRadius.circular(AppRadius.pill),
             color: Theme.of(context).colorScheme.primary,
             backgroundColor: Theme.of(context)
@@ -559,8 +430,9 @@ class _VersionCard extends ConsumerWidget {
 }
 
 Widget _divider(BuildContext context) => Divider(
-  height: 1,
-  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.6),
+  height: AppStroke.hairline,
+  color: Theme.of(context).colorScheme.outlineVariant
+      .withValues(alpha: AppOpacity.neutralPill),
 );
 
 /// "What's new" card rendering the CHANGELOG section shipped in the manifest.
@@ -610,7 +482,7 @@ class _ChangelogCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 4,
+              width: AppSpacing.xs,
               height: 18,
               decoration: BoxDecoration(
                 color: scheme.primary,
@@ -622,7 +494,7 @@ class _ChangelogCard extends StatelessWidget {
               child: UiText(
                 heading.group(1)!,
                 type: UiTextType.titleSmall,
-                fontWeight: FontWeight.w800,
+                fontWeight: AppWeight.bold,
               ),
             ),
           ],
@@ -640,10 +512,12 @@ class _ChangelogCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.xs + 2),
               child: Container(
-                width: 6,
-                height: 6,
+                width: AppSpacing.sm,
+                height: AppSpacing.sm,
                 decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.8),
+                  color: scheme.primary.withValues(
+                    alpha: AppOpacity.supportingInk,
+                  ),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -697,7 +571,7 @@ class _RichText extends StatelessWidget {
       spans.add(
         TextSpan(
           text: m.group(1),
-          style: TextStyle(color: boldColor, fontWeight: FontWeight.w700),
+          style: TextStyle(color: boldColor, fontWeight: AppWeight.bold),
         ),
       );
       last = m.end;
@@ -734,7 +608,7 @@ class _DownloadCard extends StatelessWidget {
             UiText(
               AppLocalizations.of(context).updatePercent(percent),
               type: UiTextType.titleSmall,
-              fontWeight: FontWeight.w700,
+              fontWeight: AppWeight.bold,
               color: scheme.primary,
             ),
           ],
@@ -744,7 +618,7 @@ class _DownloadCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.pill),
           child: LinearProgressIndicator(
             value: progress.clamp(0, 1),
-            minHeight: 10,
+            minHeight: AppSpacing.lg,
             backgroundColor: scheme.surfaceContainerHighest,
             color: scheme.primary,
           ),
@@ -765,7 +639,11 @@ class _ReadyCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Icon(Icons.check_circle_rounded, color: scheme.primary, size: 64),
+        Icon(
+          Icons.check_circle_rounded,
+          color: scheme.primary,
+          size: AppSize.largeStatusIcon,
+        ),
         const SizedBox(height: AppSpacing.md),
         UiText(
           AppLocalizations.of(context).updateVerifiedReady,
@@ -834,9 +712,11 @@ class _InlineError extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xxxl),
       decoration: BoxDecoration(
-        color: scheme.errorContainer.withValues(alpha: 0.4),
+        color: scheme.errorContainer.withValues(alpha: AppOpacity.hairline),
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: scheme.error.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: scheme.error.withValues(alpha: AppOpacity.errorOutline),
+        ),
       ),
       child: Row(
         children: [
@@ -968,7 +848,7 @@ class _Card extends StatelessWidget {
                 child: UiText(
                   title,
                   type: UiTextType.titleMedium,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: AppWeight.bold,
                 ),
               ),
             ],

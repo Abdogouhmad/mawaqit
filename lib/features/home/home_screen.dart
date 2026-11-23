@@ -150,16 +150,6 @@ class _HomeHeader extends StatelessWidget {
               onPressed: onOpenTimes,
             ),
           ),
-          Semantics(
-            label: l10n.navSettings,
-            button: true,
-            excludeSemantics: true,
-            child: AppIconButton(
-              icon: Icons.settings_outlined,
-              tooltip: l10n.navSettings,
-              onPressed: onOpenSettings,
-            ),
-          ),
         ],
       ),
     );

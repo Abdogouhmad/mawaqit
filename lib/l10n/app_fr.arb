@@ -330,5 +330,19 @@
   "updateBannerBodyOnChannel": "Mawaqit v{version} est prête à être installée ({channel})",
   "updateSecurityNote": "L'APK doit utiliser HTTPS et son SHA-256 doit être vérifié avant l'installation.",
   "updateDownloadSize": "Taille du téléchargement",
-  "updatePublished": "Publié le"
+  "updatePublished": "Publié le",
+  "onboardingWelcomeTitle": "Priez à l'heure, sans bruit",
+  "onboardingWelcomeBody": "Mawaqit vous donne les horaires, l'adhan et un endroit calme pour les consulter. Quelques choix rapides suffisent.",
+  "onboardingAlertsTitle": "Ne manquez plus l'adhan",
+  "onboardingAlertsBody": "Deux réglages système permettent à l'alarme d'arriver à l'heure : les notifications pour le rappel, et les alarmes exactes pour qu'Android ne la retarde pas.",
+  "onboardingTakeoverTitle": "Laissez l'adhan prendre le dessus",
+  "onboardingTakeoverBody": "L'accès plein écran affiche l'adhan sur l'écran verrouillé, l'accès « Ne pas déranger » le fait sonner même en mode silencieux, et l'exception batterie empêche Android de le figer.",
+  "onboardingLocationTitle": "Les horaires où vous êtes",
+  "onboardingLocationBody": "Choisissez une ville ou autorisez la localisation une fois dans les réglages. Mawaqit ne vous suit jamais en arrière-plan.",
+  "onboardingPermissionHint": "Autorisé ou À corriger — vous pourrez modifier tout cela plus tard dans les réglages.",
+  "onboardingOpenSettings": "Choisir une ville dans les réglages",
+  "onboardingSkip": "Passer pour l'instant",
+  "onboardingNext": "Continuer",
+  "onboardingFinish": "Ouvrir Mawaqit",
+  "onboardingStep": "Étape {current} sur {total}"
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:mawaqit/core/ui/theme/shapes.dart';
+import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/features/settings/widgets/alarm_access_section.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:mawaqit/shared/ui/app_card.dart';
@@ -25,12 +25,12 @@ class PermissionsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         centerTitle: true,
         title: UiText(
           l10n.settingsSectionPermissions,
           type: UiTextType.titleLarge,
-          fontWeight: FontWeight.w700,
+          fontWeight: AppWeight.bold,
         ),
       ),
       body: SafeArea(

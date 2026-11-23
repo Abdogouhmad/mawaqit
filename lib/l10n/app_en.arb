@@ -1238,5 +1238,32 @@
   "updatePublished": "Published",
   "@updatePublished": {
     "description": "Label for the manifest's publication date."
+  },
+  "onboardingWelcomeTitle": "Pray on time, without the noise",
+  "onboardingWelcomeBody": "Mawaqit gives you the times, the adhan and a quiet place to check both. A few quick choices make it yours.",
+  "onboardingAlertsTitle": "Never miss the adhan",
+  "onboardingAlertsBody": "Two system settings let an alarm arrive on time: notifications for the reminder card, and exact alarms so Android does not delay it.",
+  "onboardingTakeoverTitle": "Let the adhan take over",
+  "onboardingTakeoverBody": "Full-screen access shows the adhan over the lock screen, Do Not Disturb access lets it sound when the phone is silent, and battery exemption stops Android from freezing it.",
+  "onboardingLocationTitle": "Times for where you are",
+  "onboardingLocationBody": "Choose a city or allow location once in Settings. Mawaqit never tracks you in the background.",
+  "onboardingPermissionHint": "Allowed or Fix — you can change any of these later in Settings.",
+  "onboardingOpenSettings": "Choose a city in Settings",
+  "onboardingSkip": "Skip for now",
+  "onboardingNext": "Continue",
+  "onboardingFinish": "Open Mawaqit",
+  "onboardingStep": "Step {current} of {total}",
+  "@onboardingStep": {
+    "description": "Progress label on the first-run walkthrough.",
+    "placeholders": {
+      "current": {
+        "type": "int",
+        "example": "1"
+      },
+      "total": {
+        "type": "int",
+        "example": "4"
+      }
+    }
   }
 }

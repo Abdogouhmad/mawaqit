@@ -70,8 +70,20 @@ void main() {
       findsWidgets,
       reason: 'the next prayer name must be announced',
     );
-    expect(find.bySemanticsLabel(l10n.navTimes), findsOneWidget);
-    expect(find.bySemanticsLabel(l10n.navSettings), findsOneWidget);
+    // The app bar's title and action share one semantics node, so match the
+    // label as a substring and assert the tooltip separately to pin the
+    // individual button.
+    expect(
+      find.bySemanticsLabel(RegExp(l10n.navTimes)),
+      findsWidgets,
+      reason: 'the Times action must be announced in the app bar',
+    );
+    expect(find.byTooltip(l10n.navTimes), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(l10n.navSettings),
+      findsNothing,
+      reason: 'Settings lives in the bottom navigation, not the Home app bar',
+    );
     expect(
       find.bySemanticsLabel(RegExp('Dhuhr adhan|adhan')),
       findsWidgets,

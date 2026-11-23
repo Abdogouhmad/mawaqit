@@ -7,7 +7,7 @@ app needs each access.
 
 **Branch:** `phase/0.20-settings-onboarding-ui`
 **Version:** `0.20.0+2000` · **Est:** 2–3 days
-**Status:** ◐ in progress on `phase/0.20-settings-onboarding-ui`
+**Status:** ☑ done (code + verification on `phase/0.20-settings-onboarding-ui`)
 
 Release stays CI-driven: bump `pubspec.yaml`, add the `## [0.20.0]` section to
 `CHANGELOG.md`, merge to `main`, and let `release.yml` cut the tag and rewrite
@@ -30,34 +30,34 @@ same voice: one idea per page, plain-language permission explanations, live
 
 ### 1. Settings surface
 
-- [ ] Rebuild `settings_screen.dart` and `screen/{general,notify,permission}.dart`
+- [x] Rebuild `settings_screen.dart` and `screen/{general,notify,permission}.dart`
       on `AppCard`, `AppButton`, `AppPill`, `UiText` and the token façade.
-- [ ] Group related preferences with one-line explanations; every toggle labels
+- [x] Group related preferences with one-line explanations; every toggle labels
       its effect rather than just its name.
-- [ ] Keep every existing preference reachable — no setting silently disappears.
-- [ ] Wire the 0.16 stable/beta channel selector into the grouped information
+- [x] Keep every existing preference reachable — no setting silently disappears.
+- [x] Wire the 0.16 stable/beta channel selector into the grouped information
       architecture without changing the fail-closed update contract.
 
 ### 2. Onboarding and permissions
 
-- [ ] Explain notifications, exact alarms, full-screen access, DND and battery
+- [x] Explain notifications, exact alarms, full-screen access, DND and battery
       exemption in plain language before asking for each one.
-- [ ] Show live *Allowed / Fix* state for every permission and a direct route to
+- [x] Show live *Allowed / Fix* state for every permission and a direct route to
       the relevant system setting or back to Settings.
-- [ ] Keep onboarding skippable and resumable; persist the same flag so returning
+- [x] Keep onboarding skippable and resumable; persist the same flag so returning
       users never see it again.
-- [ ] All three locales (EN/FR/AR) at parity, including RTL flow.
+- [x] All three locales (EN/FR/AR) at parity, including RTL flow.
 
 ### 3. Behavior preservation
 
-- [ ] No change to the native alarm engine, notification policy or OTA checks.
-- [ ] Preference round-trips and controller/provider behavior are unchanged.
+- [x] No change to the native alarm engine, notification policy or OTA checks.
+- [x] Preference round-trips and controller/provider behavior are unchanged.
 
 ### 4. Accessibility and verification
 
-- [ ] Widget tests cover every permission state and the skip/resume path.
-- [ ] Layout tests at 360/388dp, EN/FR/AR, 1×/1.5×/2× text, light/dark/AMOLED.
-- [ ] Run `dart format --set-exit-if-changed .`,
+- [x] Widget tests cover every permission state and the skip/resume path.
+- [x] Layout tests at 360/388dp, EN/FR/AR, 1×/1.5×/2× text, light/dark/AMOLED.
+- [x] Run `dart format --set-exit-if-changed .`,
       `flutter analyze --fatal-infos --fatal-warnings`, `flutter test` and a
       debug APK build on the phase branch.
 

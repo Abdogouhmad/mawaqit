@@ -154,7 +154,7 @@ onboarding/permissions flow, and a refreshed home-screen widget.
 | 0.17.0 | Design system 2.0 + app shell + navigation | 2–3 days | ☑ |
 | 0.18.0 | New Home UI | 2–3 days | ☑ |
 | 0.19.0 | New Times UI | 2 days | ☑ |
-| 0.20.0 | New Settings, onboarding & permissions UI | 2–3 days | ◐ |
+| 0.20.0 | New Settings, onboarding & permissions UI | 2–3 days | ☑ |
 | 0.21.0 | Feature: Adhan 2.0 (tone preview, schedule control, reliability) | 3–4 days | ☐ |
 | 0.22.0 | Feature: home-screen widget 2.0 & quick actions | 2–3 days | ☐ |
 | 0.23.0 | Feature: Qibla direction & travel / multi-location mode | 3–4 days | ☐ |
