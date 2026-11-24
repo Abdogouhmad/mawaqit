@@ -534,3 +534,25 @@ manifest and only receives the beta manifest commit from CI.
 - Signed 1.1.0 beta published via `workflow_dispatch`; beta manifest updated by
   CI; `main` never receives unmerged phase code.
 - Full verification green; on-device findings from the 1.0.0 beta recorded.
+
+### Status (in progress)
+
+Implemented and covered by tests:
+
+- Offline WMM2025 declination (`geomag`) converts Android magnetic azimuth to
+  true north; iOS true headings are normalised. Pure maths in
+  `lib/core/qibla/{qibla,declination}.dart`.
+- Qibla reads `AppSettings.effectiveLatitude/Longitude` first, falling back to
+  the resolved Home fix only in GPS mode. Travel can never overwrite home.
+- Wrap-safe angular low-pass filter plus shortest-path animated rotation; the
+  dial is the only subtree rebuilt by 30 Hz compass samples.
+- Unknown/unreliable Android accuracy shows "calibrating"; dropped streams
+  reconnect after a tokenised backoff instead of dying silently.
+- Semantics on the dial, live region for travel search status, and reduce-motion
+  applied to the last animated settings/calendar surfaces.
+- Layout matrices for Qibla and Travel: 360/388dp × EN/FR/AR × 1×/2× × both
+  sensor/travel states.
+
+Still needs a physical device before beta sign-off: verify the true-north fix
+against a known landmark, and confirm the compass reconnects after backgrounding
+(the retry loop is unit-tested only at the pure-maths level).

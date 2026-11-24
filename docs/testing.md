@@ -158,6 +158,33 @@ Record the result in [`on-device-smoke-1.0.0.md`](on-device-smoke-1.0.0.md).
 - [ ] Airplane mode: searching a new city fails with a readable message and the
       existing travel override is left untouched.
 
+### 1.1.0 Qibla regression checks
+
+These target the four beta reports (wrong needle, wrong bearing/distance,
+jitter, compass never appears). Do them on a physical Android phone and, if one
+is available, an iPhone.
+
+- [ ] **True north:** stand facing a landmark whose true bearing from your
+      current position is known (a map app with declination shown works). The
+      needle must agree with the *true* bearing, not the magnetic one — after
+      1.1.0 the app adds the WMM declination on Android.
+- [ ] **Known bearing:** at the Kaaba the distance reads 0 km and the bearing
+      wraps without jumping; from Rabat the bearing is ≈ 89° and the distance
+      ≈ 4,730 km.
+- [ ] **Travel:** set a travel city with times still on Home; the Qibla bearing
+      and distance change immediately, while Settings still shows the saved home
+      coordinates. "Return home" restores them exactly.
+- [ ] **Jitter:** rotate slowly through north (359° → 1°). The needle takes the
+      short route and glides; it never spins a full turn at the seam.
+- [ ] **Calibration:** with the sensor unreliable (Android accuracy unknown)
+      the screen says "calibrate" instead of silently trusting a bad heading.
+- [ ] **Recovery:** background the app for a minute, return to the Qibla tab,
+      and confirm the needle resumes. Covering the sensors must return to the
+      honest "unavailable" state without crashing the tab.
+- [ ] **Accessibility:** with TalkBack on and 200% text, the dial announces the
+      bearing and sensor state once; the travel search outcome is announced as a
+      live region; reduced motion removes the needle animation.
+
 ### 7. Widget 2.0
 
 - [ ] Add both 2x2 and 4x2 widgets in light, dark and AMOLED themes; text is not
