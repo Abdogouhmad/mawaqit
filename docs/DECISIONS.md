@@ -27,3 +27,29 @@ One line per ambiguity resolved while building against `feat.md`. Newest last.
 - **Stable filters pre-releases twice.** The stable manifest declares `isPrerelease: false`, and `UpdateService.check` additionally refuses any prerelease while on the stable channel, so a misconfigured publish cannot ship a beta build to stable users.
 - **Beta is manual-only.** A push to `main` always publishes stable. Beta uses `workflow_dispatch` with `channel=beta`, `beta_version` and `beta_notes`; it publishes a GitHub **prerelease**, signs with the same release keystore, and rewrites only `update_manifest_beta.json`. The workflow re-downloads the published APK and compares its SHA-256 to the manifest before committing it.
 - **Beta versions are a build-time override.** `MAWAQIT_RELEASE_VERSION` and `MAWAQIT_RELEASE_NOTES` let `build.sh` build `0.17.0-beta.1` without bumping `pubspec.yaml`, which must keep describing the next stable release. `--build-name`/`--build-number` are passed explicitly so `AppInfo` reports the beta version and its derived code.
+- **1.0.0 is one branch, not one branch per phase.** Phases 0.22–0.27 plus the
+  stable release all live on `phase/1.0.0-stable`, merged to `main` only when
+  the full verification matrix and the on-device smoke pass are green. This
+  keeps `main` releasable at every commit.
+- **Distribution for 1.0.0 is GitHub/APK sideload.** The in-app updater and
+  `REQUEST_INSTALL_PACKAGES` are headline features, which Play policy forbids.
+  Play is a separate scoped project (see `production-readiness.md`); it is
+  explicitly out of scope for this release.
+- **The native alarm engine is unchanged for 1.0.0.** No test proved a defect
+  in `AdhanScheduler`/`AdhanPlaybackService`, so the reliability-critical
+  `setExactAndAllowWhileIdle` call was not swapped for `setAlarmClock` without
+  a device to validate it. The only native change is registering
+  `ACTION_DATE_CHANGED` on the existing `BootReceiver`.
+- **Insights are explicit local marks, never inferred.** Mutes and native
+  `resolved` markers are control state, not evidence the user prayed; deriving
+  history from them would be wrong. A bounded `PrayerHistoryStore` records only
+  deliberate taps, capped at 500 entries, never synced.
+- **Widget AMOLED is a data-driven branch, not a colour filter.** A separate
+  const card tree selected by `HWBool('amoled')` moves only the canvas and
+  muted-dot tints, keeping accents identical to the dark theme and avoiding
+  unreadable inversions. Localized labels are compiled into `values-*` via
+  `HWText.localized` so the widget never shows stale cached keys.
+- **Travel is an `AppSettings` override, not a new `LocationMode`.** Effective
+  coordinates are computed by `AppSettings.effectiveCoordinates` so background
+  reschedulers see the temporary city without ever writing it to the shared
+  location cache; clearing travel restores the saved home untouched.

@@ -13,24 +13,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-24
+
+The first stable release. Everything below is included — there are no feature
+flags, experimental screens or hidden tabs left from the roadmap.
+
 ### Added
 
+- **Qibla tab.** A true bearing to the Kaaba from your effective coordinates,
+  with a live compass needle, calibration guidance and an honest "sensor
+  unavailable" state. Bearing maths is verified against `adhan_dart`, including
+  antimeridian crossings.
+- **Travel mode.** Pick a temporary city for prayer times and Qibla without
+  ever overwriting your saved home location. A clear banner marks when you are
+  travelling and one tap returns home.
+- **Home-screen widget 2.0.** Redesigned 2x2 and 4x2 Glance layouts in light,
+  dark and AMOLED themes, with localized Arabic/French/English labels, an
+  optional Hijri date and a live preview. The widget opens Times on tap; real
+  quick actions (open Times, silence adhan) live in the in-app configuration
+  screen.
+- **Prayer insights** on the Times tab: a bounded, entirely local history of
+  manual "prayed" marks with monthly totals, on-time rate and streak. No
+  account, analytics, sync or device identifier is involved; nothing leaves the
+  device.
+- **Richer Hijri calendar** on the Times tab: page between Hijri months, see
+  today and events emphasised, and map any day back to its Gregorian date.
+- **Stable/beta update channels.** Choose your release channel in Software
+  Update; the beta manifest is separate, PRERELEASE-tagged and manually
+  published, so normal pushes never ship prereleases.
 - **A global update banner** now announces a new release on every screen. Tap
   it to open Software Update, or dismiss it for that version only.
 - **Launch and resume now notify you of a new version** (once per release),
   using Mawaqit's existing app-updates notification channel.
 - **Automatic update checks are now configurable** from Software Update, with
   a one-tap way to enable update notifications and a short privacy note.
+- **Midnight alarm re-arming.** A local date change now re-arms the day's
+  adhans, closing the gap where a device left awake across midnight kept
+  yesterday's alarms until the periodic task ran.
 
 ### Changed
 
-- **Bottom navigation is now a standard Material 3 navigation bar**, replacing
-  the floating pill. It stays visible while scrolling and follows the app's
-  light/dark theme and RTL layout.
+- **Bottom navigation is now a standard Material 3 navigation bar** with four
+  destinations — Home, Times, Qibla, Settings — replacing the floating pill. It
+  stays visible while scrolling and follows the app's light/dark theme and RTL
+  layout.
+- **All palettes meet WCAG AA.** The gold, amber and sage accents were darkened
+  and dark-scheme primary text was switched to deep ink so every text role
+  clears 4.5:1, including on AMOLED. The full report is in
+  `docs/contrast-report.md`.
 - **OTA checks fail closed**: a release without a valid 64-hex SHA-256 or with
   a non-HTTPS APK URL is never offered, downloaded or installed. The APK is
   still verified against the manifest checksum before the system installer
-  runs, and mandatory/support-floor updates are honoured as before.
+  runs, and mandatory/support-floor updates are honoured as before. Channel
+  switching is disabled while a download is in flight.
+- **Update manifest commits from beta runs are isolated on `main`.** A beta
+  dispatched from a feature branch can no longer drag the whole unmerged stack
+  onto `main`; only the regenerated manifest file is committed, with a bounded
+  retry for concurrent releases.
 
 ## [0.21.0] - 2026-11-23
 

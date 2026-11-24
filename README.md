@@ -29,9 +29,16 @@ like a real alarm clock — plus a Linux desktop target for development.
 - **Two independent alert channels.** The short pre-prayer chime and the full
   adhan each have their own tone picker (built-in synthesised presets, bundled
   adhan recordings, device sounds, or Silent) and their own 3-second test button.
-- **Home-screen widget.** A framed 2×2 Glance card with the location, next
-  prayer, a countdown to the second and a five-dot day sequence. It keeps
-  advancing while the app is closed and refreshes at every prayer rollover.
+- **Home-screen widget 2.0.** Framed 2×2 and 4×2 Glance layouts in light, dark
+  and AMOLED themes, with the next prayer, a countdown to the second, a five-dot
+  day sequence and an optional Hijri date. Labels are localized in English,
+  Arabic and French; the widget keeps advancing while the app is closed and
+  refreshes at every prayer rollover. Quick actions are configured in-app.
+- **Qibla & travel mode.** A live compass bearing to the Kaaba from your
+  effective coordinates, with a temporary travel city that never overwrites
+  your saved home location.
+- **Prayer insights & Hijri calendar.** The Times tab shows local-only
+  on-time streaks and a pageable Hijri calendar with Gregorian mapping.
 - **Promoted live countdown before each prayer.** The pre-prayer reminder is a
   single ongoing notification: on Android 16+ the system promotes it to a
   status-bar chip, the top of the shade and the lockscreen, showing the prayer
@@ -39,9 +46,10 @@ like a real alarm clock — plus a Linux desktop target for development.
   the lead time. At the prayer time it flips to "It's time for …" with **Prayed**
   and **Dismiss** actions and retires itself; older Androids render the same
   content as a standard ongoing card with a progress bar.
-- **In-app OTA updates.** Settings checks the release manifest, shows installed
-  vs. latest with the "What's new" notes, and downloads, verifies (SHA-256) and
-  installs the new APK.
+- **In-app OTA updates with stable/beta channels.** Software Update checks the
+  selected channel's manifest, shows installed vs. latest with the "What's new"
+  notes, and downloads, verifies (SHA-256) and installs the new APK. Channel
+  switching is disabled while a download is in flight.
 - **English, Arabic and French.** Every string — including notification cards,
   the adhan screen and the widget — is translated; the layout mirrors to RTL in
   Arabic and a bundled Cairo face supplies the Arabic glyphs Manrope lacks.
