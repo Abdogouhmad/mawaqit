@@ -42,8 +42,20 @@ class QiblaState {
   bool get hasNeedle => heading != null && bearing != null;
 
   /// Degrees the needle must rotate from screen-up to point at the Qibla.
+  ///
+  /// Positive values mean "turn right" (clockwise); negative means "turn left".
   double? get needleAngle =>
       hasNeedle ? qiblaNeedleAngle(bearing!, heading!) : null;
+
+  /// Whether the screen may honestly say the user is facing the Qibla.
+  ///
+  /// A coarse or unknown sensor accuracy never counts: the needle may happen
+  /// to be near the top, but the reading is not trustworthy enough to confirm
+  /// alignment. Only the fully available state can report it.
+  bool get isAligned =>
+      status == CompassStatus.available &&
+      needleAngle != null &&
+      needleAngle!.abs() <= qiblaAlignmentTolerance;
 }
 
 /// Offline WMM lookup, cached per coordinate pair by Riverpod.

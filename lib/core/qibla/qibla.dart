@@ -12,6 +12,18 @@ import 'dart:math' as math;
 const qiblaLatitude = 21.4225;
 const qiblaLongitude = 39.8262;
 
+/// How close the needle must be to screen-up before the screen says the user
+/// is facing the Qibla. Five degrees is roughly the width of the gold beam on
+/// the dial: close enough to be honest, wide enough that a hand does not have
+/// to be perfectly still to see the confirmation.
+const qiblaAlignmentTolerance = 5.0;
+
+/// Quantisation step for the "turn N°" guidance.
+///
+/// The compass emits around 30 samples a second; rounding to five-degree steps
+/// keeps the label stable instead of re-laying out on every sample.
+const qiblaTurnStep = 5.0;
+
 /// Great-circle distance to the Qibla, in kilometres.
 double qiblaDistanceKm(double latitude, double longitude) {
   final phi1 = _radians(latitude);

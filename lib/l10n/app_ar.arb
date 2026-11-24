@@ -659,7 +659,13 @@
   "qiblaTitle": "القبلة",
   "qiblaSubtitle": "الاتجاه من {city}",
   "qiblaBearing": "الاتجاه {degrees}°",
-  "qiblaDistance": "على بُعد {distance}",
+  "qiblaBearingLabel": "زاوية القبلة",
+  "qiblaDistance": "{distance} كم",
+  "qiblaDistanceLabel": "المسافة",
+  "qiblaFacing": "أنت تواجه القبلة",
+  "qiblaTurnLeft": "اتجه {degrees}° يسارًا",
+  "qiblaTurnRight": "اتجه {degrees}° يمينًا",
+  "qiblaKaaba": "الكعبة",
   "qiblaCalibrate": "حرّك الهاتف على شكل الرقم ثمانية لمعايرة البوصلة.",
   "qiblaSensorUnavailable": "البوصلة غير متوفرة",
   "qiblaSensorHint": "هذا الجهاز لا يحتوي على مقياس مغناطيسي. الاتجاه صحيح؛ استخدم الخريطة لتحديد الجهة.",
@@ -749,6 +755,9 @@
       }
     }
   },
+  "@qiblaBearingLabel": {
+    "description": "Label above the numeric bearing readout."
+  },
   "@qiblaDistance": {
     "description": "Distance to the Qibla.",
     "placeholders": {
@@ -757,6 +766,33 @@
         "example": "4,200 km"
       }
     }
+  },
+  "@qiblaDistanceLabel": {
+    "description": "Label above the distance readout."
+  },
+  "@qiblaFacing": {
+    "description": "Confirmation shown when the needle sits inside the alignment beam."
+  },
+  "@qiblaTurnLeft": {
+    "description": "Guidance telling the user to turn left by a number of degrees.",
+    "placeholders": {
+      "degrees": {
+        "type": "String",
+        "example": "45"
+      }
+    }
+  },
+  "@qiblaTurnRight": {
+    "description": "Guidance telling the user to turn right by a number of degrees.",
+    "placeholders": {
+      "degrees": {
+        "type": "String",
+        "example": "45"
+      }
+    }
+  },
+  "@qiblaKaaba": {
+    "description": "Legend for the gold Kaaba marker at the needle tip."
   },
   "@qiblaCalibrate": {
     "description": "Compass calibration guidance."

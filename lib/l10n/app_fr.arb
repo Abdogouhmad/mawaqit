@@ -488,7 +488,13 @@
   "qiblaTitle": "Qibla",
   "qiblaSubtitle": "Direction depuis {city}",
   "qiblaBearing": "Direction {degrees}°",
-  "qiblaDistance": "À {distance}",
+  "qiblaBearingLabel": "Cap",
+  "qiblaDistance": "{distance} km",
+  "qiblaDistanceLabel": "Distance",
+  "qiblaFacing": "Face à la Qibla",
+  "qiblaTurnLeft": "Tournez de {degrees}° à gauche",
+  "qiblaTurnRight": "Tournez de {degrees}° à droite",
+  "qiblaKaaba": "Kaaba",
   "qiblaCalibrate": "Faites un huit avec le téléphone pour calibrer la boussole.",
   "qiblaSensorUnavailable": "Boussole indisponible",
   "qiblaSensorHint": "Cet appareil n'a pas de magnétomètre. Le cap reste exact ; utilisez une carte pour vous orienter.",
@@ -578,6 +584,9 @@
       }
     }
   },
+  "@qiblaBearingLabel": {
+    "description": "Label above the numeric bearing readout."
+  },
   "@qiblaDistance": {
     "description": "Distance to the Qibla.",
     "placeholders": {
@@ -586,6 +595,33 @@
         "example": "4,200 km"
       }
     }
+  },
+  "@qiblaDistanceLabel": {
+    "description": "Label above the distance readout."
+  },
+  "@qiblaFacing": {
+    "description": "Confirmation shown when the needle sits inside the alignment beam."
+  },
+  "@qiblaTurnLeft": {
+    "description": "Guidance telling the user to turn left by a number of degrees.",
+    "placeholders": {
+      "degrees": {
+        "type": "String",
+        "example": "45"
+      }
+    }
+  },
+  "@qiblaTurnRight": {
+    "description": "Guidance telling the user to turn right by a number of degrees.",
+    "placeholders": {
+      "degrees": {
+        "type": "String",
+        "example": "45"
+      }
+    }
+  },
+  "@qiblaKaaba": {
+    "description": "Legend for the gold Kaaba marker at the needle tip."
   },
   "@qiblaCalibrate": {
     "description": "Compass calibration guidance."

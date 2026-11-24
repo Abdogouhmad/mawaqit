@@ -556,3 +556,32 @@ Implemented and covered by tests:
 Still needs a physical device before beta sign-off: verify the true-north fix
 against a known landmark, and confirm the compass reconnects after backgrounding
 (the retry loop is unit-tested only at the pure-maths level).
+
+## 1.1.1 — Beta: Qibla instrument redesign
+
+**Goal:** redesign the whole Qibla tab, not just the arrow, then publish another
+signed beta from `phase/1.1.1-beta`. `main` still carries only the 0.21.0 stable
+manifest plus CI's beta manifest commit; no phase code is merged and no stable
+is cut.
+
+**Scope**
+
+- Replace the arrow with an astrolabe-style instrument: protractor tick ring,
+  fixed gold alignment gate at screen-up, slim tapered needle with a Kaaba cube
+  at its tip, and a pivot cap.
+- Add an explicit aligned state: the frame turns gold, the gate fills, and the
+  status reads "Facing the Qibla". It requires `CompassStatus.available` **and**
+  a needle angle inside ±5°, so a coarse or missing sensor can never confirm it.
+- Show quantised "Turn N° left/right" guidance, with EN/FR/AR strings, and keep
+  the honest "hold the phone flat" caption while guidance is active.
+- Restructure the readouts into labelled bearing/distance cells that stack at
+  200% text, and keep the per-sample rebuild confined to the needle layer.
+
+**Definition of done**
+
+- Qibla maths and controller tests cover the alignment boundary and the
+  untrustworthy-compass case; the widget matrix covers the states at 360/388dp
+  in EN/FR/AR at 1×/2× with no overflow and no goldens.
+- Full verification green; signed `1.1.1-beta.1` published by `workflow_dispatch`
+  with CI updating only the beta manifest on `main`.
+- On-device checks in `docs/testing.md` recorded before the stable release.

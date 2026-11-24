@@ -22,6 +22,7 @@ void main() {
     longitude: -6.8416,
     locationName: 'Rabat',
   );
+  final rabatBearing = qiblaBearing(34.0209, -6.8416);
 
   for (final width in [360.0, 388.0]) {
     for (final locale in AppLocalizations.supportedLocales) {
@@ -43,12 +44,14 @@ void main() {
               tester.element(find.byType(QiblaScreen)),
             );
             expect(find.text(l10n.qiblaTitle), findsWidgets);
-            expect(
-              find.text(
-                hasSensor ? l10n.qiblaCompassHint : l10n.qiblaSensorUnavailable,
-              ),
-              findsOneWidget,
-            );
+            if (hasSensor) {
+              expect(
+                find.text(_turnHint(l10n, rabatBearing, 140)),
+                findsOneWidget,
+              );
+            } else {
+              expect(find.text(l10n.qiblaSensorUnavailable), findsOneWidget);
+            }
           });
         }
       }
@@ -72,6 +75,80 @@ void main() {
     );
     semantics.dispose();
   });
+
+  testWidgets('aligned state confirms facing the Qibla', (tester) async {
+    await pumpQibla(
+      tester,
+      home,
+      const Locale('en'),
+      360,
+      1,
+      hasSensor: true,
+      heading: rabatBearing,
+    );
+    final l10n = AppLocalizations.of(tester.element(find.byType(QiblaScreen)));
+
+    expect(find.text(l10n.qiblaFacing), findsOneWidget);
+    expect(find.textContaining('Turn'), findsNothing);
+  });
+
+  testWidgets('stays in guidance mode just outside the beam', (tester) async {
+    await pumpQibla(
+      tester,
+      home,
+      const Locale('en'),
+      360,
+      1,
+      hasSensor: true,
+      heading: rabatBearing + qiblaAlignmentTolerance * 2,
+    );
+    final l10n = AppLocalizations.of(tester.element(find.byType(QiblaScreen)));
+
+    expect(find.text(l10n.qiblaFacing), findsNothing);
+    expect(find.textContaining('Turn'), findsOneWidget);
+  });
+
+  testWidgets('aligned state fits at 360dp/2x in Arabic', (tester) async {
+    await pumpQibla(
+      tester,
+      home,
+      const Locale('ar'),
+      360,
+      2,
+      hasSensor: true,
+      heading: rabatBearing,
+    );
+    final l10n = AppLocalizations.of(tester.element(find.byType(QiblaScreen)));
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.qiblaFacing), findsOneWidget);
+  });
+
+  testWidgets('calibration card fits at 360dp/2x in Arabic', (tester) async {
+    await pumpQibla(
+      tester,
+      home,
+      const Locale('ar'),
+      360,
+      2,
+      hasSensor: true,
+      accuracy: 45,
+    );
+    final l10n = AppLocalizations.of(tester.element(find.byType(QiblaScreen)));
+
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.qiblaCalibrate), findsOneWidget);
+  });
+}
+
+String _turnHint(AppLocalizations l10n, double bearing, double heading) {
+  final angle = shortestAngleDelta(heading, bearing);
+  final degrees = ((angle.abs() / qiblaTurnStep).round() * qiblaTurnStep)
+      .clamp(qiblaTurnStep, 180.0)
+      .toInt();
+  return angle >= 0
+      ? l10n.qiblaTurnRight('$degrees')
+      : l10n.qiblaTurnLeft('$degrees');
 }
 
 Future<void> pumpQibla(
@@ -81,21 +158,24 @@ Future<void> pumpQibla(
   double width,
   double scale, {
   required bool hasSensor,
+  double heading = 140,
+  double accuracy = 15,
 }) async {
   tester.view.physicalSize = Size(width, 9000) * 3;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
 
-  final heading = hasSensor
-      ? Stream.value(const HeadingReading(heading: 140, accuracy: 15))
-      : Stream.value(const HeadingReading());
+  final reading = hasSensor
+      ? HeadingReading(heading: heading, accuracy: accuracy)
+      : const HeadingReading();
+  final headingStream = Stream.value(reading);
 
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         homeControllerProvider.overrideWith(() => _StubHome(home)),
         settingsProvider.overrideWith(() => _StubSettings(const AppSettings())),
-        headingProvider.overrideWith((_) => heading),
+        headingProvider.overrideWith((_) => headingStream),
       ],
       child: MaterialApp(
         theme: AppTheme.dark(arabic: locale.languageCode == 'ar'),

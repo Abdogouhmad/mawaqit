@@ -61,6 +61,9 @@ abstract final class AppOpacity {
   /// Translucent halo around the sun marker on the solar arc.
   static const double arcGlow = 0.18;
 
+  /// Qibla alignment beam wash once the needle is inside the slot.
+  static const double qiblaBeamAligned = 0.34;
+
   /// Hairlines and dividers that should read as structure, not ink.
   static const double hairline = 0.4;
 
@@ -117,6 +120,9 @@ abstract final class AppElevation {
   static const double pulseBaseBlur = AppSpacing.sm;
   static const double pulseRangeBlur = AppSpacing.sm;
   static const double pulseSpread = AppSpacing.xxs;
+
+  /// Soft halo under the Qibla alignment arc once the needle is inside it.
+  static const double qiblaArcBlur = AppSpacing.xs;
 }
 
 /// Backdrop-filter sigmas.
@@ -187,6 +193,45 @@ abstract final class AppSize {
   static const double navigationBarHeight = AppSpacing.offsetLg;
   static const double navigationIcon = AppSpacing.giga;
   static const double navigationLabelPadding = AppSpacing.xs;
+
+  /// Qibla dial. Capped so it stays a quiet instrument on tablets instead of
+  /// growing into a full-screen target.
+  static const double qiblaDialMax = AppSpacing.progress;
+
+  /// Needle geometry, as fractions of the dial radius.
+  static const double qiblaNeedleTip = 0.74;
+  static const double qiblaNeedleTail = 0.20;
+  static const double qiblaNeedleHalfWidth = 0.030;
+  static const double qiblaNeedleWaist = 0.30;
+
+  /// Where the gold half of the needle hands over to the emerald tail, as a
+  /// fraction of the needle's own bounding box (tip at 0, tail at 1).
+  static const double qiblaNeedleGoldStop = 0.78;
+
+  /// Counterweight disc at the tail, relative to the needle half-width.
+  static const double qiblaTailDot = 0.85;
+
+  /// Kaaba marker. The cube scales with the dial; the legend uses a fixed size.
+  static const double qiblaCubeScale = 0.10;
+  static const double qiblaCubeRadius = 0.2;
+  static const double qiblaCubeBand = 0.26;
+  static const double qiblaCubeBandTop = 0.14;
+  static const double qiblaCubeGlowOuter = 0.90;
+  static const double qiblaCubeGlowInner = 0.62;
+
+  /// The gold beam the needle must enter, and the inner ring it sits against.
+  static const double qiblaBeamInner = 0.62;
+  static const double qiblaInnerRing = 0.80;
+
+  /// Tick lengths, the beam's inset and the rule between the two readouts.
+  static const double qiblaTickMajor = AppSpacing.md;
+  static const double qiblaTickMinor = AppSpacing.xs;
+  static const double qiblaArcInset = AppSpacing.xxs;
+  static const double qiblaReadoutRule = AppSpacing.tera;
+
+  /// Hub that covers the needle's pivot.
+  static const double qiblaHub = AppSpacing.giga;
+  static const double qiblaHubDot = AppSpacing.xs;
 }
 
 /// Shape constants shared by more than one primitive.

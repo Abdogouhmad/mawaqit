@@ -80,6 +80,36 @@ void main() {
     );
   });
 
+  testWidgets('marks the reading aligned inside the alignment beam', (
+    tester,
+  ) async {
+    final bearing = qiblaBearing(34.0209, -6.8416);
+    final state = await pumpState(
+      tester,
+      Stream.value(HeadingReading(heading: bearing, accuracy: 10)),
+    );
+
+    expect(state.status, CompassStatus.available);
+    expect(state.isAligned, isTrue);
+    expect(
+      state.needleAngle!.abs(),
+      lessThanOrEqualTo(qiblaAlignmentTolerance),
+    );
+  });
+
+  testWidgets('never confirms alignment on an unreliable compass', (
+    tester,
+  ) async {
+    final bearing = qiblaBearing(34.0209, -6.8416);
+    final state = await pumpState(
+      tester,
+      Stream.value(HeadingReading(heading: bearing, accuracy: 45)),
+    );
+
+    expect(state.status, CompassStatus.calibrating);
+    expect(state.isAligned, isFalse);
+  });
+
   testWidgets('shows calibration hint for a coarse accuracy bucket', (
     tester,
   ) async {

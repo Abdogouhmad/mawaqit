@@ -148,7 +148,8 @@ Record the result in [`on-device-smoke-1.0.0.md`](on-device-smoke-1.0.0.md).
 ### 6. Qibla & travel
 
 - [ ] Qibla tab shows a bearing from the saved home coordinates with the
-      compass moving; rotating the device keeps the needle aligned.
+      compass moving; rotating the device brings the Kaaba-tipped needle into
+      the gold gate at the top of the dial and confirms "Facing the Qibla".
 - [ ] With the compass covered/unavailable (or on a host without a sensor), the
       screen says so honestly and still shows the numeric bearing.
 - [ ] Switching on travel search and picking a city shows the travel banner on
@@ -184,6 +185,27 @@ is available, an iPhone.
 - [ ] **Accessibility:** with TalkBack on and 200% text, the dial announces the
       bearing and sensor state once; the travel search outcome is announced as a
       live region; reduced motion removes the needle animation.
+
+### 1.1.1 Qibla redesign checks
+
+The redesigned instrument replaces the arrow-only glance with quantified turn
+guidance and an explicit aligned state. Repeat these on Android and iOS before
+the next stable pass.
+
+- [ ] **Turn guidance:** standing away from the Qibla, the status line says
+      "Turn N° left/right" and the number counts down as the phone turns. The
+      gold gate stays fixed at screen-up; the needle moves, not the dial.
+- [ ] **Alignment:** inside ±5° with a trustworthy compass, the dial frame turns
+      gold, the beam fills, and the line reads "Facing the Qibla". At 6–10° off
+      it must still ask for a turn — never claim alignment early.
+- [ ] **Honesty:** with the compass calibrating or unavailable, the gold frame
+      and "Facing the Qibla" never appear even if the needle happens to sit at
+      the top. The bearing and distance readouts remain correct.
+- [ ] **Reading the instrument:** the Kaaba cube at the needle tip is identified
+      by the legend under the dial; bearing and distance are legible in both
+      themes at 1× and stack into rows at 200% text.
+- [ ] **Localisation:** EN/FR/AR strings for the turn hints, alignment state and
+      readouts are present; RTL layout has no clipping at 360/388dp and 2× text.
 
 ### 7. Widget 2.0
 
