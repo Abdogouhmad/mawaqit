@@ -28,22 +28,24 @@ Future<void> main() async {
       // active when it was registered.
       WidgetsFlutterBinding.ensureInitialized();
 
-      await TimezoneSetup.ensureInitialized();
-
-      // Captures version/versionCode once for the OTA updater. Never throws.
-      await AppInfo.init();
+      // These four reads are independent (timezone database, package metadata,
+      // a widget-launch channel and a preference load). Starting them together
+      // overlaps their platform round trips instead of paying four serial
+      // round trips on the cold-start path. All are non-throwing and must still
+      // be awaited before runApp, because the first frame reads all four.
+      final launchRoute = _launchRoute();
+      await Future.wait<void>([
+        TimezoneSetup.ensureInitialized(),
+        AppInfo.init(),
+        OnboardingGate.instance.load(),
+      ]);
 
       // Registers the WorkManager callback dispatcher (runs the background isolate).
       BackgroundScheduler.initialize();
 
       // Home-screen widget launch, resolved *before* the first frame so the app
       // opens on the tab the card was showing instead of flashing Home first.
-      MawaqitApp.launchRoute = await _launchRoute();
-
-      // The router's first redirect is synchronous, so the first-run flag must
-      // be in memory before the first frame. A preference failure degrades to
-      // showing the walkthrough, never to a blank app.
-      await OnboardingGate.instance.load();
+      MawaqitApp.launchRoute = await launchRoute;
 
       runApp(
         const ProviderScope(
