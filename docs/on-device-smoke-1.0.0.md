@@ -1,8 +1,14 @@
-# 1.0.0 on-device smoke pass
+# 1.0.0 beta — on-device smoke pass
 
 This is the recorded result of the manual matrix in [`testing.md`](testing.md)
-(sections 1–11). Fill it in on a physical device before stable is declared; CI
-cannot exercise sensors, the installer, or the lockscreen.
+(sections 1–11), run against the `1.0.0-beta.1` prerelease. Fill it in on a
+physical device before the stable build is declared; CI cannot exercise
+sensors, the installer, or the lockscreen.
+
+**Release plan:** 1.0.0 ships to the beta channel first. Once every row below
+is a pass (or an agreed, documented non-blocker), the same feature set is
+bumped to `1.0.1` and released as stable from `main`. The stable manifest and
+`main` are deliberately left on `0.21.0` until that sign-off.
 
 | Field | Value |
 | --- | --- |
@@ -31,5 +37,5 @@ _None recorded yet._
 
 ## Sign-off
 
-Stable 1.0.0 may be declared only when every row is **pass** (or an agreed,
+Stable `1.0.1` may be declared only when every row is **pass** (or an agreed,
 documented non-blocker) and this file is committed with the release commit.
