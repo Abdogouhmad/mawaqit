@@ -1,5 +1,6 @@
 import 'package:adhan_dart/adhan_dart.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mawaqit/core/qibla/declination.dart';
 import 'package:mawaqit/core/qibla/qibla.dart';
 
 void main() {
@@ -62,6 +63,44 @@ void main() {
 
     test('is zero when the phone already faces the Qibla', () {
       expect(qiblaNeedleAngle(142, 142), 0);
+    });
+  });
+
+  group('true-north correction', () {
+    test('adds east declination to a magnetic heading', () {
+      expect(magneticToTrueHeading(100, 10), closeTo(110, 0.001));
+      expect(magneticToTrueHeading(355, 10), closeTo(5, 0.001));
+      expect(magneticToTrueHeading(10, -20), closeTo(350, 0.001));
+    });
+
+    test('normalises azimuths outside 0…360', () {
+      expect(normalizeAzimuth(-10), closeTo(350, 0.001));
+      expect(normalizeAzimuth(370), closeTo(10, 0.001));
+    });
+
+    test('WMM declination is finite and location-dependent', () {
+      final date = DateTime.utc(2026, 6, 15);
+      final rabat = magneticDeclinationAt(34.0209, -6.8416, date: date);
+      final tokyo = magneticDeclinationAt(35.6895, 139.6917, date: date);
+      expect(rabat.isFinite, isTrue);
+      expect(tokyo.isFinite, isTrue);
+      expect(rabat, inInclusiveRange(-20, 20));
+      expect(tokyo, inInclusiveRange(-20, 20));
+      expect(rabat, isNot(closeTo(tokyo, 0.1)));
+    });
+  });
+
+  group('heading smoothing', () {
+    test('crosses north by the short route', () {
+      expect(smoothHeading(350, 10), closeTo(355, 0.001));
+      expect(smoothHeading(10, 350), closeTo(5, 0.001));
+    });
+
+    test('converges towards the new heading without overshooting', () {
+      final first = smoothHeading(0, 90);
+      expect(first, greaterThan(0));
+      expect(first, lessThan(90));
+      expect(smoothHeading(first, 90), greaterThan(first));
     });
   });
 }

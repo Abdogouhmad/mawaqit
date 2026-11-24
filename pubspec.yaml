@@ -51,6 +51,7 @@ dependencies:
   flutter_compass: ^0.8.1
 
   home_widget_generator: any
+  geomag: ^0.3.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

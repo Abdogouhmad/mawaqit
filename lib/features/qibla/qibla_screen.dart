@@ -1,8 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:mawaqit/core/qibla/qibla.dart';
 import 'package:mawaqit/core/ui/theme/app_tokens.dart';
 import 'package:mawaqit/features/qibla/qibla_controller.dart';
 import 'package:mawaqit/features/qibla/travel_screen.dart';
@@ -29,8 +28,10 @@ class QiblaScreen extends ConsumerWidget {
     final scheme = Theme.of(context).colorScheme;
 
     final hasNeedle = state.hasNeedle;
-    final angle = state.needleAngle ?? 0.0;
     final hasSensor = state.status != CompassStatus.unavailable;
+    final bearingLabel = state.bearing == null
+        ? l10n.travelSetLocation
+        : l10n.qiblaBearing(state.bearing!.round().toString());
 
     return Scaffold(
       appBar: AppBar(
@@ -64,45 +65,57 @@ class QiblaScreen extends ConsumerWidget {
               AppCard(
                 child: Column(
                   children: [
-                    SizedBox.square(
-                      dimension: AppSpacing.offsetXl,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: scheme.outlineVariant.withValues(
-                                  alpha: AppOpacity.hairline,
+                    Semantics(
+                      container: true,
+                      label: [
+                        bearingLabel,
+                        switch (state.status) {
+                          CompassStatus.unavailable =>
+                            l10n.qiblaSensorUnavailable,
+                          CompassStatus.calibrating => l10n.qiblaCalibrate,
+                          CompassStatus.available => l10n.qiblaCompassHint,
+                        },
+                      ].join(', '),
+                      child: SizedBox.square(
+                        dimension: AppSpacing.offsetXl,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: scheme.outlineVariant.withValues(
+                                    alpha: AppOpacity.hairline,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          Icon(
-                            Icons.navigation_rounded,
-                            size: AppIconSize.display,
-                            color: hasSensor ? scheme.primary : scheme.outline,
-                          ),
-                          if (hasNeedle)
-                            Transform.rotate(
-                              angle: angle * math.pi / 180,
+                            ExcludeSemantics(
                               child: Icon(
-                                Icons.arrow_upward_rounded,
+                                Icons.navigation_rounded,
                                 size: AppIconSize.display,
-                                color: scheme.primary,
+                                color: hasSensor
+                                    ? scheme.primary
+                                    : scheme.outline,
                               ),
                             ),
-                        ],
+                            if (hasNeedle)
+                              _CompassNeedle(
+                                angle: state.needleAngle!,
+                                color: scheme.primary,
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     if (state.bearing != null)
-                      AppPill(
-                        label: l10n.qiblaBearing(
-                          state.bearing!.round().toString(),
+                      ExcludeSemantics(
+                        child: AppPill(
+                          label: bearingLabel,
+                          icon: Icons.explore_outlined,
                         ),
-                        icon: Icons.explore_outlined,
                       ),
                     if (state.distanceKm != null) ...[
                       const SizedBox(height: AppSpacing.md),
@@ -161,15 +174,6 @@ class QiblaScreen extends ConsumerWidget {
                   color: scheme.onSurfaceVariant,
                   textAlign: TextAlign.center,
                 ),
-                if (state.status == CompassStatus.available) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  UiText(
-                    l10n.qiblaCalibrate,
-                    type: UiTextType.labelMedium,
-                    color: scheme.onSurfaceVariant,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
               ],
               const SizedBox(height: AppSpacing.mega),
               AppButton(
@@ -182,6 +186,49 @@ class QiblaScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Smoothly eases the needle between sensor samples without ever spinning the
+/// long way round when the angle crosses ±180°. Honours both reduce-motion
+/// sources through [AppSpring.isDisabled].
+class _CompassNeedle extends StatefulWidget {
+  const _CompassNeedle({required this.angle, required this.color});
+
+  final double angle;
+  final Color color;
+
+  @override
+  State<_CompassNeedle> createState() => _CompassNeedleState();
+}
+
+class _CompassNeedleState extends State<_CompassNeedle> {
+  late double _angle = widget.angle;
+  late double _turns = widget.angle / 360;
+
+  @override
+  void didUpdateWidget(covariant _CompassNeedle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.angle == widget.angle) return;
+    _turns += shortestAngleDelta(_angle, widget.angle) / 360;
+    _angle = widget.angle;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = AppSpring.isDisabled(context);
+    return ExcludeSemantics(
+      child: AnimatedRotation(
+        turns: _turns,
+        duration: reduceMotion ? Duration.zero : AppMotion.short,
+        curve: AppMotion.standard,
+        child: Icon(
+          Icons.arrow_upward_rounded,
+          size: AppIconSize.display,
+          color: widget.color,
         ),
       ),
     );

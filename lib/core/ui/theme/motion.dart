@@ -26,6 +26,10 @@ abstract final class AppMotion {
   static const Duration long = Duration(milliseconds: 500);
   static const Duration longest = Duration(milliseconds: 700);
 
+  /// Backoff before reconnecting a dropped platform stream (compass plugin).
+  /// Not an animation, but kept here so no caller invents a Duration literal.
+  static const Duration retry = Duration(milliseconds: 500);
+
   /// Ambient "live" pulse. Deliberately outside the M3 appear/disappear scale:
   /// this is a continuous state marker, not a transition.
   static const Duration pulse = Duration(milliseconds: 2000);

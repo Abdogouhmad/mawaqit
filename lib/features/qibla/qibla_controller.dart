@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mawaqit/core/qibla/declination.dart';
 import 'package:mawaqit/core/qibla/qibla.dart';
 import 'package:mawaqit/features/home/home_controller.dart';
 import 'package:mawaqit/features/qibla/heading_source.dart';
+import 'package:mawaqit/features/settings/settings_controller.dart';
 
 /// How much of the compass can be trusted right now.
 enum CompassStatus { available, calibrating, unavailable }
@@ -31,7 +33,7 @@ class QiblaState {
   /// Great-circle distance in kilometres.
   final double? distanceKm;
 
-  /// Device heading when a magnetometer supplied one.
+  /// Device heading when a magnetometer supplied one, corrected to true north.
   final double? heading;
 
   final CompassStatus status;
@@ -44,15 +46,39 @@ class QiblaState {
       hasNeedle ? qiblaNeedleAngle(bearing!, heading!) : null;
 }
 
-/// Combines the resolved Home location with the compass stream. A plain
-/// [Provider] is enough: both inputs are already reactive, and neither needs a
-/// mutable notifier of its own.
+/// Offline WMM lookup, cached per coordinate pair by Riverpod.
+final magneticDeclinationProvider =
+    Provider.family<double, ({double latitude, double longitude})>((
+      ref,
+      point,
+    ) {
+      return magneticDeclinationAt(point.latitude, point.longitude);
+    });
+
+/// Combines the effective prayer location with the compass stream.
+///
+/// Coordinates come from [AppSettings] first (travel override, then chosen city)
+/// and from the resolved Home state only as a GPS fallback. Reading settings
+/// directly matters: Home is recomputed asynchronously, so during travel the
+/// old `HomeState` can briefly still hold the saved city and show a bearing to
+/// the wrong place. A plain [Provider] is enough — both inputs are already
+/// reactive, and neither needs a mutable notifier of its own.
 final qiblaControllerProvider = Provider<QiblaState>((ref) {
+  final settings = ref.watch(settingsProvider).value;
   final home = ref.watch(homeControllerProvider).value;
   final reading = ref.watch(headingProvider).value ?? const HeadingReading();
 
-  final latitude = home?.latitude;
-  final longitude = home?.longitude;
+  final fromSettings =
+      settings?.effectiveLatitude != null &&
+      settings?.effectiveLongitude != null;
+  final latitude = fromSettings ? settings!.effectiveLatitude : home?.latitude;
+  final longitude = fromSettings
+      ? settings!.effectiveLongitude
+      : home?.longitude;
+  final locationName = fromSettings
+      ? (settings!.effectiveLocationName ?? home?.locationName ?? '')
+      : (home?.locationName ?? '');
+
   final hasLocation = latitude != null && longitude != null;
 
   final CompassStatus status = !reading.hasHeading
@@ -61,13 +87,31 @@ final qiblaControllerProvider = Provider<QiblaState>((ref) {
       ? CompassStatus.calibrating
       : CompassStatus.available;
 
+  // Android reports magnetic azimuth; convert it into the same true-north frame
+  // the great-circle bearing uses. True-north readings only need normalising
+  // (Android can emit −180…180, iOS 0…360).
+  final declination = hasLocation
+      ? ref.watch(
+          magneticDeclinationProvider((
+            latitude: latitude,
+            longitude: longitude,
+          )),
+        )
+      : 0.0;
+  final heading = switch (reading.hasHeading) {
+    false => null,
+    true when reading.basis == HeadingBasis.magneticNorth =>
+      magneticToTrueHeading(reading.heading!, declination),
+    true => normalizeAzimuth(reading.heading!),
+  };
+
   return QiblaState(
-    locationName: home?.locationName ?? '',
+    locationName: locationName,
     latitude: latitude,
     longitude: longitude,
     bearing: hasLocation ? qiblaBearing(latitude, longitude) : null,
     distanceKm: hasLocation ? qiblaDistanceKm(latitude, longitude) : null,
-    heading: reading.hasHeading ? reading.heading : null,
+    heading: heading,
     status: status,
   );
 });

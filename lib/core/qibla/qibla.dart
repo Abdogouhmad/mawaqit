@@ -43,10 +43,42 @@ double qiblaBearing(double latitude, double longitude) {
 
 /// Degrees the compass arrow must rotate to point at the Qibla.
 ///
-/// Both inputs are clockwise-from-north degrees. The result is normalised to
-/// −180…180 so the needle always takes the shorter turn.
+/// Both inputs are clockwise-from-**true**-north degrees. The result is
+/// normalised to −180…180 so the needle always takes the shorter turn.
 double qiblaNeedleAngle(double bearing, double heading) =>
-    _normalizeSigned(bearing - heading);
+    shortestAngleDelta(heading, bearing);
+
+/// Signed shortest turn from [from] to [to], in −180…180 degrees.
+double shortestAngleDelta(double from, double to) =>
+    _normalizeSigned(to - from);
+
+/// Converts a magnetic-north heading into a true-north heading.
+///
+/// Magnetic declination is positive east of true north, so a compass reading
+/// [magnetic] points [declination] degrees to the east of where true north is;
+/// adding it back puts both the heading and [qiblaBearing] in the same frame.
+/// Android sensors report magnetic azimuth, iOS reports `trueHeading` — this is
+/// what keeps the needle consistent across platforms.
+double magneticToTrueHeading(double magnetic, double declination) =>
+    _azimuth(magnetic + declination);
+
+/// Wraps any azimuth into 0…360. Android's `getOrientation` returns −180…180;
+/// this puts it in the same frame as the computed Qibla bearing.
+double normalizeAzimuth(double degrees) => _azimuth(degrees);
+
+/// Wrap-safe angular low-pass filter for a noisy compass stream.
+///
+/// A plain `(a + b) / 2` spins the needle the long way round when a sample
+/// crosses north (359° → 1°). Taking the shortest signed delta first keeps the
+/// correction continuous at the seam.
+///
+/// [alpha] is the weight of the new sample, 0…1: smaller is smoother but
+/// laggier. Samples arrive around 30 Hz on Android, so 0.25 settles in roughly
+/// a tenth of a second without feeling sticky.
+double smoothHeading(double previous, double next, {double alpha = 0.25}) {
+  final delta = _normalizeSigned(next - previous);
+  return _azimuth(previous + alpha * delta);
+}
 
 double _radians(double degrees) => degrees * math.pi / 180;
 
