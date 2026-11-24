@@ -491,3 +491,46 @@ Tag and release are cut by CI from the version bump — never by hand.
 - Known constraints: [`production-readiness.md`](production-readiness.md),
   [`optimization-notes.md`](optimization-notes.md), [`testing.md`](testing.md),
   [`DECISIONS.md`](DECISIONS.md).
+
+---
+
+## 1.1.0 — Beta: Qibla fixes, UI polish & optimization
+
+**Goal:** iterate on the 1.0.0 beta before declaring stable. Ship another signed
+beta from a dedicated `phase/1.1.0-beta` branch; `main` keeps the 0.21.0 stable
+manifest and only receives the beta manifest commit from CI.
+
+**Scope**
+
+- **Qibla correctness & feel**
+  - Bearings must be true-north on every platform. `flutter_compass` reports
+    magnetic heading on Android and true heading on iOS; apply a local magnetic
+    declination correction on Android so the needle agrees with the computed
+    bearing.
+  - Read coordinates from `AppSettings.effectiveCoordinates` (travel/city/GPS)
+    instead of the possibly-lagging `HomeState`, so the bearing and distance
+    always match the times tab.
+  - Smooth the needle with an angular low-pass filter (wrap-safe at ±180°) and
+    an animated rotation instead of jumping at ~30 sensor events/sec.
+  - Treat Android's `accuracy == -1` (unreliable) as "calibrating", recover from
+    stream errors instead of killing the source, and re-subscribe on resume.
+- **Performance / startup**
+  - Profile and trim rebuilds on tab switches and the compass stream; keep the
+    0.15.x and 0.26 optimisations.
+- **UI polish**
+  - Apply the maintainer's explicit change list (to be provided) across all
+    tabs; no raw colour/size/duration literals, no overflow at 360/388dp in
+    EN/FR/AR at 2× text.
+- **Accessibility depth**
+  - Semantics, focus order, TalkBack, 200% text and reduced-motion refinements
+    on the Qibla/travel screens and any newly changed UI.
+
+**Definition of done**
+
+- Qibla needle points to the correct true bearing on Android and iOS;
+  antimeridian and declination maths are unit-tested.
+- Compass degrades honestly (unavailable / calibrating) and recovers from
+  transient errors; widget tests cover all states.
+- Signed 1.1.0 beta published via `workflow_dispatch`; beta manifest updated by
+  CI; `main` never receives unmerged phase code.
+- Full verification green; on-device findings from the 1.0.0 beta recorded.
