@@ -56,7 +56,8 @@
         "type": "String",
         "example": "Fajr"
       }
-    }
+    },
+    "description": "Label for the adhan preview button on the Home screen, naming the prayer that will play."
   },
   "homeDevPreviewBody": "Pushes the real full-screen presenter. Stop and the volume keys behave exactly like a live alarm.",
   "solarNoon": "Solar Noon",
@@ -71,7 +72,8 @@
         "type": "String",
         "example": "11h 14m"
       }
-    }
+    },
+    "description": "Solar-noon detail line showing the time and the length of the day."
   },
   "sunset": "Sunset",
   "prayerMuted": "Muted",
@@ -127,7 +129,8 @@
         "type": "String",
         "example": "-0.128"
       }
-    }
+    },
+    "description": "Display of the current location coordinates on the Settings screen."
   },
   "settingsAboutTagline": "Prayer times, without the noise.",
   "settingsAboutVersion": "v{version}  •  No accounts, no tracking",
@@ -137,7 +140,8 @@
         "type": "String",
         "example": "0.9.0"
       }
-    }
+    },
+    "description": "Version line on the About card, also stating the no-tracking guarantee."
   },
   "settingsLocationModeAuto": "Auto (GPS)",
   "settingsLocationModeCity": "City",
@@ -151,7 +155,8 @@
         "type": "String",
         "example": "Adhan"
       }
-    }
+    },
+    "description": "Title of the tone-picker section for the given notification kind."
   },
   "notifTestAction": "Test {kind}",
   "@notifTestAction": {
@@ -160,7 +165,8 @@
         "type": "String",
         "example": "Adhan"
       }
-    }
+    },
+    "description": "Button that plays a test notification for the given kind."
   },
   "notifRemindMeBefore": "Remind me before",
   "notifKindDisabledWarning": "{kind} notifications are off — flip the switch above, then try again.",
@@ -170,7 +176,8 @@
         "type": "String",
         "example": "Adhan"
       }
-    }
+    },
+    "description": "Warning shown when trying to test a notification kind that is switched off."
   },
   "notifAccessWarning": "Notification access is off — allow notifications for Mawaqit, then try again.",
   "notifTestFailed": "{kind} test failed: {error}",
@@ -183,7 +190,8 @@
       "error": {
         "type": "String"
       }
-    }
+    },
+    "description": "Error message after a failed notification test."
   },
   "notifPrayerAtTime": "It is now time for the {prayer} prayer · {time}",
   "@notifPrayerAtTime": {
@@ -196,7 +204,8 @@
         "type": "String",
         "example": "6:42 PM"
       }
-    }
+    },
+    "description": "Notification body announcing that the named prayer time has arrived."
   },
   "notifReminderInOneMinute": "{prayer} in 1 minute",
   "@notifReminderInOneMinute": {
@@ -205,7 +214,8 @@
         "type": "String",
         "example": "Asr"
       }
-    }
+    },
+    "description": "Notification body for a prayer one minute away."
   },
   "notifReminderInMinutes": "{prayer} in {minutes} minutes",
   "@notifReminderInMinutes": {
@@ -218,7 +228,8 @@
         "type": "int",
         "example": "10"
       }
-    }
+    },
+    "description": "Notification body for a prayer the given number of minutes away."
   },
   "notifAdhanTitle": "Adhan — {prayer}",
   "@notifAdhanTitle": {
@@ -227,7 +238,8 @@
         "type": "String",
         "example": "Isha"
       }
-    }
+    },
+    "description": "Title of the adhan notification for the named prayer."
   },
   "notifAdhanTitleName": "Adhan — {name}",
   "@notifAdhanTitleName": {
@@ -236,7 +248,8 @@
         "type": "String",
         "example": "Test"
       }
-    }
+    },
+    "description": "Title of an adhan notification with a custom name, e.g. a test."
   },
   "notifUpdateAvailable": "Mawaqit {version} is available",
   "@notifUpdateAvailable": {
@@ -245,7 +258,8 @@
         "type": "String",
         "example": "1.0.0"
       }
-    }
+    },
+    "description": "Notification title announcing that a new version is available."
   },
   "toneSheetPreviewHint": "Tap the speaker to preview a sound before choosing.",
   "toneSheetBuiltIn": "Built-in tones",
@@ -291,7 +305,8 @@
         "type": "int",
         "example": "40"
       }
-    }
+    },
+    "description": "Download progress percentage in the update screen."
   },
   "updateVerifiedReady": "The update is verified and ready to install.",
   "updateBadge": "Update available",
@@ -304,7 +319,8 @@
         "type": "String",
         "example": "0.9.0"
       }
-    }
+    },
+    "description": "Version label in the update screen."
   },
   "updateAboutDescription": "A calm, focused prayer-times app with adhan reminders.",
   "prayerFajr": "Fajr",

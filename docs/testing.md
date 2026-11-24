@@ -136,3 +136,70 @@ battery-optimisation exemption is not sufficient on its own.
 artifact. Current line coverage is in the thirties and the alarm/notification core
 is the low end of that (`notification_service.dart`). Raising it — and eventually
 splitting that file — is tracked in `docs/optimization-notes.md`.
+
+---
+
+## 1.0.0 feature matrix (manual, on device)
+
+The sections above cover the alarm core. 1.0.0 adds five surfaces that CI can
+only partially exercise; run these on a physical device before cutting stable.
+Record the result in [`on-device-smoke-1.0.0.md`](on-device-smoke-1.0.0.md).
+
+### 6. Qibla & travel
+
+- [ ] Qibla tab shows a bearing from the saved home coordinates with the
+      compass moving; rotating the device keeps the needle aligned.
+- [ ] With the compass covered/unavailable (or on a host without a sensor), the
+      screen says so honestly and still shows the numeric bearing.
+- [ ] Switching on travel search and picking a city shows the travel banner on
+      Home and Times; the bearing and prayer times change to the temporary city.
+- [ ] "Return home" restores the saved home city/GPS exactly; the travel city is
+      not written into the shared location cache (verify via Settings → coords).
+- [ ] Airplane mode: searching a new city fails with a readable message and the
+      existing travel override is left untouched.
+
+### 7. Widget 2.0
+
+- [ ] Add both 2x2 and 4x2 widgets in light, dark and AMOLED themes; text is not
+      clipped and the muted dot is the only tinted element on AMOLED.
+- [ ] Arabic widget labels come from the locale, not stale cached data.
+- [ ] Tapping the widget opens the Times tab with no white/light flash.
+- [ ] In the in-app widget configuration screen, "Open Times" and "Silence
+      adhan" quick actions work; the widget root tap still goes to Times.
+- [ ] After an OTA update the widget survives and shows the new day's times.
+
+### 8. Insights & Hijri cards (Times tab)
+
+- [ ] Tapping "prayed" on a few occurrences updates the monthly total, on-time
+      rate and streak, and the marks survive a full app restart.
+- [ ] Clearing app data removes all marks (local-only, no account or sync).
+- [ ] Paging the Hijri calendar moves between months; today and events are
+      emphasised; the Gregorian mapping matches the system calendar.
+- [ ] At 200% text in AR/FR/EN at 360dp and 388dp, neither card overflows.
+
+### 9. Update channels (stable / beta)
+
+- [ ] Install a signed stable APK; OTA banner offers only stable builds.
+- [ ] Switch to beta in Settings → Update center, confirm the beta release is
+      found and installs with its own SHA-256 verification.
+- [ ] Switch back to stable; no settings, marks or location are lost.
+- [ ] Start a download, attempt a channel switch mid-download: the toggle is
+      disabled and the notifier refuses the change.
+- [ ] Corrupt the downloaded APK (or the manifest checksum) and confirm the
+      install is blocked — fail-closed on both channels.
+
+### 10. Accessibility pass (all tabs and dialogs)
+
+- [ ] TalkBack announces every interactive element (nav tabs, prayer rows,
+      mute/silence, widget config, channel selector, calendar pager).
+- [ ] Focus order follows reading order in EN/FR and right-to-left in AR.
+- [ ] System font at 200% on every tab and dialog at 360dp: no clipping or
+      overlapping text; reduced-motion and transparency settings do not break
+      the adhan overlay.
+- [ ] All palettes incl. AMOLED meet the ratios in `docs/contrast-report.md`.
+
+### 11. Local midnight & clock changes
+
+- [ ] Leave the app closed across local midnight with the phone awake; verify
+      via `adb shell dumpsys alarm` that the new day's alarms are armed.
+- [ ] Change the clock/timezone; alarms re-arm at the correct local times.

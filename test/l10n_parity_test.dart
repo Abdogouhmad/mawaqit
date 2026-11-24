@@ -37,7 +37,10 @@ void main() {
     }
   });
 
-  test('every parameterized template message documents its placeholders', () {
+  test('every parameterized message documents its placeholders', () {
+    // Only the template needs placeholder metadata: `gen-l10n` reads types and
+    // examples from the canonical EN ARB, and localized ARBs merely translate
+    // the strings. Cross-locale placeholder *usage* is checked separately.
     final english = readArb(template);
     for (final entry in english.entries) {
       if (entry.key.startsWith('@')) continue;
@@ -56,6 +59,57 @@ void main() {
         placeholders,
         reason: '@${entry.key} must document ${placeholders.join(', ')}',
       );
+    }
+  });
+
+  test('messages use the same placeholders across all locales', () {
+    final english = readArb(template);
+    for (final name in locales) {
+      final localized = readArb(name);
+      for (final entry in english.entries) {
+        if (entry.key.startsWith('@')) continue;
+        final expected = RegExp(r'\{(\w+)\}')
+            .allMatches(entry.value as String)
+            .map((match) => match.group(1)!)
+            .toSet();
+        final actual = RegExp(r'\{(\w+)\}')
+            .allMatches(localized[entry.key] as String)
+            .map((match) => match.group(1)!)
+            .toSet();
+        expect(
+          actual,
+          expected,
+          reason: '$name: ${entry.key} must use the same placeholders as en',
+        );
+      }
+    }
+  });
+
+  test('every template message with metadata has a description', () {
+    final english = readArb(template);
+    for (final entry in english.entries) {
+      if (!entry.key.startsWith('@') || entry.key == '@@locale') continue;
+      final meta = entry.value as Map<String, dynamic>;
+      expect(
+        meta['description'],
+        isA<String>(),
+        reason: '${entry.key} needs a description for translators',
+      );
+    }
+  });
+
+  test('no metadata refers to a message that no longer exists', () {
+    for (final name in [template, ...locales]) {
+      final arb = readArb(name);
+      final declared = messages(arb);
+      for (final key in arb.keys) {
+        if (!key.startsWith('@') || key == '@@locale') continue;
+        expect(
+          declared.contains(key.substring(1)),
+          isTrue,
+          reason: '$name: stale ARB metadata $key',
+        );
+      }
     }
   });
 }

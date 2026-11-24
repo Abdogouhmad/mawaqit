@@ -1,9 +1,10 @@
 # Production readiness — Mawaqit (Android)
 
 How close the app is to a shippable production release, and what actually stands
-in the way. This is a **static review** of the tree as of the branch
-`chore/optimize-and-docs` — no build or test run was performed (per instruction),
-so every claim below cites the file it was read from rather than a green check.
+in the way. This file is maintained alongside [`roadmap.md`](roadmap.md) and is
+refreshed at each version bump. Claims about code cite the file they were read
+from; claims about a build or a test run are made only after the full
+verification matrix in [`testing.md`](testing.md) is green.
 
 Companion to [`optimization-notes.md`](optimization-notes.md), which covers the
 performance/quality work; this file answers a narrower question: *what is between
@@ -11,27 +12,21 @@ here and a release a stranger can install and keep?*
 
 ---
 
-## TL;DR
+## TL;DR (1.0.0)
 
-The **Android release path is already production-grade.** Signing, shrinking,
-versioning, the automated release, the OTA manifest and CI are all done and
-self-checking. There is no missing plumbing to build.
+The **Android release path is production-grade.** Signing, shrinking, versioning,
+the automated release, both OTA channels and CI are done and self-checking.
 
-The remaining gap is **not code, it is decisions and test depth**:
+**Distribution decision (1.0.0): GitHub/APK sideload.** The app ships an in-app
+self-updater (`ota_update` + `REQUEST_INSTALL_PACKAGES`), which Google Play
+policy forbids. Play remains a separate, deliberately out-of-scope project that
+would require removing the updater and its permission. See the decision below.
 
-1. **Distribution is a fork in the road, and the app currently sits on the side
-   that cannot go to Google Play** — it ships an in-app self-updater
-   (`ota_update` + `REQUEST_INSTALL_PACKAGES`), which Play policy forbids. Either
-   accept GitHub/APK sideloading as the channel (current, deliberate) or plan the
-   work to remove the self-updater for Play.
-2. **The alarm/notification core has single-digit test coverage.** It is the one
-   thing the app cannot get wrong, and it is the one thing CI cannot exercise
-   without a device.
-3. A short tail of release hygiene (stale `docs/DECISIONS.md`, missing
-   screenshots, TODO contacts).
-
-None of (3) blocks shipping. (1) is a choice. (2) is a risk to *manage*, not a
-gate — it is what manual on-device testing is for.
+The one remaining risk is **device-only behaviour**: the alarm/notification core
+is exercised by pure policy tests and a manual on-device matrix
+(`docs/testing.md`), not by CI. The 1.0.0 matrix adds Qibla/travel, the widget,
+15-minute insights and both OTA channels; it is recorded in
+`docs/on-device-smoke-1.0.0.md` once a physical pass is done.
 
 ---
 
@@ -113,9 +108,10 @@ production" splits:
   data-safety form. This is days, not hours, and it changes product behaviour
   (no self-update).
 
-**Recommendation:** keep the GitHub channel for the next release — it is already
-shippable — and treat Play as a separate, scoped project only if discovery is a
-goal. Do not do it "on the way to" a release; it is its own release.
+**Decision (1.0.0): keep GitHub/APK sideload.** The pipeline already ships it,
+and the in-app updater (now with a user-visible stable/beta switch) is a headline
+feature of this release. Play is a separate, scoped project only if discovery
+becomes a goal; it would remove the updater and its permission.
 
 ---
 
@@ -123,15 +119,11 @@ goal. Do not do it "on the way to" a release; it is its own release.
 
 | Risk | Severity | Where | Mitigation |
 |---|---|---|---|
-| Alarm/notification core under-tested | High | `lib/data/services/notification_service.dart` (~1,930 lines, ~4% line coverage) | Manual on-device matrix (`docs/testing.md`); split the file only in a device-validated PR |
-| Adhan uses `setExactAndAllowWhileIdle`, not `setAlarmClock` | Medium | `AdhanScheduler.schedule()` | See "Reliability observations" below |
-| No receiver for `ACTION_DATE_CHANGED` | Low | `AndroidManifest.xml`, `BootReceiver.kt` | See "Reliability observations" below |
-| OEM battery killers silently drop adhans | High | Doze/Xiaomi/Huawei/Oppo/Samsung | Onboarding already requests exemption + autostart hint; keep the in-app reliability checks |
-| Self-updater vs Play (above) | Decision | `ota_update`, manifest | Choose a channel |
-| Doctor/`flutter` version drift in CI | Low | workflows use `channel: stable` | Pin to a version if reproducibility is wanted |
-| Stale `docs/DECISIONS.md` | Low | cites absent `feat.md`, removed Qibla/`flutter_compass` | Prune or refresh |
+| Alarm/notification core under-tested | High | `lib/data/services/notification_service.dart` | Manual on-device matrix (`docs/testing.md`); pure policy tests + device pass |
+| Adhan uses `setExactAndAllowWhileIdle`, not `setAlarmClock` | Medium | `AdhanScheduler.schedule()` | Native engine deliberately unchanged for 1.0.0; see "Reliability observations" |
+| OEM battery killers silently drop adhans | High | Doze/Xiaomi/Huawei/Oppo/Samsung | Onboarding requests exemption + autostart hint; in-app reliability checks |
+| Self-updater vs Play | Decision (closed) | `ota_update`, manifest | GitHub sideload for 1.0.0; Play is a separate project |
 | Bundled adhan recitations have no documented licence | Unknown → resolve | `assets/audio/*.mp3`, `res/raw/adhan_*.mp3` | See "Open questions" below |
-| `Nominatim` fallback identifies as `dev build` | Low | `lib/data/repositories/location_repository.dart:88` | Use a real UA/contact before scale |
 
 ### Reliability observations
 
@@ -149,16 +141,11 @@ goal. Do not do it "on the way to" a release; it is its own release.
   device, so it belongs in its own PR with the `docs/testing.md` matrix run before
   and after.
 
-- **Nothing listens for `ACTION_DATE_CHANGED`.** The manifest registers
-  `BootReceiver` for `BOOT_COMPLETED`, `MY_PACKAGE_REPLACED`, `TIME_SET` and
-  `TIMEZONE_CHANGED`, so a clock correction or a timezone move re-arms through
-  the same `BootRescheduleWork` path as a reboot. A device whose calendar date
-  rolls over while the app stays closed still relies on the 12-hourly WorkManager
-  periodic task (`background_scheduler.dart` →
-  `registerPeriodicTask(..., frequency: Duration(hours: 12))`) to arm the new
-  day's occurrences. Real-world impact is small — the date does not change on its
-  own without an app launch or a periodic task in between for most users — but
-  adding `ACTION_DATE_CHANGED` to the same receiver would close it.
+- **`ACTION_DATE_CHANGED` is now registered (1.0.0).** The manifest and
+  `BootReceiver.kt` include it alongside `BOOT_COMPLETED`, `MY_PACKAGE_REPLACED`,
+  `TIME_SET` and `TIMEZONE_CHANGED`, so a date rollover while the app stays
+  closed re-arms through the same `BootRescheduleWork` path as a reboot instead
+  of waiting up to 12 hours for the periodic task.
 
 ### Open questions for the maintainer
 
@@ -198,47 +185,39 @@ so they are listed rather than silently changed:
 
 ---
 
-## Fast path to the next release (checklist)
-
-Only the first block is required; the rest is hygiene.
+## Release checklist (1.0.0)
 
 **Required**
 
-1. Decide the channel (default: GitHub — no work).
+1. Channel decision: GitHub/APK sideload (closed above — no work).
 2. Bump `version:` in `pubspec.yaml` **and** the matching `+<build>` (they must
    agree or `build.sh` fails).
-3. Add a `## [<version>]` section to `CHANGELOG.md` (the release body is taken
-   from it verbatim).
-4. Merge to `main`. The tag, APKs, checksums, release and `update_manifest.json`
-   follow automatically.
-
-**Before announcing it**
-
-5. Run the manual matrix in `docs/testing.md` on a real device: screen off,
-   Doze (`adb shell dumpsys deviceidle force-idle`), app swiped away, reboot,
-   timezone change, airplane mode — for both adhan and pre-prayer, including the
-   Android 16+ live-update promotion and its Prayed/Dismiss actions.
-6. Confirm the release-secrets (`WAQT_*`) are present so CI does not refuse to
-   sign.
+3. Add a complete `## [<version>]` section to `CHANGELOG.md` (the release body is
+   taken from it verbatim).
+4. Run the full verification matrix:
+   `dart format --set-exit-if-changed .`,
+   `flutter analyze --fatal-infos --fatal-warnings`, `flutter test`,
+   `flutter build apk --debug`, `bash -n build.sh`,
+   `./build.sh --detect-version` (must print the new tag/versionCode).
+5. Record a physical-device pass of the matrix in `docs/testing.md` and
+   `docs/on-device-smoke-1.0.0.md` (Qibla/travel, widget launch, both OTA
+   channels, RTL/200% text, adhan on the lockscreen).
+6. Fast-forward merge to `main` and push. The tag, APKs, checksums, release and
+   `update_manifest.json` follow automatically; never push a tag by hand.
 
 **Hygiene (does not block)**
 
-7. Fill the `TODO` contacts in `SECURITY.md` / `CODE_OF_CONDUCT.md`.
-8. Add real screenshots under `docs/screenshots/` and drop the README placeholder.
-9. Refresh `docs/DECISIONS.md` (the tracked `stitch_minimal_prayer_times_app/`
-   bundle was removed in 0.14.0).
-10. Pin `home_widget_generator` if the maintainer prefers a literal over `any`.
-11. Resolve the adhan-recitation licence and credit it (see Open questions).
-12. ~~Give the Nominatim fallback a real `User-Agent`~~ — done in 0.14.0.
-13. ~~Prune the stale constants in `lib/core/const/asset_paths.dart`~~ — done in
-    0.14.0.
+7. Add real screenshots under `docs/screenshots/` and drop the README placeholder.
+8. Fill the `TODO` contacts in `SECURITY.md` / `CODE_OF_CONDUCT.md`.
+9. Resolve the adhan-recitation licence and credit it (see Open questions).
 
 ---
 
 ## Verdict
 
-**Ship-ready for the GitHub/APK channel today.** The heavy lifting — reliable
-exact alarms, foreground-service adhan, the automated signed release — is done and
-guarded by fail-closed checks. The honest caveats are that the alarm core's
-correctness rests on device testing rather than CI, and that the app's
-self-updating design rules out Play unless that is deliberately reworked.
+**Ship-ready for the GitHub/APK channel.** The heavy lifting — reliable exact
+alarms, foreground-service adhan, the automated signed release with stable/beta
+channels — is done and guarded by fail-closed checks. The honest caveat is that
+the alarm core's correctness rests on a documented device pass rather than CI,
+and that the app's self-updating design rules out Play unless that is
+deliberately reworked.

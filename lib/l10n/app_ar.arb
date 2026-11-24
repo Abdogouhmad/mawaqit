@@ -145,14 +145,6 @@
     }
   },
   "notifRemindMeBefore": "ذكّرني قبل",
-  "@notifLeadMinutes": {
-    "placeholders": {
-      "minutes": {
-        "type": "int",
-        "example": "10"
-      }
-    }
-  },
   "notifKindDisabledWarning": "إشعارات {kind} معطّلة — فعّلها من الأعلى ثم أعد المحاولة.",
   "@notifKindDisabledWarning": {
     "placeholders": {
@@ -172,18 +164,6 @@
       },
       "error": {
         "type": "String"
-      }
-    }
-  },
-  "@notifPrayerInMinutes": {
-    "placeholders": {
-      "prayer": {
-        "type": "String",
-        "example": "العصر"
-      },
-      "minutes": {
-        "type": "int",
-        "example": "10"
       }
     }
   },
@@ -222,14 +202,6 @@
       }
     }
   },
-  "@notifReminderBody": {
-    "placeholders": {
-      "time": {
-        "type": "String",
-        "example": "3:15 PM"
-      }
-    }
-  },
   "notifAdhanTitle": "الأذان — {prayer}",
   "@notifAdhanTitle": {
     "placeholders": {
@@ -245,14 +217,6 @@
       "name": {
         "type": "String",
         "example": "تجربة"
-      }
-    }
-  },
-  "@notifRingsAtPrayerBody": {
-    "placeholders": {
-      "tone": {
-        "type": "String",
-        "example": "أدم الشرفاوى"
       }
     }
   },
@@ -282,14 +246,6 @@
   "accessKeepAdhanOnTime": "حافظ على دقة الأذان",
   "accessKeepAdhanBody": "يوقف هاتفك التطبيقات أثناء إطفاء الشاشة، وهذا ما يمنع الأذان من الرنين. الإذنان التاليان يجعلانه موثوقًا.",
   "accessReliability": "موثوقية المنبّه",
-  "@accessGrantedNote": {
-    "placeholders": {
-      "permission": {
-        "type": "String",
-        "example": "إشعارات ملء الشاشة"
-      }
-    }
-  },
   "accessNotifications": "الإشعارات",
   "accessAlarmsAndReminders": "المنبّهات والتذكيرات",
   "accessFullScreen": "إشعارات ملء الشاشة",
