@@ -1,13 +1,13 @@
 {
-  "latestVersionName": "",
-  "latestVersionCode": 0,
+  "latestVersionName": "1.0.0-beta.1",
+  "latestVersionCode": 10000,
   "minSupportedVersionCode": 3,
   "mandatory": false,
-  "apkUrl": "",
-  "sha256": "",
-  "size": 0,
-  "releaseNotes": "No beta release has been published yet. Beta builds are published manually via workflow_dispatch (channel=beta) as GitHub prereleases and are offered only through this manifest; stable releases continue to use update_manifest.json.",
-  "publishedAt": "2026-11-22T00:00:00.000000+00:00",
+  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v1.0.0-beta.1/mawaqit-v1.0.0-beta.1-universal.apk",
+  "sha256": "1504edeb72dcc8667378795a588335bca15d176a6090b875bbb749c2543fdd8f",
+  "size": 75851995,
+  "releaseNotes": "## 1.0.0 beta 1 — dogfood build\n\nSigned release candidate for stable 1.0.1. Please test on a physical device.\n\n### Included\n- Qibla tab with live compass, calibration guidance and no-sensor fallback\n- Travel mode with a temporary city that never overwrites your saved home\n- Home widget 2.0: 2x2/4x2, light/dark/AMOLED, localized labels, quick actions\n- Prayer insights + Hijri calendar on the Times tab (local-only history)\n- Stable/beta channel switch in Software Update, midnight alarm re-arm\n- WCAG AA contrast across all palettes incl. AMOLED\n\n### Focus\n1. Adhan on lockscreen, Doze, after reboot and across midnight\n2. Qibla compass accuracy; travel -> return home restores saved city\n3. Widget launch no white flash; AMOLED and Arabic layouts\n4. OTA install from beta, then switch back to stable with no data loss\n5. 200% text in EN/FR/AR at 360dp; TalkBack and AMOLED contrast",
+  "publishedAt": "2026-11-24T10:28:43.802408+00:00",
   "channel": "beta",
   "isPrerelease": true
 }
