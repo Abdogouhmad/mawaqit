@@ -536,7 +536,10 @@ class _PaletteSwatch extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               AnimatedContainer(
-                duration: AppMotion.short,
+                duration: AppSpring.durationOf(
+                  context,
+                  fallback: AppMotion.short,
+                ),
                 curve: AppMotion.standard,
                 width: _diameter,
                 height: _diameter,
@@ -545,7 +548,7 @@ class _PaletteSwatch extends StatelessWidget {
                   color: scheme.primary,
                   border: Border.all(
                     color: selected ? ring : theme.colorScheme.outlineVariant,
-                    width: selected ? 3 : 1,
+                    width: selected ? AppStroke.selected : AppStroke.hairline,
                   ),
                 ),
                 child: ClipOval(

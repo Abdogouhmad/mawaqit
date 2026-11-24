@@ -151,7 +151,10 @@ class PrayerHeaderDelegate extends SliverPersistentHeaderDelegate {
             // 2dp of travel, then fully drawn: the rule should be there by the
             // time the header has visibly detached, not before.
             opacity: (shrinkOffset / AppStroke.arcTrack).clamp(0.0, 1.0),
-            duration: AppMotion.shortest,
+            duration: AppSpring.durationOf(
+              context,
+              fallback: AppMotion.shortest,
+            ),
             child: Container(height: AppStroke.hairline, color: hairline),
           ),
         ),

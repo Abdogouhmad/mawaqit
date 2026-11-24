@@ -97,6 +97,7 @@ abstract final class AppStroke {
 
   static const double hairline = 1;
   static const double focus = 2;
+  static const double selected = 3;
   static const double arcTrack = 2;
   static const double spinner = 2.4;
 }

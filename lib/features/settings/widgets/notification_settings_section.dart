@@ -184,6 +184,7 @@ class NotificationSettingsSection extends ConsumerWidget {
     SettingsController controller,
     AppSettings settings,
   ) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -191,27 +192,27 @@ class NotificationSettingsSection extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             UiText(
-              AppLocalizations.of(context).notifRemindMeBefore,
+              l10n.notifRemindMeBefore,
               type: UiTextType.titleMedium,
               fontSize: AppFontSize.lg,
             ),
             AnimatedSwitcher(
-              duration: AppMotion.medium,
-              switchInCurve: Curves.easeOutBack,
-              switchOutCurve: Curves.easeIn,
+              duration: AppSpring.durationOf(context),
+              switchInCurve: AppSpring.curve(AppSpring.spatial),
+              switchOutCurve: AppMotion.exit,
               transitionBuilder: (child, animation) => FadeTransition(
                 opacity: animation,
                 child: ScaleTransition(
                   scale: Tween<double>(begin: 0.85, end: 1).animate(
                     CurvedAnimation(
                       parent: animation,
-                      curve: Curves.easeOutBack,
+                      curve: AppSpring.curve(AppSpring.spatial),
                     ),
                   ),
                 ),
               ),
               child: UiText(
-                '${settings.leadMinutes} min before',
+                l10n.scheduleReminderCustom(settings.leadMinutes),
                 key: ValueKey(settings.leadMinutes),
                 type: UiTextType.labelMedium,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

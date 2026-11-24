@@ -197,19 +197,19 @@ class _TravelScreenState extends ConsumerState<TravelScreen> {
                         ),
                 ),
               ),
-              if (_error != null) ...[
+              if (_error != null || _searching) ...[
                 const SizedBox(height: AppSpacing.lg),
-                UiText(
-                  _error!,
-                  type: UiTextType.labelMedium,
-                  color: scheme.error,
-                ),
-              ] else if (_searching) ...[
-                const SizedBox(height: AppSpacing.lg),
-                UiText(
-                  l10n.travelSearching,
-                  type: UiTextType.labelMedium,
-                  color: scheme.onSurfaceVariant,
+                // TalkBack announces the outcome of the search without the
+                // user having to hunt for the message below the field.
+                Semantics(
+                  liveRegion: true,
+                  child: UiText(
+                    _error ?? l10n.travelSearching,
+                    type: UiTextType.labelMedium,
+                    color: _error != null
+                        ? scheme.error
+                        : scheme.onSurfaceVariant,
+                  ),
                 ),
               ],
               if (_results.isNotEmpty) ...[
