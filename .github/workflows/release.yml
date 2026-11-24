@@ -301,6 +301,11 @@ jobs:
           cp "$manifest" "$tmp"
 
           for attempt in 1 2 3; do
+            # The generated manifest from this build is now safe in $tmp.
+            # Drop it from the worktree before switching: `checkout` refuses
+            # to cross a dirty tracked file, which is exactly the state the
+            # manifest step leaves behind on a retry.
+            git restore --source=HEAD --worktree -- "$manifest"
             git fetch --quiet origin main
             git checkout --quiet --detach origin/main
             cp "$tmp" "$manifest"
