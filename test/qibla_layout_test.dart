@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mawaqit/core/qibla/qibla.dart';
 import 'package:mawaqit/core/ui/theme/app_theme.dart';
 import 'package:mawaqit/data/models/app_settings.dart';
 import 'package:mawaqit/features/home/home_controller.dart';
@@ -53,6 +54,24 @@ void main() {
       }
     }
   }
+
+  testWidgets('dial semantics announce the bearing and sensor state', (
+    tester,
+  ) async {
+    await pumpQibla(tester, home, const Locale('en'), 360, 1, hasSensor: true);
+    final l10n = AppLocalizations.of(tester.element(find.byType(QiblaScreen)));
+    final semantics = tester.ensureSemantics();
+    await tester.pumpAndSettle();
+    final bearingLabel = l10n.qiblaBearing(
+      qiblaBearing(34.0209, -6.8416).round().toString(),
+    );
+
+    expect(
+      find.semantics.byLabel('$bearingLabel, ${l10n.qiblaCompassHint}'),
+      findsOneWidget,
+    );
+    semantics.dispose();
+  });
 }
 
 Future<void> pumpQibla(
