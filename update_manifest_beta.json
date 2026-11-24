@@ -1,13 +1,13 @@
 {
-  "latestVersionName": "1.0.0-beta.1",
-  "latestVersionCode": 10000,
+  "latestVersionName": "1.1.0-beta.1",
+  "latestVersionCode": 10100,
   "minSupportedVersionCode": 3,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v1.0.0-beta.1/mawaqit-v1.0.0-beta.1-universal.apk",
-  "sha256": "1504edeb72dcc8667378795a588335bca15d176a6090b875bbb749c2543fdd8f",
-  "size": 75851995,
-  "releaseNotes": "## 1.0.0 beta 1 — dogfood build\n\nSigned release candidate for stable 1.0.1. Please test on a physical device.\n\n### Included\n- Qibla tab with live compass, calibration guidance and no-sensor fallback\n- Travel mode with a temporary city that never overwrites your saved home\n- Home widget 2.0: 2x2/4x2, light/dark/AMOLED, localized labels, quick actions\n- Prayer insights + Hijri calendar on the Times tab (local-only history)\n- Stable/beta channel switch in Software Update, midnight alarm re-arm\n- WCAG AA contrast across all palettes incl. AMOLED\n\n### Focus\n1. Adhan on lockscreen, Doze, after reboot and across midnight\n2. Qibla compass accuracy; travel -> return home restores saved city\n3. Widget launch no white flash; AMOLED and Arabic layouts\n4. OTA install from beta, then switch back to stable with no data loss\n5. 200% text in EN/FR/AR at 360dp; TalkBack and AMOLED contrast",
-  "publishedAt": "2026-11-24T10:28:43.802408+00:00",
+  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v1.1.0-beta.1/mawaqit-v1.1.0-beta.1-universal.apk",
+  "sha256": "8057a6544018db41cd003446d897c062411c86468b755c142a6bc889a014224d",
+  "size": 76015911,
+  "releaseNotes": "## 1.1.0 beta 1 — Qibla correction, polish & performance\n\nSigned dogfood build from `phase/1.1.0-beta`. `main` stays on stable 0.21.0;\nthis is a prerelease only. Please install over `1.0.0-beta.1` with sideload/OTA\nand report findings.\n\n### Fixed — Qibla\n\n- **True north everywhere.** Android's compass reports magnetic azimuth, so the\n  needle used to be off by local declination. The app now applies offline\n  WMM2025 declination on Android and normalises iOS true headings; bearing and\n  needle finally share one reference frame.\n- **Correct location.** Bearing and distance now read the effective travel/city\n  coordinates directly, so a travel override applies immediately instead of\n  waiting for Home to recompute. The saved home fix is never overwritten.\n- **No more jitter.** Wrap-safe low-pass smoothing plus shortest-path animated\n  rotation; the 30 Hz sensor stream no longer spins the needle at the north\n  seam, and only the dial rebuilds on each sample.\n- **Honest sensor states.** Unknown/unreliable Android accuracy shows the\n  calibrate prompt, and a dropped compass stream reconnects instead of leaving\n  the tab permanently without a needle.\n\n### Polish & accessibility\n\n- Dial announces bearing + sensor state once to TalkBack; travel search status\n  is a live region; reduce-motion now covers every animated surface we touched.\n- Fixed an untranslated \"N min before\" label in Notifications.\n- Qibla and Travel screens covered by layout matrices at 360/388dp, EN/FR/AR,\n  1×/2× text, both sensor and travel states.\n\n### Performance\n\n- Cold start overlaps timezone, package-info, onboarding and widget-launch reads.\n- Compass samples are isolated to the dial subtree.\n\n### Please verify on device\n\n1. Face a landmark of known **true** bearing; the needle must agree with true,\n   not magnetic, north.\n2. Rabat bearing ≈ 89°, distance ≈ 4,730 km; at the Kaaba, 0 km.\n3. Travel → return home changes bearing immediately and restores saved coords.\n4. Rotate slowly through 359° → 1°: short path, no full spin; background the app\n   and confirm the needle resumes.\n5. OTA from 1.0.0-beta.1, then switch back to stable; no history or alarm loss.\n6. 200% text in EN/FR/AR at 360dp, TalkBack, AMOLED, and reduce motion.",
+  "publishedAt": "2026-11-24T14:43:14.850053+00:00",
   "channel": "beta",
   "isPrerelease": true
 }
