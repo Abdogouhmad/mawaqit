@@ -23,15 +23,24 @@ class QiblaScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(qiblaControllerProvider);
+    // Compass samples arrive around 30 times a second. Selecting only the
+    // values this subtree renders keeps those frames inside the dial: the
+    // scaffold, section header, cards and buttons do not rebuild per sample.
+    final bearing = ref.watch(qiblaControllerProvider.select((s) => s.bearing));
+    final distanceKm = ref.watch(
+      qiblaControllerProvider.select((s) => s.distanceKm),
+    );
+    final locationName = ref.watch(
+      qiblaControllerProvider.select((s) => s.locationName),
+    );
+    final status = ref.watch(qiblaControllerProvider.select((s) => s.status));
     final l10n = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
 
-    final hasNeedle = state.hasNeedle;
-    final hasSensor = state.status != CompassStatus.unavailable;
-    final bearingLabel = state.bearing == null
+    final hasLocation = bearing != null && distanceKm != null;
+    final bearingLabel = bearing == null
         ? l10n.travelSetLocation
-        : l10n.qiblaBearing(state.bearing!.round().toString());
+        : l10n.qiblaBearing(bearing.round().toString());
 
     return Scaffold(
       appBar: AppBar(
@@ -57,73 +66,30 @@ class QiblaScreen extends ConsumerWidget {
             children: [
               SectionHeader(
                 label: l10n.qiblaTitle,
-                description: state.hasLocation
-                    ? l10n.qiblaSubtitle(state.locationName)
+                description: hasLocation
+                    ? l10n.qiblaSubtitle(locationName)
                     : l10n.travelSetLocation,
                 icon: Icons.explore_outlined,
               ),
               AppCard(
                 child: Column(
                   children: [
-                    Semantics(
-                      container: true,
-                      label: [
-                        bearingLabel,
-                        switch (state.status) {
-                          CompassStatus.unavailable =>
-                            l10n.qiblaSensorUnavailable,
-                          CompassStatus.calibrating => l10n.qiblaCalibrate,
-                          CompassStatus.available => l10n.qiblaCompassHint,
-                        },
-                      ].join(', '),
-                      child: SizedBox.square(
-                        dimension: AppSpacing.offsetXl,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: scheme.outlineVariant.withValues(
-                                    alpha: AppOpacity.hairline,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            ExcludeSemantics(
-                              child: Icon(
-                                Icons.navigation_rounded,
-                                size: AppIconSize.display,
-                                color: hasSensor
-                                    ? scheme.primary
-                                    : scheme.outline,
-                              ),
-                            ),
-                            if (hasNeedle)
-                              _CompassNeedle(
-                                angle: state.needleAngle!,
-                                color: scheme.primary,
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    _CompassDial(bearingLabel: bearingLabel),
                     const SizedBox(height: AppSpacing.xl),
-                    if (state.bearing != null)
+                    if (bearing != null)
                       ExcludeSemantics(
                         child: AppPill(
                           label: bearingLabel,
                           icon: Icons.explore_outlined,
                         ),
                       ),
-                    if (state.distanceKm != null) ...[
+                    if (distanceKm != null) ...[
                       const SizedBox(height: AppSpacing.md),
                       UiText(
                         l10n.qiblaDistance(
                           NumberFormat.decimalPattern(
                             Localizations.localeOf(context).languageCode,
-                          ).format(state.distanceKm!.round()),
+                          ).format(distanceKm.round()),
                         ),
                         type: UiTextType.labelLarge,
                         color: scheme.onSurfaceVariant,
@@ -132,7 +98,7 @@ class QiblaScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              if (state.status == CompassStatus.unavailable) ...[
+              if (status == CompassStatus.unavailable) ...[
                 const SizedBox(height: AppSpacing.lg),
                 AppCard(
                   child: Row(
@@ -167,7 +133,7 @@ class QiblaScreen extends ConsumerWidget {
               ] else ...[
                 const SizedBox(height: AppSpacing.lg),
                 UiText(
-                  state.status == CompassStatus.calibrating
+                  status == CompassStatus.calibrating
                       ? l10n.qiblaCalibrate
                       : l10n.qiblaCompassHint,
                   type: UiTextType.labelMedium,
@@ -186,6 +152,65 @@ class QiblaScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Only this subtree is rebuilt for each compass sample. Everything else on
+/// the screen watches stable selected values and stays put.
+class _CompassDial extends ConsumerWidget {
+  const _CompassDial({required this.bearingLabel});
+
+  final String bearingLabel;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final angle = ref.watch(
+      qiblaControllerProvider.select((s) => s.needleAngle),
+    );
+    final status = ref.watch(qiblaControllerProvider.select((s) => s.status));
+    final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Semantics(
+      container: true,
+      label: [
+        bearingLabel,
+        switch (status) {
+          CompassStatus.unavailable => l10n.qiblaSensorUnavailable,
+          CompassStatus.calibrating => l10n.qiblaCalibrate,
+          CompassStatus.available => l10n.qiblaCompassHint,
+        },
+      ].join(', '),
+      child: SizedBox.square(
+        dimension: AppSpacing.offsetXl,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: scheme.outlineVariant.withValues(
+                    alpha: AppOpacity.hairline,
+                  ),
+                ),
+              ),
+            ),
+            ExcludeSemantics(
+              child: Icon(
+                Icons.navigation_rounded,
+                size: AppIconSize.display,
+                color: status == CompassStatus.unavailable
+                    ? scheme.outline
+                    : scheme.primary,
+              ),
+            ),
+            if (angle != null)
+              _CompassNeedle(angle: angle, color: scheme.primary),
+          ],
         ),
       ),
     );
