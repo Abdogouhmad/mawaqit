@@ -1,13 +1,13 @@
 {
-  "latestVersionName": "1.1.1-beta.1",
-  "latestVersionCode": 10101,
+  "latestVersionName": "1.1.2-beta.1",
+  "latestVersionCode": 10102,
   "minSupportedVersionCode": 3,
   "mandatory": false,
-  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v1.1.1-beta.1/mawaqit-v1.1.1-beta.1-universal.apk",
-  "sha256": "6b3b556ba25dc8a143aed3aa905a624b4fd0a9c84dbb305438f18822f985a81f",
-  "size": 76048827,
-  "releaseNotes": "## Mawaqit 1.1.1-beta.1\n\nThis beta is a full redesign of the Qibla screen — the instrument, not just the needle.\n\n**What changed**\n\n- The arrow is now an astrolabe-style dial: a protractor tick ring, a slim tapered needle with a Kaaba cube at its tip, and a gold alignment gate fixed at screen-up.\n- A real \"Facing the Qibla\" state: the dial frame turns gold, the gate fills, and the status line confirms alignment. It only appears with a trustworthy compass and a needle inside ±5° — calibrating or unavailable sensors can never claim alignment.\n- Quantised \"Turn N° left/right\" guidance replaces a single static hint, with EN/FR/AR strings. The old \"hold the phone flat\" advice remains as a caption while guidance is active.\n- Bearing and distance are labelled readouts that stack into rows at 200% text instead of cramming two columns.\n\n**Unchanged and verified**\n\n- True-north bearing maths, offline WMM declination, travel overrides and the honest no-sensor fallback are untouched.\n- Compass samples still rebuild only the needle layer; reduced motion and dial semantics are preserved.\n- Full verification: analyzer clean, 724 tests including the 360/388dp × EN/FR/AR × 1×/2× layout matrix, debug and signed release APK builds.\n\n**Beta caveats**\n\n- Unsigned-device findings are still pending: please check the turn direction, gold alignment state, calibration honesty and 200% text on a physical phone. See `docs/testing.md` (1.1.1 Qibla redesign checks).\n- Stable remains 0.21.0. Installing this beta opts into the beta update channel; no phase code is merged to `main`.",
-  "publishedAt": "2026-11-24T16:59:30.639711+00:00",
+  "apkUrl": "https://github.com/Abdogouhmad/mawaqit/releases/download/v1.1.2-beta.1/mawaqit-v1.1.2-beta.1-universal.apk",
+  "sha256": "dcd2527661076ea0ec6c42dca14cb0389a27dcb72b69d935770d108843ceb82b",
+  "size": 76048383,
+  "releaseNotes": "## Mawaqit 1.1.2-beta.1\n\nA focused beta of the Home screen and Android home-screen widget ahead of the next stable pass.\n\n### Changed\n\n- Refreshed the Home countdown: the prayer name, countdown and time detail now stack cleanly at 200% text while keeping the normal single-line hero on standard text sizes.\n- Redesigned the 2×2 widget around the two facts that matter at a glance — the next prayer and its countdown — leaving more room at large system text.\n- The 4×2 widget now puts the absolute prayer time beside the countdown, keeps the five-prayer day strip, and shares its last row with a short localized Times hint.\n- Widget settings now explains where the optional Hijri date and Times hint appear instead of repeating the switch labels.\n\n### Notes\n\n- Still a beta: the stable channel is unchanged until the recorded on-device smoke pass is complete.\n- OTA updates remain opt-in per channel and verify the APK SHA-256 before install.",
+  "publishedAt": "2026-11-25T17:03:47.115621+00:00",
   "channel": "beta",
   "isPrerelease": true
 }
