@@ -42,75 +42,85 @@ const HWColor _amoledMutedTint = HWColor.fixed(
 /// Static labels are compiled into platform string resources by the generator.
 /// That gives the gallery real French/Arabic previews and keeps Arabic text
 /// Arabic without adding a runtime data key that could go stale.
-const HWWidget _brand = HWRow(
-  crossAxisAlignment: HWCrossAxisAlignment.center,
-  children: [
-    HWIcon.fixed(
-      Icons.mosque_rounded,
-      size: WidgetTokens.iconSm,
-      color: _accent,
-    ),
-    HWPadding(
-      padding: HWEdgeInsets.only(left: WidgetTokens.spaceXs),
-      child: HWText.localized(
-        {'en': 'MAWAQIT', 'fr': 'MAWAQIT', 'ar': 'مَواقيت'},
-        style: HWRoleTextStyle(
-          role: HWTextStyleRole.caption,
-          color: _accent,
-          fontWeight: HWFontWeight.bold,
-        ),
-      ),
-    ),
-  ],
+/// The brand survives as a single accent mark. Dropping the wordmark buys the
+/// small card one more text line at 200% system text without inventing a new
+/// size token.
+const HWWidget _brandMark = HWIcon.fixed(
+  Icons.mosque_rounded,
+  size: WidgetTokens.iconSm,
+  color: _accent,
 );
 
 const HWWidget _location = HWText(
   HWString('locationShort', defaultValue: '—'),
   style: HWRoleTextStyle(
-    role: HWTextStyleRole.caption,
+    role: HWTextStyleRole.captionSmall,
     color: _secondary,
     fontWeight: HWFontWeight.w500,
   ),
 );
 
-const HWWidget _nextLabel = HWText.localized(
-  {'en': 'NEXT PRAYER', 'fr': 'PROCHAINE PRIÈRE', 'ar': 'الصلاة القادمة'},
-  style: HWRoleTextStyle(
-    role: HWTextStyleRole.captionSmall,
-    color: _secondary,
-    fontWeight: HWFontWeight.bold,
-  ),
-);
-
-const HWWidget _hero = HWColumn(
+/// 2×2: the two facts a glance needs, in the two roles the palette reserves for
+/// identity and signal. Nothing else competes at large text sizes.
+const HWWidget _heroSmall = HWColumn(
   crossAxisAlignment: HWCrossAxisAlignment.start,
+  spacing: WidgetTokens.spaceXxs,
   children: [
-    _nextLabel,
-    HWPadding(
-      padding: HWEdgeInsets.only(top: WidgetTokens.spaceXxs),
-      child: HWText(
-        HWString('nextPrayerName', defaultValue: '—'),
-        style: HWRoleTextStyle(
-          role: HWTextStyleRole.headline,
-          color: _primary,
-          fontWeight: HWFontWeight.bold,
-        ),
-      ),
-    ),
-    HWPadding(
-      padding: HWEdgeInsets.only(top: WidgetTokens.spaceSm),
-      child: HWText(
-        HWString('nextPrayerCountdown', defaultValue: '—'),
-        style: HWRoleTextStyle(
-          role: HWTextStyleRole.title,
-          color: _accent,
-          fontWeight: HWFontWeight.bold,
-        ),
+    HWText(
+      HWString('nextPrayerName', defaultValue: '—'),
+      style: HWRoleTextStyle(
+        role: HWTextStyleRole.headline,
+        color: _primary,
+        fontWeight: HWFontWeight.bold,
       ),
     ),
     HWText(
-      HWString('nextPrayerTime', defaultValue: '—'),
-      style: HWRoleTextStyle(role: HWTextStyleRole.body, color: _secondary),
+      HWString('nextPrayerCountdown', defaultValue: '—'),
+      style: HWRoleTextStyle(
+        role: HWTextStyleRole.title,
+        color: _accent,
+        fontWeight: HWFontWeight.bold,
+      ),
+    ),
+  ],
+);
+
+/// 4×2: the countdown stays the signal, while the absolute time gives the card
+/// a second, non-stale fact when the last snapshot is a few minutes old.
+const HWWidget _heroMedium = HWRow(
+  mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
+  crossAxisAlignment: HWCrossAxisAlignment.center,
+  children: [
+    HWColumn(
+      crossAxisAlignment: HWCrossAxisAlignment.start,
+      spacing: WidgetTokens.spaceXxs,
+      children: [
+        HWText(
+          HWString('nextPrayerName', defaultValue: '—'),
+          style: HWRoleTextStyle(
+            role: HWTextStyleRole.headline,
+            color: _primary,
+            fontWeight: HWFontWeight.bold,
+          ),
+        ),
+        HWText(
+          HWString('nextPrayerTime', defaultValue: '—'),
+          style: HWRoleTextStyle(
+            role: HWTextStyleRole.captionSmall,
+            color: _secondary,
+            fontWeight: HWFontWeight.w500,
+          ),
+        ),
+      ],
+    ),
+    HWText(
+      HWString('nextPrayerCountdown', defaultValue: '—'),
+      textAlign: HWTextAlign.end,
+      style: HWRoleTextStyle(
+        role: HWTextStyleRole.title,
+        color: _accent,
+        fontWeight: HWFontWeight.bold,
+      ),
     ),
   ],
 );
@@ -119,22 +129,26 @@ const HWWidget _hijri = HWBoolConditional(
   data: HWBool('showHijri', defaultValue: true),
   whenTrue: HWText(
     HWString('hijriDate', defaultValue: ''),
-    style: HWRoleTextStyle(role: HWTextStyleRole.caption, color: _secondary),
+    textAlign: HWTextAlign.end,
+    style: HWRoleTextStyle(
+      role: HWTextStyleRole.captionSmall,
+      color: _secondary,
+    ),
   ),
   whenFalse: HWSizedBox.shrink(),
 );
 
-const HWWidget _quickHint = HWBoolConditional(
+/// Short enough to share the sequence row at 200% text; the full explanation
+/// lives in Settings → Home-screen widget, where there is room to read it.
+const HWWidget _tapHint = HWBoolConditional(
   data: HWBool('showQuickActions', defaultValue: true),
   whenTrue: HWText.localized(
-    {
-      'en': 'Tap for Times · silence in Settings',
-      'fr': 'Ouvrir les horaires · silence dans Réglages',
-      'ar': 'اضغط لعرض المواقيت · كتم من الإعدادات',
-    },
+    {'en': 'Times', 'fr': 'Horaires', 'ar': 'المواقيت'},
+    textAlign: HWTextAlign.end,
     style: HWRoleTextStyle(
       role: HWTextStyleRole.captionSmall,
       color: _secondary,
+      fontWeight: HWFontWeight.w500,
     ),
   ),
   whenFalse: HWSizedBox.shrink(),
@@ -287,6 +301,50 @@ const HWWidget _amoledDots = HWRow(
 
 // ─────────────────────────────── Card shells ────────────────────────────────
 
+/// One top line instead of a stacked brand block. The icon carries the mark;
+/// the location and optional Hijri date share the line in their logical order.
+const HWWidget _topLine = HWSizedBox(
+  width: double.infinity,
+  child: HWRow(
+    mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
+    crossAxisAlignment: HWCrossAxisAlignment.center,
+    children: [
+      HWRow(
+        crossAxisAlignment: HWCrossAxisAlignment.center,
+        children: [
+          _brandMark,
+          HWPadding(
+            padding: HWEdgeInsets.only(left: WidgetTokens.spaceXxs),
+            child: _location,
+          ),
+        ],
+      ),
+      _hijri,
+    ],
+  ),
+);
+
+/// The five-dot sequence and the route hint share one row. Wrapping the row in
+/// an infinite-width box is what lets `spaceBetween` spread the dots in Glance.
+const HWWidget _standardFooter = HWSizedBox(
+  width: double.infinity,
+  child: HWRow(
+    mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
+    crossAxisAlignment: HWCrossAxisAlignment.center,
+    children: [_standardDots, _tapHint],
+  ),
+);
+const HWWidget _amoledFooter = HWSizedBox(
+  width: double.infinity,
+  child: HWRow(
+    mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
+    crossAxisAlignment: HWCrossAxisAlignment.center,
+    children: [_amoledDots, _tapHint],
+  ),
+);
+
+// Padding is the smallest spacing step so the text has the whole cell at 200%
+// system text. The hairline border and radius still give the card its edge.
 const HWWidget _smallStandardCard = HWSizedBox.expand(
   child: HWDecoratedBox(
     decoration: HWBoxDecoration(
@@ -298,24 +356,11 @@ const HWWidget _smallStandardCard = HWSizedBox.expand(
       ),
     ),
     child: HWPadding(
-      padding: HWEdgeInsets.all(WidgetTokens.spaceXl),
+      padding: HWEdgeInsets.all(WidgetTokens.spaceXs),
       child: HWColumn(
         crossAxisAlignment: HWCrossAxisAlignment.start,
         mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
-        children: [
-          HWColumn(
-            crossAxisAlignment: HWCrossAxisAlignment.start,
-            children: [
-              _brand,
-              HWPadding(
-                padding: HWEdgeInsets.only(top: WidgetTokens.spaceXxs),
-                child: _location,
-              ),
-            ],
-          ),
-          _hero,
-          _standardDots,
-        ],
+        children: [_heroSmall, _standardDots],
       ),
     ),
   ),
@@ -332,24 +377,11 @@ const HWWidget _smallAmoledCard = HWSizedBox.expand(
       ),
     ),
     child: HWPadding(
-      padding: HWEdgeInsets.all(WidgetTokens.spaceXl),
+      padding: HWEdgeInsets.all(WidgetTokens.spaceXs),
       child: HWColumn(
         crossAxisAlignment: HWCrossAxisAlignment.start,
         mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
-        children: [
-          HWColumn(
-            crossAxisAlignment: HWCrossAxisAlignment.start,
-            children: [
-              _brand,
-              HWPadding(
-                padding: HWEdgeInsets.only(top: WidgetTokens.spaceXxs),
-                child: _location,
-              ),
-            ],
-          ),
-          _hero,
-          _amoledDots,
-        ],
+        children: [_heroSmall, _amoledDots],
       ),
     ),
   ),
@@ -366,32 +398,11 @@ const HWWidget _mediumStandardCard = HWSizedBox.expand(
       ),
     ),
     child: HWPadding(
-      padding: HWEdgeInsets.all(WidgetTokens.spaceXl),
+      padding: HWEdgeInsets.all(WidgetTokens.spaceXs),
       child: HWColumn(
         crossAxisAlignment: HWCrossAxisAlignment.start,
         mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
-        children: [
-          HWRow(
-            mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
-            crossAxisAlignment: HWCrossAxisAlignment.start,
-            children: [
-              HWColumn(
-                crossAxisAlignment: HWCrossAxisAlignment.start,
-                children: [
-                  _brand,
-                  HWPadding(
-                    padding: HWEdgeInsets.only(top: WidgetTokens.spaceXxs),
-                    child: _location,
-                  ),
-                ],
-              ),
-              _hijri,
-            ],
-          ),
-          _hero,
-          _standardDots,
-          _quickHint,
-        ],
+        children: [_topLine, _heroMedium, _standardFooter],
       ),
     ),
   ),
@@ -408,32 +419,11 @@ const HWWidget _mediumAmoledCard = HWSizedBox.expand(
       ),
     ),
     child: HWPadding(
-      padding: HWEdgeInsets.all(WidgetTokens.spaceXl),
+      padding: HWEdgeInsets.all(WidgetTokens.spaceXs),
       child: HWColumn(
         crossAxisAlignment: HWCrossAxisAlignment.start,
         mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
-        children: [
-          HWRow(
-            mainAxisAlignment: HWMainAxisAlignment.spaceBetween,
-            crossAxisAlignment: HWCrossAxisAlignment.start,
-            children: [
-              HWColumn(
-                crossAxisAlignment: HWCrossAxisAlignment.start,
-                children: [
-                  _brand,
-                  HWPadding(
-                    padding: HWEdgeInsets.only(top: WidgetTokens.spaceXxs),
-                    child: _location,
-                  ),
-                ],
-              ),
-              _hijri,
-            ],
-          ),
-          _hero,
-          _amoledDots,
-          _quickHint,
-        ],
+        children: [_topLine, _heroMedium, _amoledFooter],
       ),
     ),
   ),

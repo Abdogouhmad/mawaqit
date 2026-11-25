@@ -50,6 +50,8 @@ void main() {
           expect(find.text(l10n.widgetTitle), findsWidgets);
           expect(find.text(l10n.widgetOpenTimes), findsOneWidget);
           expect(find.text(l10n.widgetSilenceAdhan), findsOneWidget);
+          expect(find.text(l10n.widgetHijriDateHint), findsOneWidget);
+          expect(find.text(l10n.widgetQuickActionsHint), findsOneWidget);
         });
       }
     }

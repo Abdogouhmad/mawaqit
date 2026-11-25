@@ -2,7 +2,5 @@
 <resources>
     <string name="home_widget_prayer_widget_label">Mawaqit prayers</string>
     <string name="home_widget_prayer_widget_description">Next prayer, countdown, and daily sequence</string>
-    <string name="home_widget_prayer_widget_t_0304834c">MAWAQIT</string>
-    <string name="home_widget_prayer_widget_t_ae92fb6e">NEXT PRAYER</string>
-    <string name="home_widget_prayer_widget_t_c610bf72">Tap for Times · silence in Settings</string>
+    <string name="home_widget_prayer_widget_t_f39c05de">Times</string>
 </resources>

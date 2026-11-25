@@ -2,7 +2,5 @@
 <resources>
     <string name="home_widget_prayer_widget_label">مواقيت الصلاة</string>
     <string name="home_widget_prayer_widget_description">الصلاة القادمة والعد التنازلي وترتيب الصلوات</string>
-    <string name="home_widget_prayer_widget_t_0304834c">مَواقيت</string>
-    <string name="home_widget_prayer_widget_t_ae92fb6e">الصلاة القادمة</string>
-    <string name="home_widget_prayer_widget_t_c610bf72">اضغط لعرض المواقيت · كتم من الإعدادات</string>
+    <string name="home_widget_prayer_widget_t_f39c05de">المواقيت</string>
 </resources>

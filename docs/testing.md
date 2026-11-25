@@ -217,6 +217,21 @@ the next stable pass.
       adhan" quick actions work; the widget root tap still goes to Times.
 - [ ] After an OTA update the widget survives and shows the new day's times.
 
+### 1.1.2 widget/Home regression checks
+
+These target the compact widget and the Home hierarchy shipped in the next beta.
+
+- [ ] At 2× system text the 2×2 widget still shows the next prayer name and
+      countdown without clipping; the 4×2 widget adds the absolute time,
+      location and Hijri line without overlapping the five-dot strip.
+- [ ] The medium widget's "Times" hint follows the device locale in EN/FR/AR and
+      disappears when Quick actions is off in Settings.
+- [ ] In Home, 200% text stacks the prayer name and countdown into separate
+      lines at 360dp in EN/FR/AR, and the time/pill detail stacks underneath.
+- [ ] The per-second tick still repaints only the countdown leaf; the prayer
+      timeline and solar card do not rebuild (covered by
+      `test/home_layout_test.dart`).
+
 ### 8. Insights & Hijri cards (Times tab)
 
 - [ ] Tapping "prayed" on a few occurrences updates the monthly total, on-time

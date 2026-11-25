@@ -1416,7 +1416,9 @@
   "widgetSizeMedium": "Medium",
   "widgetNextPrayer": "Next prayer",
   "widgetHijriDate": "Hijri date",
+  "widgetHijriDateHint": "Shown on the medium widget when enabled.",
   "widgetQuickActions": "Quick actions",
+  "widgetQuickActionsHint": "Show the Times hint on the medium widget.",
   "widgetOpenTimes": "Open Times",
   "widgetSilenceAdhan": "Silence adhan",
   "widgetPreview": "Preview",
@@ -1482,8 +1484,14 @@
   "@widgetHijriDate": {
     "description": "Label of the Hijri date on the home-screen widget."
   },
+  "@widgetHijriDateHint": {
+    "description": "Explains where the optional Hijri date appears."
+  },
   "@widgetQuickActions": {
     "description": "Heading for widget quick-action options."
+  },
+  "@widgetQuickActionsHint": {
+    "description": "Explains where the optional Times hint appears."
   },
   "@widgetOpenTimes": {
     "description": "Widget quick action that opens the Times tab."

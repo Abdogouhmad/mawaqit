@@ -83,7 +83,7 @@ class WidgetSettingsScreen extends ConsumerWidget {
                   SettingsRow(
                     icon: Icons.calendar_month_outlined,
                     title: l10n.widgetHijriDate,
-                    subtitle: l10n.widgetHijriDate,
+                    subtitle: l10n.widgetHijriDateHint,
                     trailing: Switch(
                       value: settings?.widgetShowHijri ?? true,
                       onChanged: settings == null
@@ -98,7 +98,7 @@ class WidgetSettingsScreen extends ConsumerWidget {
                   SettingsRow(
                     icon: Icons.bolt_outlined,
                     title: l10n.widgetQuickActions,
-                    subtitle: l10n.widgetQuickActions,
+                    subtitle: l10n.widgetQuickActionsHint,
                     trailing: Switch(
                       value: settings?.widgetShowQuickActions ?? true,
                       onChanged: settings == null

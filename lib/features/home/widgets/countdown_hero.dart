@@ -42,6 +42,12 @@ class CountdownHero extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final nextName = next.kind.localized(l10n);
     final countdown = TimeFormatter.countdown(nextIn);
+    // Above roughly 130% text the one-line rich title starts shrinking to stay
+    // inside 360dp. Stacking first keeps each figure at its semantic size and
+    // only scales a single line if a locale is genuinely too wide.
+    final largeText =
+        MediaQuery.textScalerOf(context).scale(AppFontSize.md) >
+        AppFontSize.md * AppLayout.largeTextScaleThreshold;
     final subtitle = currentPrayer == null
         ? l10n.homeDayBeginsWith(nextName)
         : l10n.homePrayerEnded(
@@ -68,12 +74,14 @@ class CountdownHero extends StatelessWidget {
               countdown: countdown,
               textTheme: theme.textTheme,
               scheme: scheme,
+              largeText: largeText,
             ),
             const SizedBox(height: AppSpacing.md),
             _PrayerMeta(
               prayerTime: TimeFormatter.clock(next.time),
               subtitle: subtitle,
               scheme: scheme,
+              largeText: largeText,
             ),
             const SizedBox(height: AppSpacing.tera),
             _PrayerProgress(
@@ -95,17 +103,55 @@ class _CountdownText extends StatelessWidget {
     required this.countdown,
     required this.textTheme,
     required this.scheme,
+    required this.largeText,
   });
 
   final String prayerName;
   final String countdown;
   final TextTheme textTheme;
   final ColorScheme scheme;
+  final bool largeText;
 
   @override
   Widget build(BuildContext context) {
-    final base = textTheme.displayMedium!;
-    const spacing = AppTypeDetail.heroTracking;
+    final base = largeText
+        ? textTheme.headlineMedium!
+        : textTheme.displayMedium!;
+
+    final nameStyle = AppTheme.numerals(
+      base.copyWith(color: scheme.onSurface, fontWeight: AppWeight.semibold),
+    );
+    final countdownStyle = AppTheme.numerals(
+      base.copyWith(
+        color: scheme.primary,
+        fontWeight: AppWeight.bold,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
+    );
+
+    if (largeText) {
+      return Column(
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              prayerName,
+              textAlign: TextAlign.center,
+              style: nameStyle,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              countdown,
+              textAlign: TextAlign.center,
+              style: countdownStyle,
+            ),
+          ),
+        ],
+      );
+    }
 
     return FittedBox(
       fit: BoxFit.scaleDown,
@@ -114,12 +160,8 @@ class _CountdownText extends StatelessWidget {
           children: [
             TextSpan(
               text: '$prayerName ',
-              style: AppTheme.numerals(
-                base.copyWith(
-                  color: scheme.onSurface,
-                  fontWeight: AppWeight.semibold,
-                  letterSpacing: spacing,
-                ),
+              style: nameStyle.copyWith(
+                letterSpacing: AppTypeDetail.heroTracking,
               ),
             ),
             TextSpan(
@@ -128,19 +170,14 @@ class _CountdownText extends StatelessWidget {
                 base.copyWith(
                   color: scheme.onSurfaceVariant,
                   fontWeight: AppWeight.regular,
-                  letterSpacing: spacing,
+                  letterSpacing: AppTypeDetail.heroTracking,
                 ),
               ),
             ),
             TextSpan(
               text: countdown,
-              style: AppTheme.numerals(
-                base.copyWith(
-                  color: scheme.primary,
-                  fontWeight: AppWeight.bold,
-                  letterSpacing: spacing,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
+              style: countdownStyle.copyWith(
+                letterSpacing: AppTypeDetail.heroTracking,
               ),
             ),
           ],
@@ -155,33 +192,49 @@ class _PrayerMeta extends StatelessWidget {
     required this.prayerTime,
     required this.subtitle,
     required this.scheme,
+    required this.largeText,
   });
 
   final String prayerTime;
   final String subtitle;
   final ColorScheme scheme;
+  final bool largeText;
 
   @override
   Widget build(BuildContext context) {
+    final time = UiText(
+      prayerTime,
+      type: UiTextType.titleMedium,
+      fontSize: AppFontSize.lg,
+      textAlign: largeText ? TextAlign.center : TextAlign.start,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      color: scheme.onSurface,
+      fontWeight: AppWeight.semibold,
+      style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
+    );
+    final detail = AppPill(
+      label: subtitle,
+      dense: true,
+      backgroundColor: scheme.surfaceContainer,
+    );
+
+    if (largeText) {
+      return Column(
+        children: [
+          time,
+          const SizedBox(height: AppSpacing.sm),
+          detail,
+        ],
+      );
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        UiText(
-          prayerTime,
-          type: UiTextType.titleMedium,
-          fontSize: AppFontSize.lg,
-          color: scheme.onSurface,
-          fontWeight: AppWeight.semibold,
-          style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
-        ),
+        time,
         const SizedBox(width: AppSpacing.sm),
-        Flexible(
-          child: AppPill(
-            label: subtitle,
-            dense: true,
-            backgroundColor: scheme.surfaceContainer,
-          ),
-        ),
+        Flexible(child: detail),
       ],
     );
   }

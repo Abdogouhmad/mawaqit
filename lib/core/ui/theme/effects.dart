@@ -263,6 +263,10 @@ abstract final class AppLayout {
 
   /// A bottom sheet never covers more of the screen than this.
   static const double sheetMaxHeightFactor = 0.7;
+
+  /// Above this text scale, inline readouts switch to stacked ones so each
+  /// figure keeps its semantic size instead of being shrunk by `FittedBox`.
+  static const double largeTextScaleThreshold = 1.3;
 }
 
 /// Typographic details that belong to the token set rather than to a widget.

@@ -7,6 +7,7 @@ import 'package:mawaqit/features/home/home_controller.dart';
 import 'package:mawaqit/features/home/home_screen.dart';
 import 'package:mawaqit/features/home/widgets/countdown_hero.dart';
 import 'package:mawaqit/features/home/widgets/prayer_schedule_tile.dart';
+import 'package:mawaqit/l10n/enum_localization.dart';
 import 'package:mawaqit/l10n/gen/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -88,6 +89,35 @@ void main() {
       find.bySemanticsLabel(RegExp('Dhuhr adhan|adhan')),
       findsWidgets,
       reason: 'each mute control is its own toggle',
+    );
+  });
+
+  testWidgets('the hero keeps its two large-text readouts separate in Arabic', (
+    tester,
+  ) async {
+    await _pumpHome(
+      tester,
+      width: 360,
+      locale: const Locale('ar'),
+      theme: _theme('light', true),
+      scale: 2,
+      home: home,
+    );
+
+    final l10n = AppLocalizations.of(tester.element(find.byType(HomeScreen)));
+    final nextName = home.nextPrayer!.kind.localized(l10n);
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(CountdownHero), findsOneWidget);
+    expect(
+      find.text(nextName),
+      findsWidgets,
+      reason: 'prayer name stays legible',
+    );
+    expect(
+      find.bySemanticsLabel(RegExp(l10n.homeNextPrayer)),
+      findsWidgets,
+      reason: 'the hero remains announced as one next-prayer unit',
     );
   });
 

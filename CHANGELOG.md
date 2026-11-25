@@ -13,6 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Home's countdown hero now keeps the prayer name, countdown and time detail as
+  separate, readable lines at 200% text, with the compact single-line hero
+  unchanged at standard text sizes.
+- The 2×2 launcher widget leads with the next prayer and countdown, while the
+  4×2 widget adds the absolute time, location, Hijri line, day strip and a short
+  localized Times hint.
+- Widget settings now explains where the optional Hijri date and Times hint
+  appear instead of repeating each switch label.
+
 ## [1.0.0] - 2026-11-24
 
 The first stable release. Everything below is included — there are no feature
